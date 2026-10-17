@@ -39,3 +39,35 @@ test("a sold or mutated area cannot become the parcel baseline", () => {
     expect(result.parcel?.total_area_decimals).toBeNull();
   }
 });
+
+test("boolean model flags become unknown without dropping valid deed data", () => {
+  const result = parseExtractionResult(
+    {
+      based_on_deed: false,
+      share_identity: true,
+      area_decimals: 12,
+      official_number: "502/2021",
+      parcel: { district: false, dag_number: "207" },
+    },
+    "DEED",
+    true,
+  );
+  expect(result.fields.based_on_deed).toBeNull();
+  expect(result.fields.share_identity).toBeNull();
+  expect(result.fields.area_decimals).toBe(12);
+  expect(result.fields.official_number).toBe("502/2021");
+  expect(result.parcel?.district).toBeNull();
+  expect(result.parcel?.dag_number).toBe("207");
+});
+test("real deed references are retained and malformed objects stay invalid", () => {
+  expect(
+    parseExtractionResult({ based_on_deed: "502/2021" }, "MUTATION").fields
+      .based_on_deed,
+  ).toBe("502/2021");
+  expect(() =>
+    parseExtractionResult(
+      { based_on_deed: { reference: "invented" } },
+      "MUTATION",
+    ),
+  ).toThrow();
+});

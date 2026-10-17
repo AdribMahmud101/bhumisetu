@@ -8,6 +8,9 @@ export function parseExtractionResult(
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     throw new Error("Invalid extraction result");
   const parsed = { ...emptyFields, ...raw } as Record<string, any>;
+  // Model booleans are not documentary evidence; leave the field for review.
+  for (const key of Object.keys(emptyFields))
+    if (typeof parsed[key] === "boolean") parsed[key] = null;
   for (const key of [
     "official_number",
     "dag_number",
@@ -38,6 +41,8 @@ export function parseExtractionResult(
         "total_area_decimals",
       ].map((key) => [key, source[key] ?? null]),
     );
+    for (const key of Object.keys(candidate))
+      if (typeof candidate[key] === "boolean") candidate[key] = null;
     for (const key of ["jl_number", "dag_number", "current_khatian_no"])
       if (typeof candidate[key] === "number")
         candidate[key] = String(candidate[key]);
