@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import { LanguageSwitch, useI18n } from "@/i18n/provider";
-import { categories, Category } from "@/lib/domain";
+import { categories, Category, fieldLabels, Fields } from "@/lib/domain";
 import { prepareDocument } from "@/lib/pdf-client";
 
 async function request(path: string, body?: unknown) {
@@ -17,7 +17,10 @@ async function request(path: string, body?: unknown) {
       body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Request failed");
+  if (!response.ok)
+    throw Object.assign(new Error(data.error || "Request failed"), {
+      status: response.status,
+    });
   return data;
 }
 export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
@@ -31,6 +34,10 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [reason, setReason] = useState("");
+  const [restoring, setRestoring] = useState(true);
+  const restored = useRef(false);
+  const edited = useRef(new Set<string>());
+  const latest = useRef<{ id: string; updated: number } | null>(null);
   const fields = [
     ["district", t("district_9c833")],
     ["upazila", t("upazila_3b1b8")],
@@ -40,58 +47,109 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
     ["current_khatian_no", t("khatian_number_74e57")],
     ["total_area_decimals", t("land_area_decimals_9095e")],
   ];
-  function load(data: any) {
+  const load = useCallback((data: any) => {
+    const updated = Date.parse(data.updated_at) || 0;
+    if (
+      latest.current &&
+      latest.current.id === data.id &&
+      updated < latest.current.updated
+    )
+      return;
+    latest.current = { id: data.id, updated };
     setIntake(data);
-    setValues(
-      Object.fromEntries(
-        Object.entries(data.parcel_fields || {}).map(([key, value]) => [
-          key,
-          value == null ? "" : String(value),
-        ]),
+    setValues((previous) => ({
+      ...previous,
+      ...Object.fromEntries(
+        Object.entries(data.parcel_fields || {})
+          .filter(([key]) => !edited.current.has(key))
+          .map(([key, value]) => [key, value == null ? "" : String(value)]),
       ),
-    );
-  }
-  useEffect(() => {
-    const id = sessionStorage.getItem("bs-intake-id");
-    if (id)
-      request("intake/" + id)
-        .then((data) => {
-          if (data.status === "ATTACHED")
-            sessionStorage.removeItem("bs-intake-id");
-          else load(data);
-        })
-        .catch(() => sessionStorage.removeItem("bs-intake-id"));
+    }));
   }, []);
-  useEffect(() => {
-    if (intake?.status !== "EXTRACTING") return;
-    const timer = setInterval(
-      () =>
-        request("intake/" + intake.id)
-          .then(load)
-          .catch(() => {}),
-      3000,
-    );
-    return () => clearInterval(timer);
-  }, [intake?.id, intake?.status]);
-  async function extract(data: any, file?: File) {
-    setBusy(true);
-    setError("");
-    try {
-      if (!file) {
-        const response = await fetch("/api/service/intake-document/" + data.id);
-        if (!response.ok) throw new Error("Request failed");
-        file = new File([await response.blob()], data.file_name, {
-          type: data.mime_type,
-        });
+  const extract = useCallback(
+    async (data: any, file?: File) => {
+      setBusy(true);
+      setError("");
+      setIntake({ ...data, status: "EXTRACTING" });
+      try {
+        if (!file) {
+          const response = await fetch(
+            "/api/service/intake-document/" + data.id,
+          );
+          if (!response.ok) throw new Error("Request failed");
+          file = new File([await response.blob()], data.file_name, {
+            type: data.mime_type,
+          });
+        }
+        const content = await prepareDocument(file);
+        load(await request("intake-extract/" + data.id, content));
+      } catch (e) {
+        setError((e as Error).message);
+        try {
+          setIntake(await request("intake/" + data.id));
+        } catch {
+          setIntake({ ...data, status: "FAILED" });
+        }
+      } finally {
+        setBusy(false);
       }
-      const content = await prepareDocument(file);
-      load(await request("intake-extract/" + data.id, content));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
+    },
+    [load],
+  );
+  useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    const id = sessionStorage.getItem("bs-intake-id");
+    if (!id) {
+      setRestoring(false);
+      return;
     }
+    request("intake/" + id)
+      .then(async (data) => {
+        if (data.status === "ATTACHED")
+          sessionStorage.removeItem("bs-intake-id");
+        else {
+          load(data);
+          if (data.retry_recommended) await extract(data);
+        }
+      })
+      .catch((e) => {
+        if (e.status === 401 || e.status === 404)
+          sessionStorage.removeItem("bs-intake-id");
+        else setError(e.message);
+      })
+      .finally(() => setRestoring(false));
+  }, [extract, load]);
+  const intakeId = intake?.id;
+  const intakeStatus = intake?.status;
+  useEffect(() => {
+    if (!intakeId) return;
+    const update = () =>
+      request("intake/" + intakeId)
+        .then(load)
+        .catch(() => {});
+    const focus = () => {
+      if (!busy) update();
+    };
+    window.addEventListener("focus", focus);
+    const timer =
+      intakeStatus === "EXTRACTING" ? setInterval(update, 3000) : undefined;
+    return () => {
+      window.removeEventListener("focus", focus);
+      clearInterval(timer);
+    };
+  }, [intakeId, intakeStatus, busy, load]);
+  function startNew() {
+    sessionStorage.removeItem("bs-intake-id");
+    edited.current.clear();
+    latest.current = null;
+    setIntake(null);
+    setValues({});
+    setManual(false);
+    setReason("");
+    setError("");
   }
+
   return (
     <div className="modal-backdrop">
       <section
@@ -114,16 +172,18 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
         <p className="muted">{t("intake_intro")}</p>
         {error && (
           <p role="alert" className="notice">
-            {tt(error)}
+            {/invalid_type|invalid_format|Invalid date/.test(error)
+              ? t("intake_extraction_failed")
+              : tt(error)}
           </p>
         )}
-        {busy && (
+        {(busy || restoring || intake?.status === "EXTRACTING") && (
           <p role="status">
             <Loader2 className="animate-spin" size={18} />
             {t("intake_processing")}
           </p>
         )}
-        {!intake && !manual && (
+        {!restoring && !intake && !manual && (
           <form
             onSubmit={async (e) => {
               e.preventDefault();
@@ -205,7 +265,13 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
           <>
             {intake && (
               <div className="notice">
-                <strong>{t("intake_saved")}</strong>
+                <strong role="status">
+                  {intake.status === "READY"
+                    ? t("intake_complete")
+                    : intake.status === "FAILED"
+                      ? t("intake_extraction_failed")
+                      : t("intake_saved")}
+                </strong>
                 <p>{intake.file_name}</p>
                 <a
                   href={"/api/service/intake-document/" + intake.id}
@@ -228,74 +294,107 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                     {t("intake_retry")}
                   </button>
                 )}
+                {intake.status !== "READY" && (
+                  <button
+                    type="button"
+                    className="button"
+                    disabled={busy || intake.status === "EXTRACTING"}
+                    onClick={() => setManual(true)}
+                  >
+                    {t("intake_manual")}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="button"
+                  disabled={busy || restoring || intake.status === "EXTRACTING"}
+                  onClick={startNew}
+                >
+                  {t("intake_start_new")}
+                </button>
+                {intake.status === "READY" && (
+                  <dl className="form-grid">
+                    {Object.entries(intake.extracted_fields || {})
+                      .filter(([, value]) => value != null && value !== "")
+                      .map(([key, value]) => (
+                        <div key={key}>
+                          <dt>{tt(fieldLabels[key as keyof Fields] || key)}</dt>
+                          <dd>{String(value)}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                )}
               </div>
             )}
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setBusy(true);
-                setError("");
-                try {
-                  const land = Object.fromEntries(
-                    fields.map(([key]) => [key, values[key] || ""]),
-                  );
-                  const result = intake
-                    ? await request("intake-confirm/" + intake.id, {
-                        land,
-                        reason,
-                      })
-                    : await request("create", land);
-                  sessionStorage.removeItem("bs-intake-id");
-                  onClose();
-                  router.push("/admin/land/" + result.unique_land_id);
-                } catch (e) {
-                  setError((e as Error).message);
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              <div className="form-grid">
-                {fields.map(([key, title]) => (
-                  <label key={key}>
-                    {title}
-                    <input
-                      name={key}
-                      value={values[key] || ""}
-                      onChange={(e) =>
-                        setValues({ ...values, [key]: e.target.value })
-                      }
-                      required={
-                        !["jl_number", "current_khatian_no"].includes(key)
-                      }
-                      type={key === "total_area_decimals" ? "number" : "text"}
-                      step="0.01"
-                      min={key === "total_area_decimals" ? "0.01" : undefined}
+            {(manual || intake?.status === "READY") && (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setBusy(true);
+                  setError("");
+                  try {
+                    const land = Object.fromEntries(
+                      fields.map(([key]) => [key, values[key] || ""]),
+                    );
+                    const result = intake
+                      ? await request("intake-confirm/" + intake.id, {
+                          land,
+                          reason,
+                        })
+                      : await request("create", land);
+                    sessionStorage.removeItem("bs-intake-id");
+                    onClose();
+                    router.push("/admin/land/" + result.unique_land_id);
+                  } catch (e) {
+                    setError((e as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <div className="form-grid">
+                  {fields.map(([key, title]) => (
+                    <label key={key}>
+                      {title}
+                      <input
+                        name={key}
+                        value={values[key] || ""}
+                        onChange={(e) => {
+                          edited.current.add(key);
+                          setValues({ ...values, [key]: e.target.value });
+                        }}
+                        required={
+                          !["jl_number", "current_khatian_no"].includes(key)
+                        }
+                        type={key === "total_area_decimals" ? "number" : "text"}
+                        step="0.01"
+                        min={key === "total_area_decimals" ? "0.01" : undefined}
+                      />
+                    </label>
+                  ))}
+                </div>
+                {intake && (
+                  <label>
+                    {t("intake_reason")}
+                    <textarea
+                      name="reason"
+                      required
+                      minLength={3}
+                      maxLength={1000}
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
                     />
                   </label>
-                ))}
-              </div>
-              {intake && (
-                <label>
-                  {t("intake_reason")}
-                  <textarea
-                    name="reason"
-                    required
-                    minLength={3}
-                    maxLength={1000}
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                  />
-                </label>
-              )}
-              <p className="muted">{t("intake_pending")}</p>
-              <button
-                className="button primary"
-                disabled={busy || intake?.status === "EXTRACTING"}
-              >
-                {intake ? t("intake_confirm") : t("create_draft_7f2d7")}
-              </button>
-            </form>
+                )}
+                <p className="muted">{t("intake_pending")}</p>
+                <button
+                  className="button primary"
+                  disabled={busy || intake?.status === "EXTRACTING"}
+                >
+                  {intake ? t("intake_confirm") : t("create_draft_7f2d7")}
+                </button>
+              </form>
+            )}
           </>
         )}
       </section>

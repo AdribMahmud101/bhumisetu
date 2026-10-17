@@ -34,7 +34,15 @@ export async function getIntake(id: string, actor: string) {
     check(recoveryError);
     if (recovered) return recovered;
   }
-  return data;
+  return {
+    ...data,
+    retry_recommended:
+      data.status === "FAILED" &&
+      /invalid_type|invalid_format|Invalid date/.test(
+        data.extraction_error || "",
+      ) &&
+      data.extraction_metadata?.parser_version !== "2026-10-17-v2",
+  };
 }
 export async function createIntake(form: FormData, actor: string) {
   const file = form.get("file");
@@ -128,6 +136,7 @@ export async function extractIntake(
         extracted_fields: result.fields,
         parcel_fields: result.parcel,
         extraction_metadata: {
+          parser_version: "2026-10-17-v2",
           model: result.model,
           usage: result.usage,
           source_pages: pages.length,
@@ -146,6 +155,10 @@ export async function extractIntake(
       .from("document_intakes")
       .update({
         status: "FAILED",
+        extraction_metadata: {
+          ...data.extraction_metadata,
+          parser_version: "2026-10-17-v2",
+        },
         extraction_error:
           error instanceof Error ? error.message : "Extraction failed",
         updated_at: new Date().toISOString(),
