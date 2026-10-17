@@ -1513,23 +1513,12 @@ function UploadPanel({
 
   const [category, setCategory] = useState<Category>("KHATIAN");
   const [subtype, setSubtype] = useState("CS");
-  const [enhance, setEnhance] = useState(true);
   return (
     <section className="panel upload-panel">
       <div>
         <h3>{t("add_new_documents_c9c24")}</h3>
         <p>{t("pdf_png_jpeg_up_to_5_mb_7129f")}</p>
       </div>
-      <label className="ocr-enhance-control">
-        <input
-          type="checkbox"
-          checked={enhance}
-          disabled={busy}
-          onChange={(e) => setEnhance(e.target.checked)}
-        />
-        {t("ocr_enhance")}
-      </label>
-      <p className="muted">{t("ocr_enhance_help")}</p>
       <div className="upload-controls">
         <label>
           {t("category_d9096")}
@@ -1577,7 +1566,7 @@ function UploadPanel({
                   Array.from(e.target.files),
                   category,
                   subtype,
-                  enhance,
+                  true,
                 );
               e.target.value = "";
             }}
@@ -1806,6 +1795,7 @@ function ReviewDialog({
             <h3>{t("review_the_extracted_fields_4515e")}</h3>
             <p>{t("do_not_guess_unclear_or_missing_values_b4c66")}</p>
             <DocumentFieldsEditor
+              category={doc.category}
               fields={fields}
               disabled={busy}
               onChange={setFields}

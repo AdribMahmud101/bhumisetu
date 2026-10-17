@@ -17,13 +17,13 @@ export async function extractPages(
     {
       model:
         process.env.DEEPINFRA_VISION_MODEL ||
-        "Qwen/Qwen3-VL-235B-A22B-Instruct",
+        "Qwen/Qwen3-VL-30B-A3B-Instruct",
       temperature: 0,
       max_tokens: 3500,
       messages: [
         {
           role: "system",
-          content: extractionPrompt(includeParcel),
+          content: extractionPrompt(includeParcel, category),
         },
         {
           role: "user",
@@ -40,7 +40,7 @@ export async function extractPages(
         },
       ],
     },
-    { timeout: 60000, maxRetries: 0 },
+    { timeout: 45000, maxRetries: 1 },
   );
   const raw = result.choices[0]?.message.content || "";
   const parsed = parseExtractionJson(raw);

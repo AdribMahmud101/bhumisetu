@@ -1,23 +1,29 @@
 "use client";
 import { useI18n } from "@/i18n/provider";
-import { Fields, fieldLabels } from "@/lib/domain";
+import { Category, categoryFields, Fields, fieldLabels } from "@/lib/domain";
 export default function DocumentFieldsEditor({
   fields,
   onChange,
+  category,
   disabled = false,
   prefix = "edit-field-",
 }: {
   fields: Fields;
   onChange: (fields: Fields, key: keyof Fields) => void;
+  category?: Category | string;
   disabled?: boolean;
   prefix?: string;
 }) {
   const { t, tt } = useI18n();
+  const activeKeys: (keyof Fields)[] =
+    category && category in categoryFields
+      ? categoryFields[category as Category]
+      : (Object.keys(fieldLabels) as (keyof Fields)[]);
   return (
     <div className="form-grid document-fields-editor">
-      {Object.entries(fieldLabels).map(([key, label]) => (
+      {activeKeys.map((key) => (
         <label key={key}>
-          {tt(label)}
+          {tt(fieldLabels[key])}
           <input
             name={prefix + key}
             data-testid={prefix + key}

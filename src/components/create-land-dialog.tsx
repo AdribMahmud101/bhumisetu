@@ -37,7 +37,6 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [reason, setReason] = useState("");
-  const [enhance, setEnhance] = useState(true);
   const [preview, setPreview] = useState<string[]>([]);
   const [documentFields, setDocumentFields] = useState<Fields>({
     ...emptyFields,
@@ -102,23 +101,38 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
             type: data.mime_type,
           });
         }
-        const content = await prepareDocument(file, { enhance });
+        const content = await prepareDocument(file, { enhance: true });
         setPreview(content.pages);
         if (abandoned.current) return;
         load(await request("intake-extract/" + data.id, content));
       } catch (e) {
         if (abandoned.current) return;
-        setError((e as Error).message);
+        const errMessage =
+          (e as Error).message || "Extraction timeout or network failure";
+        setError(errMessage);
         try {
-          setIntake(await request("intake/" + data.id));
+          const refreshed = await request("intake/" + data.id);
+          if (refreshed.status === "EXTRACTING") {
+            setIntake({
+              ...refreshed,
+              status: "FAILED",
+              extraction_error: errMessage,
+            });
+          } else {
+            setIntake(refreshed);
+          }
         } catch {
-          setIntake({ ...data, status: "FAILED" });
+          setIntake({
+            ...data,
+            status: "FAILED",
+            extraction_error: errMessage,
+          });
         }
       } finally {
         setBusy(false);
       }
     },
-    [load, enhance],
+    [load],
   );
   useEffect(() => {
     if (restored.current) return;
@@ -210,20 +224,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
             {t("intake_processing")}
           </p>
         )}
-        {!manual && (
-          <label className="ocr-enhance-control">
-            <input
-              type="checkbox"
-              checked={enhance}
-              disabled={
-                busy || saving || restoring || intake?.status === "EXTRACTING"
-              }
-              onChange={(e) => setEnhance(e.target.checked)}
-            />
-            {t("ocr_enhance")}
-          </label>
-        )}
-        {!manual && <p className="muted">{t("ocr_enhance_help")}</p>}
+
         {preview.length > 0 && (
           <details className="ocr-preview">
             <summary>{t("ocr_preview")}</summary>
@@ -420,6 +421,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                     <h3>{t("ocr_edit_heading")}</h3>
                     <p className="muted">{t("ocr_edit_help")}</p>
                     <DocumentFieldsEditor
+                      category={intake?.category || category}
                       fields={documentFields}
                       disabled={busy}
                       prefix="intake-edit-field-"

@@ -51,7 +51,7 @@ export async function prepareDocument(
       );
       const base = page.getViewport({ scale: 1 });
       const viewport = page.getViewport({
-        scale: Math.min(3, 2400 / Math.max(base.width, base.height)),
+        scale: Math.min(2.2, 1800 / Math.max(base.width, base.height)),
       });
       const canvas = document.createElement("canvas");
       canvas.width = viewport.width;

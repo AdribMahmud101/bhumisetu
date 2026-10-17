@@ -101,6 +101,49 @@ export const fieldLabels: Record<keyof Fields, string> = {
   share_identity: "জমির অংশ / Share identifier",
   based_on_deed: "সংশ্লিষ্ট দলিল / Referenced deed",
 };
+
+export const categoryFields: Record<Category, (keyof Fields)[]> = {
+  KHATIAN: [
+    "official_number",
+    "buyer_or_current_owner",
+    "document_date",
+    "dag_number",
+    "area_decimals",
+    "share_identity",
+    "khatian_ref",
+  ],
+  PORCHA: [
+    "official_number",
+    "buyer_or_current_owner",
+    "document_date",
+    "dag_number",
+    "area_decimals",
+    "share_identity",
+    "khatian_ref",
+  ],
+  DEED: [
+    "official_number",
+    "seller_or_prior_owner",
+    "buyer_or_current_owner",
+    "execution_date",
+    "document_date",
+    "dag_number",
+    "area_decimals",
+    "share_identity",
+    "khatian_ref",
+  ],
+  MUTATION: [
+    "official_number",
+    "seller_or_prior_owner",
+    "buyer_or_current_owner",
+    "document_date",
+    "based_on_deed",
+    "dag_number",
+    "area_decimals",
+    "share_identity",
+    "khatian_ref",
+  ],
+};
 export const emptyFields: Fields = {
   official_number: null,
   document_date: null,

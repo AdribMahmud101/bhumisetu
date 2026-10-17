@@ -38,9 +38,10 @@ for (const [category, subtype] of [
     await page
       .getByRole("button", { name: "Enter parcel details manually" })
       .click();
+    const expectedCount = ["KHATIAN", "PORCHA"].includes(category) ? 7 : 9;
     await expect(
       page.locator('[data-testid^="intake-edit-field-"]'),
-    ).toHaveCount(10);
+    ).toHaveCount(expectedCount);
     await page
       .getByTestId("intake-edit-field-official_number")
       .fill("REVIEW-" + category);
@@ -95,7 +96,7 @@ for (const [category, subtype] of [
     ).toBe(true);
   });
 }
-test("preprocessing can be bypassed, bounds image payloads and records what changed", async ({
+test("preprocessing runs automatically, bounds image payloads and records what changed", async ({
   page,
 }) => {
   expect(
@@ -104,9 +105,6 @@ test("preprocessing can be bypassed, bounds image payloads and records what chan
   await page.goto("/admin");
   await page.getByTestId("locale-en").click();
   await page.getByRole("button", { name: "Create land record" }).click();
-  await page
-    .getByRole("checkbox", { name: "Enhance scanned pages before OCR" })
-    .uncheck();
   const content = await page.evaluate(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 1000;
@@ -122,7 +120,7 @@ test("preprocessing can be bypassed, bounds image payloads and records what chan
   });
   await page.route("**/api/service/intake-extract/*", async (route) => {
     const body = route.request().postDataJSON();
-    expect(body.preprocessing.enhanced).toBe(false);
+    expect(body.preprocessing.enhanced).toBe(true);
     expect(body.preprocessing.pages).toHaveLength(1);
     expect(body.preprocessing.pages[0].rotation).toBe(0);
     expect(body.pages[0].length).toBeLessThan(2500000);

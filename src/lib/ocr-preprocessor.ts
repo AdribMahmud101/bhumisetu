@@ -38,7 +38,14 @@ export async function preprocessImage(
 ) {
   if (!width || !height || width * height > 36000000)
     throw new Error("Image dimensions exceed the supported limit");
-  const scale = Math.min(2400 / Math.max(width, height), enhance ? 2 : 1);
+  const maxDim = Math.max(width, height);
+  const targetMax = 1800;
+  const scale =
+    maxDim > targetMax
+      ? targetMax / maxDim
+      : enhance && maxDim < 1000
+        ? Math.min(1.5, targetMax / maxDim)
+        : 1;
   let output = canvas(
     Math.max(1, Math.round(width * scale)),
     Math.max(1, Math.round(height * scale)),
@@ -115,10 +122,10 @@ export async function preprocessImage(
     ));
     output.context.putImageData(image, 0, 0);
   }
-  let url = output.canvas.toDataURL("image/jpeg", 0.9);
-  if (url.length >= 2500000) url = output.canvas.toDataURL("image/jpeg", 0.8);
+  let url = output.canvas.toDataURL("image/jpeg", 0.85);
+  if (url.length >= 1800000) url = output.canvas.toDataURL("image/jpeg", 0.78);
   while (
-    url.length >= 2500000 &&
+    url.length >= 1800000 &&
     Math.max(output.canvas.width, output.canvas.height) > 1000
   ) {
     const resized = canvas(
@@ -133,7 +140,7 @@ export async function preprocessImage(
       resized.canvas.height,
     );
     output = resized;
-    url = output.canvas.toDataURL("image/jpeg", 0.8);
+    url = output.canvas.toDataURL("image/jpeg", 0.78);
   }
   if (url.length >= 2500000)
     throw new Error("Prepared image exceeds the supported limit");

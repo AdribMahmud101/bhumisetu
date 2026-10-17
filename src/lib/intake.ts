@@ -22,7 +22,7 @@ export async function getIntake(id: string, actor: string) {
   // A terminated worker must not leave the private intake permanently locked.
   if (
     data.status === "EXTRACTING" &&
-    Date.now() - Date.parse(data.updated_at) > 120000
+    Date.now() - Date.parse(data.updated_at) > 45000
   ) {
     const { data: recovered, error: recoveryError } = await db()
       .from("document_intakes")

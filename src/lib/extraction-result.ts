@@ -37,6 +37,9 @@ export function parseExtractionResult(
       parsed[key] = null;
   }
   if (category !== "DEED") parsed.execution_date = null;
+  if (category !== "MUTATION") parsed.based_on_deed = null;
+  if (["KHATIAN", "PORCHA"].includes(category))
+    parsed.seller_or_prior_owner = null;
   const fields = fieldsSchema.parse(parsed);
   let parcel: ReturnType<typeof parcelExtractionSchema.parse> | undefined;
   if (includeParcel) {
