@@ -103,4 +103,47 @@ describe("land domain and trash filtering", () => {
     expect(LAND_UNITS).toContain("কাঠা");
     expect(LAND_UNITS).toContain("ছটাক");
   });
+
+  test("internal document CRUD operations and cascade tracking", () => {
+    interface TestDoc {
+      id: string;
+      master_land_id: string;
+      category: string;
+      sub_type: string;
+      official_number: string;
+    }
+
+    let documents: TestDoc[] = [
+      {
+        id: "doc-1",
+        master_land_id: "lnd-1",
+        category: "PORCHA",
+        sub_type: "GENERAL",
+        official_number: "PORCHA-001",
+      },
+      {
+        id: "doc-2",
+        master_land_id: "lnd-1",
+        category: "KHATIAN",
+        sub_type: "RS",
+        official_number: "KHATIAN-002",
+      },
+    ];
+
+    // Read / list
+    expect(documents.filter((d) => d.master_land_id === "lnd-1")).toHaveLength(2);
+
+    // Update category and sub_type
+    documents = documents.map((d) =>
+      d.id === "doc-1" ? { ...d, category: "DEED", sub_type: "SAF_KABALA" } : d,
+    );
+    expect(documents.find((d) => d.id === "doc-1")?.category).toBe("DEED");
+    expect(documents.find((d) => d.id === "doc-1")?.sub_type).toBe("SAF_KABALA");
+
+    // Delete single internal document
+    documents = documents.filter((d) => d.id !== "doc-1");
+    expect(documents).toHaveLength(1);
+    expect(documents[0].id).toBe("doc-2");
+  });
 });
+

@@ -70,6 +70,33 @@ async function purgeLandRecord(landId: string) {
     .eq("id", landId);
   check(delErr);
 }
+async function deleteDocumentRecord(docId: string) {
+  const { data: doc, error: de } = await db()
+    .from("land_documents")
+    .select("id, master_land_id, file_path")
+    .eq("id", docId)
+    .maybeSingle();
+  check(de);
+  if (!doc) throw new Error("Document not found");
+
+  await db().from("mutation_cases").delete().eq("source_deed_id", doc.id);
+  await db().from("audit_logs").delete().eq("document_id", doc.id);
+  try {
+    await db().from("document_intakes").update({ document_id: null }).eq("document_id", doc.id);
+  } catch (err) {
+    console.warn("Intake unbind note:", err);
+  }
+  if (doc.file_path) {
+    try {
+      await db().storage.from("land-documents").remove([doc.file_path]);
+    } catch (storageErr) {
+      console.warn("Storage cleanup note:", storageErr);
+    }
+  }
+  const { error: delErr } = await db().from("land_documents").delete().eq("id", doc.id);
+  check(delErr);
+  return doc;
+}
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
@@ -476,6 +503,33 @@ export async function POST(
         }
       }
       return json({ ok: true, purged_count: trashed?.length || 0 });
+    }
+    if (action === "delete-document") {
+      const deletedDoc = await deleteDocumentRecord(id);
+      return json({ ok: true, deleted: deletedDoc.id });
+    }
+    if (action === "update-document") {
+      const b = await req.json();
+      const updateData: Record<string, any> = {};
+      if (b.category !== undefined) {
+        if (!["KHATIAN", "PORCHA", "DEED", "MUTATION"].includes(b.category))
+          throw new Error("Invalid document category");
+        updateData.category = b.category;
+      }
+      if (b.sub_type !== undefined) {
+        updateData.sub_type = String(b.sub_type).trim();
+      }
+      if (b.official_number !== undefined) {
+        updateData.official_number = String(b.official_number).trim() || null;
+      }
+      const { data, error } = await db()
+        .from("land_documents")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+      check(error);
+      return json({ ok: true, document: data });
     }
     if (action === "upload") {
       const { land } = await loadLand(id, true);

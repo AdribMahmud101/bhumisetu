@@ -149,6 +149,7 @@ export default function Portal({
   const [purgingLand, setPurgingLand] = useState<Land | null>(null);
   const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<LandDocument | null>(null);
+  const [deletingDoc, setDeletingDoc] = useState<LandDocument | null>(null);
   const [cases, setCases] = useState<any[]>([]);
   const [origin, setOrigin] = useState("");
   const router = useRouter();
@@ -1362,6 +1363,15 @@ export default function Portal({
                             </Badge>
                             {view === "land" ? (
                               <div className="review-actions">
+                                <button
+                                  className="button outline small"
+                                  data-testid={"preview-doc-" + d.id}
+                                  onClick={() => setPreviewDoc(d)}
+                                  title={t("preview_document")}
+                                >
+                                  <Eye size={14} />
+                                  {t("preview_action")}
+                                </button>
                                 {d.extraction_status === "FAILED" && (
                                   <button
                                     disabled={busy}
@@ -1398,6 +1408,15 @@ export default function Portal({
                                 >
                                   {t("review_5885b")}
                                   <ArrowRight size={14} />
+                                </button>
+                                <button
+                                  className="button danger small"
+                                  data-testid={"delete-doc-" + d.id}
+                                  disabled={busy}
+                                  onClick={() => setDeletingDoc(d)}
+                                  title={t("delete_action")}
+                                >
+                                  <Trash2 size={14} />
                                 </button>
                               </div>
                             ) : (
@@ -1610,7 +1629,17 @@ export default function Portal({
         <ReviewDialog
           document={review}
           onClose={() => setReview(null)}
-          onSave={async (fields, reason, status) => {
+          onDelete={(d) => setDeletingDoc(d)}
+          onSave={async (fields, reason, status, docCategory, docSubType) => {
+            if (
+              (docCategory && docCategory !== review.category) ||
+              (docSubType && docSubType !== review.sub_type)
+            ) {
+              await api("update-document/" + review.id, {
+                category: docCategory,
+                sub_type: docSubType,
+              });
+            }
             await api("review/" + review.id, { fields, reason, status });
             await refresh();
             setNotice(t("review_and_audit_history_saved_ab810"));
@@ -1716,6 +1745,96 @@ export default function Portal({
                   <Trash2 size={16} />
                 )}{" "}
                 {t("move_to_trash_action")}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {deletingDoc && (
+        <div className="modal-backdrop">
+          <section
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-doc-modal-title"
+            style={{ maxWidth: "480px" }}
+            data-testid="delete-doc-confirm-dialog"
+          >
+            <div className="flex-between">
+              <h2 id="delete-doc-modal-title">
+                {t("delete_doc_confirm_title")}
+              </h2>
+              <button
+                className="icon-button"
+                disabled={busy}
+                onClick={() => setDeletingDoc(null)}
+                aria-label={t("cancel_action")}
+              >
+                <X />
+              </button>
+            </div>
+            <p style={{ marginTop: "1rem", color: "var(--muted)" }}>
+              {t("delete_doc_confirm_desc")}
+            </p>
+            <div
+              style={{
+                marginTop: "0.75rem",
+                padding: "0.75rem",
+                background: "var(--surface)",
+                borderRadius: "6px",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <strong>
+                {deletingDoc.official_number || deletingDoc.file_name}
+              </strong>
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  color: "var(--muted)",
+                  margin: "0.25rem 0 0",
+                }}
+              >
+                {tt(categories[deletingDoc.category]?.bn || deletingDoc.category)} ·{" "}
+                {tt(deletingDoc.sub_type)}
+              </p>
+            </div>
+            <div
+              className="modal-actions"
+              style={{
+                marginTop: "1.5rem",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "0.5rem",
+              }}
+            >
+              <button
+                className="button outline"
+                disabled={busy}
+                onClick={() => setDeletingDoc(null)}
+                data-testid="cancel-delete-doc-btn"
+              >
+                {t("cancel_action")}
+              </button>
+              <button
+                className="button danger"
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await api("delete-document/" + deletingDoc.id, {});
+                    setNotice(t("document_deleted_success"));
+                    setDeletingDoc(null);
+                    await refresh();
+                  })
+                }
+                data-testid="confirm-delete-doc-btn"
+              >
+                {busy ? (
+                  <Loader2 size={16} className="spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}{" "}
+                {t("delete_action")}
               </button>
             </div>
           </section>
@@ -2745,13 +2864,23 @@ function ReviewDialog({
   document: doc,
   onClose,
   onSave,
+  onDelete,
 }: {
   document: LandDocument;
   onClose: () => void;
-  onSave: (fields: Fields, reason: string, status: string) => Promise<void>;
+  onSave: (
+    fields: Fields,
+    reason: string,
+    status: string,
+    docCategory?: Category,
+    docSubType?: string,
+  ) => Promise<void>;
+  onDelete?: (doc: LandDocument) => void;
 }) {
   const { t, tt, locale, setLocale, formatDate } = useI18n();
 
+  const [docCategory, setDocCategory] = useState<Category>(doc.category);
+  const [subType, setSubType] = useState<string>(doc.sub_type);
   const [fields, setFields] = useState<Fields>(
     Object.fromEntries(
       Object.keys(emptyFields).map((k) => [k, doc[k as keyof Fields]]),
@@ -2775,7 +2904,7 @@ function ReviewDialog({
     setBusy(true);
     setError("");
     try {
-      await onSave(fields, reason, status);
+      await onSave(fields, reason, status, docCategory, subType);
       await audit();
     } catch (e) {
       setError((e as Error).message);
@@ -2841,8 +2970,44 @@ function ReviewDialog({
           <div className="review-fields">
             <h3>{t("review_the_extracted_fields_4515e")}</h3>
             <p>{t("do_not_guess_unclear_or_missing_values_b4c66")}</p>
+            <div className="grid two" style={{ marginBottom: "1rem" }}>
+              <label>
+                {t("document_category")}
+                <select
+                  value={docCategory}
+                  disabled={busy}
+                  data-testid="review-doc-category-select"
+                  onChange={(e) => {
+                    const nextCat = e.target.value as Category;
+                    setDocCategory(nextCat);
+                    setSubType(categories[nextCat].types[0]);
+                  }}
+                >
+                  {Object.entries(categories).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {tt(v.bn)} ({tt(v.en)})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {t("document_subtype")}
+                <select
+                  value={subType}
+                  disabled={busy}
+                  data-testid="review-doc-subtype-select"
+                  onChange={(e) => setSubType(e.target.value)}
+                >
+                  {categories[docCategory].types.map((type) => (
+                    <option key={type} value={type}>
+                      {tt(type)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <DocumentFieldsEditor
-              category={doc.category}
+              category={docCategory}
               fields={fields}
               disabled={busy}
               onChange={setFields}
@@ -2860,6 +3025,20 @@ function ReviewDialog({
             </label>
             {error && <div className="alert error">{tt(error)}</div>}
             <div className="review-actions">
+              {onDelete && (
+                <button
+                  type="button"
+                  className="button danger outline"
+                  disabled={busy}
+                  onClick={() => {
+                    onClose();
+                    onDelete(doc);
+                  }}
+                  data-testid="review-delete-doc-btn"
+                >
+                  <Trash2 size={16} /> {t("delete_action")}
+                </button>
+              )}
               <button
                 disabled={busy || reason.trim().length < 3}
                 className="button outline"

@@ -465,5 +465,13 @@
   "land_is_in_trash_notice": "This land record is currently in trash.",
   "preview_document": "Document preview",
   "preview_action": "Preview",
-  "no_documents_in_category": "No documents uploaded in this category yet"
+  "no_documents_in_category": "No documents uploaded in this category yet",
+  "delete_doc_confirm_title": "Delete internal document?",
+  "delete_doc_confirm_desc": "This document file and its extracted data will be removed from this parcel. Are you sure?",
+  "document_deleted_success": "Document successfully deleted",
+  "document_updated_success": "Document details updated successfully",
+  "add_document_btn": "Add document",
+  "document_category": "Document category",
+  "document_subtype": "Sub-type"
 }
+

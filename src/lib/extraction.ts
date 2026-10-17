@@ -13,17 +13,18 @@ export async function extractPages(
 ) {
   if (!process.env.DEEPINFRA_API_KEY)
     throw new Error("DeepInfra is not configured");
+  const hasNativeText = Boolean(text && text.trim().length > 0);
   const result = await createDeepInfraClient().chat.completions.create(
     {
       model:
         process.env.DEEPINFRA_VISION_MODEL ||
         "Qwen/Qwen3-VL-30B-A3B-Instruct",
       temperature: 0,
-      max_tokens: 3500,
+      max_tokens: hasNativeText ? 800 : 1500,
       messages: [
         {
           role: "system",
-          content: extractionPrompt(includeParcel, category),
+          content: extractionPrompt(includeParcel, category, hasNativeText),
         },
         {
           role: "user",
