@@ -91,3 +91,18 @@ test("unsupported dates stay unknown while valid date digits normalize", () => {
     ).fields.document_date,
   ).toBeNull();
 });
+
+test("porcha issue date is retained without a spurious deed execution date", () => {
+  const result = parseExtractionResult(
+    {
+      document_date: "2020-02-12",
+      execution_date: "2020-02-12",
+      official_number: "নথি-পর্চা-০০১",
+    },
+    "PORCHA",
+    true,
+  );
+  expect(result.fields.document_date).toBe("2020-02-12");
+  expect(result.fields.execution_date).toBeNull();
+  expect(result.fields.official_number).toBe("নথি-পর্চা-০০১");
+});

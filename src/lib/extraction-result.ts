@@ -36,6 +36,7 @@ export function parseExtractionResult(
     )
       parsed[key] = null;
   }
+  if (category !== "DEED") parsed.execution_date = null;
   const fields = fieldsSchema.parse(parsed);
   let parcel: ReturnType<typeof parcelExtractionSchema.parse> | undefined;
   if (includeParcel) {
