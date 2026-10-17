@@ -203,3 +203,9 @@ Keep provider latency outside the critical narration by using already processed,
 ## Implementation update — 17 October
 
 The core app is implemented and deployed at https://bhumisetu.adribmahmud.workers.dev. See `TODO.md` and README for actual validation and limitations. Cloudflare deployment required moving from Next.js 14 to supported Next.js 15.5.28 and adding the OpenNext/Workers tools. Officer auth uses the existing Supabase SDK and server-validated HttpOnly sessions. The existing browser suite now uses Firefox. Full camera scanning/voice assistance remain deferred. This update supersedes the original Vercel hosting choice and pending implementation rows above.
+
+## Implemented refinement: upload-first P1 intake
+
+Private `document_intakes` store the original, hash, actor and extraction state before parcel metadata is required. Vision extraction returns document fields and separate nullable parcel fields. Officer confirmation validates missing information, records correction reasons, and atomically creates the private master and pending document. Row locking makes repeated confirmation idempotent. Originals survive extraction failure; retry, session resume and manual continuation are supported. A two-minute stale extraction lock can recover after an interrupted worker. Recorded entitlement is never inferred from a deed's sold area. Existing document review, audit, verification and publication follow unchanged.
+
+Government workflow sources distinguish application metadata/attachments from later officer verification and preparation of mutation proposals: https://mutation.land.gov.bd/nirdeshika and https://mutation.land.gov.bd/namjari-steps. This intake is an internal digitization draft and is not an official draft mutation khatian.

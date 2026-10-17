@@ -3,6 +3,7 @@ import { useI18n, LanguageSwitch } from "@/i18n/provider";
 import Link from "next/link";
 import Image from "next/image";
 import AuthPanel from "./auth-panel";
+import CreateLandDialog from "./create-land-dialog";
 import { explainSignal } from "@/i18n/evidence";
 import {
   useCallback,
@@ -129,7 +130,7 @@ export default function Portal({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState(view === "land" ? "documents" : "overview");
   const [review, setReview] = useState<LandDocument | null>(null);
   const [create, setCreate] = useState(false);
   const [cases, setCases] = useState<any[]>([]);
@@ -1387,64 +1388,7 @@ export default function Portal({
           <span>{t("hackathon_prototype_built_with_ai_assistance_c6c18")}</span>
         </div>
       </footer>
-      {create && (
-        <div className="modal-backdrop">
-          <section className="modal" role="dialog" aria-modal="true">
-            <div className="flex-between">
-              <h2>{t("create_land_record_8f76d")}</h2>
-              <LanguageSwitch idPrefix="dialog-locale" />
-              <button
-                className="icon-button"
-                aria-label={t("close_7d9eb")}
-                onClick={() => setCreate(false)}
-              >
-                <X />
-              </button>
-            </div>
-            <p className="muted">
-              {t("this_creates_a_collection_of_records_not_8df20")}
-            </p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const b = Object.fromEntries(new FormData(e.currentTarget));
-                run(async () => {
-                  const land = await api("create", b);
-                  setCreate(false);
-                  router.push("/admin/land/" + land.unique_land_id);
-                });
-              }}
-            >
-              <div className="form-grid">
-                {[
-                  ["district", t("district_9c833")],
-                  ["upazila", t("upazila_3b1b8")],
-                  ["mouza", t("mouza_d199e")],
-                  ["jl_number", t("jl_number_31a6d")],
-                  ["dag_number", t("dag_number_03982")],
-                  ["current_khatian_no", t("khatian_number_74e57")],
-                  ["total_area_decimals", t("land_area_decimals_9095e")],
-                ].map(([key, title]) => (
-                  <label key={key}>
-                    {title}
-                    <input
-                      name={key}
-                      required
-                      type={key === "total_area_decimals" ? "number" : "text"}
-                      step="0.01"
-                      min={key === "total_area_decimals" ? "0.01" : undefined}
-                    />
-                  </label>
-                ))}
-              </div>
-              <button className="button primary" disabled={busy}>
-                {t("create_draft_7f2d7")}
-                <ArrowRight size={16} />
-              </button>
-            </form>
-          </section>
-        </div>
-      )}
+      {create && <CreateLandDialog onClose={() => setCreate(false)} />}
       {review && (
         <ReviewDialog
           document={review}

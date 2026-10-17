@@ -24,6 +24,7 @@ for (const [source, key] of Object.entries(sources))
   if (!english.has(key)) failures.push(`Unknown alias: ${source}`);
 for (const path of [
   "src/components/portal.tsx",
+  "src/components/create-land-dialog.tsx",
   "src/components/auth-panel.tsx",
   "src/app/not-found.tsx",
 ]) {
@@ -48,7 +49,8 @@ for (const path of [
       !english.has(n.arguments[0].text)
     )
       failures.push(`Unknown message in ${path}: ${n.arguments[0].text}`);
-    if (ts.isStringLiteral(n) && /[\u0980-\u09ff]/.test(n.text)) failures.push(`Untranslated Bangla literal in ${path}: ${n.text}`);
+    if (ts.isStringLiteral(n) && /[\u0980-\u09ff]/.test(n.text))
+      failures.push(`Untranslated Bangla literal in ${path}: ${n.text}`);
     ts.forEachChild(n, visit);
   }
   visit(file);

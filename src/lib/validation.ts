@@ -26,3 +26,13 @@ export const landSchema = z.object({
   current_khatian_no: z.string().max(100),
   total_area_decimals: z.coerce.number().positive().max(10000000),
 });
+
+export const parcelExtractionSchema = z.object({
+  district: nullableText,
+  upazila: nullableText,
+  mouza: nullableText,
+  jl_number: nullableText,
+  dag_number: nullableText,
+  current_khatian_no: nullableText,
+  total_area_decimals: z.number().positive().max(10000000).nullable(),
+});

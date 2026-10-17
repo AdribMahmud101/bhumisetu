@@ -754,5 +754,16 @@
   "Too many requests": "rate_limit",
   "অল্প সময়ে অনেক অনুরোধ হয়েছে। কিছুক্ষণ পরে চেষ্টা করুন।": "rate_limit",
   "Choose language": "language_label",
-  "ভাষা নির্বাচন": "language_label"
+  "ভাষা নির্বাচন": "language_label",
+  "Confirmation reason required": "intake_reason_required",
+  "Intake is already attached or extraction is running": "intake_running",
+  "Document extraction is still running": "intake_running",
+  "File content does not match its document type": "intake_file_invalid",
+  "parcel.district": "district_9c833",
+  "parcel.upazila": "upazila_3b1b8",
+  "parcel.mouza": "mouza_d199e",
+  "parcel.jl_number": "jl_number_31a6d",
+  "parcel.dag_number": "dag_number_03982",
+  "parcel.current_khatian_no": "khatian_number_74e57",
+  "parcel.total_area_decimals": "land_area_decimals_9095e"
 }

@@ -101,3 +101,11 @@ OpenAI Codex assisted with planning, implementation, synthetic fixture generatio
 - [Hackathon_Overview.md](Hackathon_Overview.md): supplied competition overview.
 
 Round 1 requires the public repository, a concept PDF of at most three pages, and a demo video of at most 90 seconds. A live deployment is recommended. Recording and final submission are separate from application deployment.
+
+### Upload-first digitization
+
+In the officer workspace, choose **Create land record → category/type → original PDF/image → Upload and extract**. The original is saved privately before any parcel metadata is required. AI fills visible parcel fields; missing details stay blank. Confirm the details and record a source/reason, then review the attached pending document in the Documents tab. Verification and publication remain explicit subsequent actions. Manual parcel entry is still available.
+
+Interrupted intakes resume in the same browser session when reopening the dialog. Failed extraction retains the original, with retry or manual continuation. Confirmation is transactional and idempotent. Sold/transferred deed areas never automatically establish the parcel's total recorded entitlement. Upload limits: 5 MB, 3 PDF pages.
+
+This is a prototype digitization intake, not an official mutation application or draft mutation khatian. Government mutation guidance describes application with parcel details/attachments followed by officer verification and proposal preparation: [application guide](https://mutation.land.gov.bd/nirdeshika), [mutation steps](https://mutation.land.gov.bd/namjari-steps).

@@ -139,6 +139,7 @@ test("officer actions, review fields and mutation statuses use the chosen locale
     page.getByRole("heading", { name: "Land record management" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Create land record" }).click();
+  await page.getByRole("button", { name: "Enter parcel details manually" }).click();
   await page.locator("input[name=mouza]").fill("অপরিবর্তিত নমুনা");
   await page.getByTestId("dialog-locale-bn").click();
   await expect(page.locator("input[name=mouza]")).toHaveValue(

@@ -13,6 +13,12 @@ import {
 } from "@/lib/data";
 import { fieldsSchema, landSchema } from "@/lib/validation";
 import { extractPages } from "@/lib/extraction";
+import {
+  createIntake,
+  getIntake,
+  extractIntake,
+  confirmIntake,
+} from "@/lib/intake";
 export const dynamic = "force-dynamic";
 const json = (data: unknown, status = 200) =>
   NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -37,6 +43,18 @@ export async function GET(
         role: user ? (admin ? "officer" : "citizen") : null,
         demo: !!user?.app_metadata?.demo,
       });
+    if (action === "intake" || action === "intake-document") {
+      const actor = await requireOfficer();
+      const intake = await getIntake(id, actor.id);
+      if (action === "intake-document") {
+        const { data, error } = await db()
+          .storage.from("land-documents")
+          .createSignedUrl(intake.file_path, 180);
+        check(error);
+        return NextResponse.redirect(data!.signedUrl);
+      }
+      return json(intake);
+    }
     if (action === "lands") {
       let q = db()
         .from("master_lands")
@@ -307,6 +325,15 @@ export async function POST(
       });
     }
     const user = await requireOfficer();
+    if (action === "intake")
+      return json(await createIntake(await req.formData(), user.id));
+    if (action === "intake-extract") {
+      const body = await req.json();
+      validateContent(body.pages, body.text);
+      return json(await extractIntake(id, user.id, body.pages, body.text));
+    }
+    if (action === "intake-confirm")
+      return json(await confirmIntake(id, user.id, await req.json()));
     if (action === "create") {
       const fields = landSchema.parse(await req.json());
       const { data, error } = await db()

@@ -73,3 +73,14 @@ Core implementation complete. Supabase schema/fixtures/officer account are confi
 - [x] Preserve entered values, record identities, evidence and authentication during switching.
 - [x] Local unit checks and desktop/mobile/print browser checks.
 - [x] Final live regression: all 15 browser workflows passed on the deployed Worker; catalogs and production build pass.
+
+## Upload-first digitization
+
+- [x] Save private source/intake before requiring parcel metadata.
+- [x] Extract document fields and nullable parcel metadata; preserve unknown values.
+- [x] Officer confirmation with source/reason and parcel correction audit.
+- [x] Transactional, idempotent attachment into a pending private land record.
+- [x] Keep manual entry, original preview, retry and session resume.
+- [x] Open Documents tab after confirmation; separate review/publication.
+- [x] Shared Bangla/English messages; preserve entered fields during switching.
+- [x] Final deployed browser regression: all 17 live workflows passed.
