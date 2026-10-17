@@ -1,136 +1,152 @@
-# BhumiSetu session handoff
+# BhumiSetu — project context and handoff
 
-## Current objective and completed outcome
+Updated: 18 October 2026 (Asia/Dhaka). This file is the working source of truth for the project's purpose, current implementation, evidence, limitations and next steps. Keep it current when meaningful work lands. Never put secret values, passwords, private user data or demo-account credentials here.
 
-User requested a competitive, functional LandTech 2026 Round 1 prototype using the supplied architecture/UX PDF and master brief, plus public GitHub and a live Cloudflare Workers deployment. The core system is implemented and live.
+## The goal
 
-- Live: https://bhumisetu.adribmahmud.workers.dev
-- Repository: https://github.com/AdribMahmud101/bhumisetu
-- Supabase project: `bhumishetu`, ref `xbjlzsmkhyayogjigpaq`, linked locally.
-- User explicitly accepted the current workers.dev address and requested no domain complexity. Do not rename the Worker or account subdomain.
-- Design: modern Bangla-first Bangladesh government portal style, inspired by land.gov.bd; clearly a synthetic-data hackathon prototype, without claims of government affiliation.
+**Win Round 1 of the LandTech hackathon with a clear, credible, working prototype.** The product should feel immediately understandable to judges, show a complete useful workflow, and be honest about what it can and cannot verify. The user's stated priority is winning; architecture and feature choices should serve the demo and the problem rather than add complexity for its own sake.
 
-## Implemented
+The selected competition problem is **P3 — Catch Fraud & Double-Selling**. The coherent product promise is:
 
-Next.js 15.5.28 / React 18 / TypeScript / Tailwind / Bun. Upgraded from 14 to satisfy current Cloudflare OpenNext support. Supabase Postgres + private Storage + Auth, DeepInfra vision via the OpenAI SDK, PDF.js local worker, SHA-256, QR-linked citizen reports and browser-print dossier.
+> BhumiSetu connects fragmented land documents and explains conflicts before a buyer pays or an officer approves a mutation.
 
-Citizen search, four document categories with multiple uploads per subtype, source-linked history, deterministic evidence report, 20-versus-24 quota overflow, exact-copy hashing and extracted field comparison all work. Officer login, draft creation, real PDF/image upload, actual AI extraction, source/extracted review, correction audit, verification, separate publication and mutation queue/decisions work. All service-role access stays server-side. Direct anonymous table reads fail. Drafts and unverified documents are private. Review changes invalidate publication. Mutation decisions verify current revision; conflicting cases cannot be approved. Audit edits store old/new values, actor and reason in the same transaction.
+The other capabilities—digitizing documents (P1), comparing copies (P2), mutation review (P4), and citizen reporting (P5)—support this central story. The prototype does not claim that every hackathon problem is its primary focus.
 
-The canonical fictional fixture computes **60/100 = 40 sale conflict + 20 deed–mutation conflict**, not 65 or 85. Source PDFs, hashes and data are actually stored in Supabase. There are clean and incomplete/private fixtures as well. Live extraction browser tests create additional private synthetic parcels; those are real test records, not a simulated success.
+## The human story and emotion
 
-## Configuration and credentials
+Land is more than a plot number in Bangladesh. It can represent a family's savings, a home, inheritance, security and years of trust. Yet evidence is spread across old khatians, porchas, deeds and mutation records. A buyer may not know that another sale already exists; a conscientious officer may have to reconcile mismatched paper records under pressure; families can face fear, delay, expense and conflict when records disagree.
 
-User supplied a DeepInfra key; saved in ignored, permission-restricted `.env.local` and uploaded as a Cloudflare Worker secret. Do not repeat it in chat, documentation, logs or Git. Supabase credentials are also in `.env.local` and Worker secrets. Vision model: `Qwen/Qwen3-VL-30B-A3B-Instruct` (confirmed available and live-tested).
+BhumiSetu's emotional promise is **less uncertainty and more informed trust**. It gives citizens a readable, source-linked explanation, and gives officers a careful workflow that preserves the original document, surfaces missing evidence, records corrections and leaves the decision with a human. It should feel reassuring and respectful, not sensational or accusatory.
 
-Prototype officer credentials: ignored `.local/officer.json`. Synthetic original PDFs and altered comparison sample: `.local/fixtures/`. Secret bulk deployment input: ignored `.local/worker-secrets.json`. Never commit these files. Supabase CLI and Wrangler account authentication work.
+The core line for the pitch is:
 
-OpenAI SDK initially failed in Workers due to Node fetch; fixed with `openai/shims/web` and explicit global fetch. Model identifier numbers are normalized to strings before field validation. Both fixes are deployed and tested.
+> **AI reads. Rules explain. Officers decide.**
 
-## Validation
+Do not call a person a fraudster, call a parcel safe, or present an indicator as legal truth. A conflict is a reason to investigate, not proof of wrongdoing. Missing records mean unknown, not clear. This distinction is part of the product's trust story and should be visible in the demo.
 
-- 11 Bun engine unit tests passed.
-- Lint, TypeScript and production/OpenNext build passed.
-- All **6 Playwright Firefox browser workflows passed against the live URL**: citizen search/evidence/history/source; unauthorized access; clean/mobile view; persisted audited correction + idempotent cases + blocked approval; real PDF upload/DeepInfra extraction; exact-hash match + altered PDF area mismatch (stored 12 vs uploaded 25).
-- Screenshots: ignored `.local/record-desktop.png` and `.local/record-mobile.png`.
-- Database migrations applied and registered in Supabase migration history.
+## What judges should understand in the first minute
 
-Run `bun run test:unit`, `bun run lint`, `bun run typecheck`, `bun run build`. Live browser suite: `TEST_BASE_URL=https://bhumisetu.adribmahmud.workers.dev bun run test:e2e`. It calls DeepInfra and writes synthetic review records. Deploy: `bun run deploy`.
+Use the fictional parcel `LND-MOCK-001`: it has 20 decimals recorded, but two competing deeds each transfer 12 decimals, making 24 claimed decimals against 20. A related mutation references the later deed. BhumiSetu shows the source documents and a deterministic **60/100 review indicator**: 40 for excess/overlapping sale evidence and 20 for the deed–mutation conflict. It explains the evidence and routes the case for human review. It is not a probability of fraud or a government decision.
 
-## Scope and remaining human deliverables
+Then show one officer correction against a real stored source, the persisted old/new audit values and reason, and the same source-linked evidence in the citizen report. Keep the canonical fixture restored at 60/100 after rehearsal. All names, records and files are synthetic.
 
-Primary competition problem is P3 (rulebook says choose one), with digitization, integrity checks, citizen reports and mutation review supporting it. All data is fictional; no government scraping/integration. Court/khas/acquisition coverage remains explicitly unavailable. Scores are indicators, not fraud probabilities; printed reports and decisions are not official certificates/orders.
+## Current state
 
-Limits: 5 MB per upload; PDFs up to 3 pages; DOCX up to 40,000 text characters and 3 embedded PNG/JPEG images; handwriting accuracy not established; camera QR scanning and voice deferred; the interface now supports full Bangla/English switching. QR links work. Auth sessions last one hour; sign in again after expiry. Complex legal ownership/partition/inheritance/dag mapping is outside the implemented prototype.
+- Live prototype: https://bhumisetu.adribmahmud.workers.dev
+- Public repository: https://github.com/AdribMahmud101/bhumisetu
+- Current main commit: `f96460f` — `Enhance OCR inputs and audit editable extraction fields`.
+- Stack: Next.js 15.5.28 App Router, React 18, TypeScript, Tailwind, Bun; Cloudflare Workers through OpenNext; Supabase Auth, Postgres and private Storage; DeepInfra vision through the OpenAI SDK; PDF.js for PDF text/rendering; `fflate` and `fast-xml-parser` for DOCX; Zod validation; Playwright Firefox and Bun tests.
+- Supabase project is linked locally as `bhumishetu` (ref `xbjlzsmkhyayogjigpaq`). The spelling difference between the product name BhumiSetu and project slug is intentional.
+- Preserve the current Workers address and account subdomain. The user explicitly chose to keep it simple and accepted the available address; do not rename or add a custom domain without a new request.
+- Visual direction: polished Bangladesh government-portal style inspired by land.gov.bd, Bangla-first, modern and restrained. This is an independent hackathon prototype, not a government website or endorsed service.
 
-User still needs the team/mentor details, ≤3-page concept PDF, ≤90-second recording and final platform submission. `docs/DEMO_SCRIPT.md` provides the timed script. `TODO.md`, `BUILD_PLAN.md` and README document actual status and setup. Architecture reference is `architecture_&_ui_ux.pdf`; actual master file is `master_instructions.md` (`master_prompt.md` is absent).
+## Product capabilities implemented
 
-## Citizen and officer access update
+### Citizens
 
-User requested separate citizen Login, Registration, and Administrative entries plus one-click judge access. Implemented and deployed `/login` (citizen), `/register` (citizen sign-up), and `/admin/login` (officer). Both login pages offer one-click demo and normal email/password login. Dedicated confirmed Supabase demo users carry server-controlled `app_metadata.role` and `demo`; credentials are only in ignored `.local/demo-accounts.json`, `.env.local`, and Worker secrets. `scripts/setup-demo.ts` provisions them. Citizen self-registration accepts name/email/password and never grants officer privileges. Supabase registration is enabled and email confirmation remains required; email delivery depends on the project's provider settings.
+- Search and open published fictional land records.
+- Read the deterministic evidence report, source-linked history, document comparisons, quota/area conflict, coverage gaps and next steps.
+- Open a QR-linked public record and print a bilingual evidence dossier.
+- See missing court, khas and acquisition checks explicitly marked unavailable.
+- Use the interface in Bangla or English; locale persists through navigation/reload. Entered form data, identifiers and source evidence are not translated.
+- Exact SHA-256 copy comparison can confirm that a file matches an enrolled copy. A matching hash does not establish that the enrolled record is legally authentic.
 
-Seven live regression workflows passed: citizen/officer one-click access, citizen/officer normal password access, registration validation and blocked officer self-registration, anonymous access restrictions, and existing audited correction/idempotent mutation/blocked approval. Lint/typecheck and Cloudflare production build passed. Mobile registration screenshot checked in `.local/registration-mobile.png`. Shared officer demo access is intentionally public for judges working with fictional data only. Do not put demo passwords in browser code or Git.
+### Officers
 
-Email-confirmation redirects now use the live Workers site; localhost login remains an allowed development redirect. Only those two auth URL properties were updated, and email confirmation remains enabled.
+- Dedicated `/admin/login` with normal email/password and a frictionless one-click demo account. Citizens also have `/login`, `/register` and a separate one-click demo. Public citizen registration never grants officer privileges; server routes verify roles.
+- Create a record by uploading first, or choose manual parcel entry. Intake stores the source privately before parcel metadata is complete; supports retry, manual continuation, session resume, abort and returning from manual entry to upload.
+- Upload PDF, DOCX, JPG or PNG under bounded limits. DOCX text/tables/headers and embedded PNG/JPEG scans are handled; the original package is validated and retained. Unsupported DOC/DOCM, active content, malformed packages and oversized input are rejected.
+- Run actual DeepInfra multimodal extraction. AI output and missing values are shown for officer confirmation, not silently accepted as official fact.
+- All ten structured document fields (including empty fields) are editable on intake and source-review screens for Khatian, Porcha, Deed and Mutation. Corrections preserve original extraction and record previous/new values, actor and reason transactionally.
+- Intake confirmation creates a draft/private land record and pending document atomically and idempotently. Document verification and public publication are separate explicit steps. Changing reviewed source data invalidates the reviewed/published state where applicable.
+- Mutation queue supports review and decisions. Verification cannot create duplicate cases; unresolved conflicts and stale parcel revisions block unsafe approval server-side.
 
+### OCR and extraction
 
-## Bangla / English localization update
+- Images, PDF page renders and embedded DOCX images use a common browser preprocessing path: orientation-aware decoding, bounded resolution, restrained contrast/brightness, mild luminance sharpening, and small-angle deskew only when projection alignment improves.
+- Enhancement can be toggled. Intake supports re-extraction and shows a preview of the images sent to the model. Original source bytes and hashes remain intact.
+- Native PDF/DOCX text is retained and preferred over AI transcription as extraction evidence. Prompting requests a literal transcription before field mapping. Conservative rules map current khatian separately from form/previous numbers, normalize one explicit area quantity for Khatian/Porcha, suppress dates unsupported by the available source year, and avoid applying deed transfer area as parcel entitlement.
+- Model JSON parsing repairs literal control characters inside valid quoted strings but does not complete truncated/incomplete model output. Invalid output remains an extraction failure, not a fabricated success.
+- The configured production model remains `Qwen/Qwen3-VL-30B-A3B-Instruct`. DeepSeek V4.1 Flash 1017 and GLM 5.3 Flash are available as multimodal candidates through DeepInfra, but they have not yet been compared against our Bangla land-record examples. General vision benchmarks do not establish which is more accurate on these records.
 
-Implemented and deployed persistent bn/en switching across the interface, including auth, navigation, citizen evidence/history/document reports, officer forms/dialogs, status labels, known validation/server errors and print layouts. `src/i18n/bn.json` and `en.json` hold 371 reviewed messages. `core.ts` provides typed keys/interpolation/known-message aliases and Intl date formatting; `provider.tsx` holds the shared React context and switch. No external translation service/dependency or DOM text rewriting is used. The `bs-locale` cookie is read in the root server layout (default bn) and updated immediately on switch; HTML lang stays correct on reload/navigation. Root routes render dynamically to respect the locale cookie.
+## Architecture and trust boundaries
 
-Names, official IDs, numeric evidence, uploaded source files, user inputs and audit reasons are not translated or mutated. Known engine signals retain their original IDs/points/evidence; `evidence.ts` renders localized explanations using those references. Mutation API responses now include already-loaded source documents for the officer explanation. Unknown provider/source text remains original rather than being guessed. Both create and review dialogs have their own language control, preserving open form state.
+```text
+Citizen browser ─┐
+                 ├─ Next.js / Cloudflare Worker server routes ─┬─ Supabase Postgres
+Officer browser ─┘                                             ├─ Supabase private Storage
+                                                               └─ DeepInfra vision API
 
-Validation: 17 unit tests passed; `bun run i18n:check` verifies complete catalogs, matching placeholders, valid aliases and no untranslated JSX copy. Lint/typecheck and the Cloudflare production build passed. All **15 live Playwright browser workflows passed** in 48.6 seconds, including language persistence/server HTML, preserved form values/localized errors, English desktop/mobile/print reports, officer dialog switching, all previous authentication flows and actual DeepInfra extraction/document comparison. Screenshots: `.local/report-en-desktop.png` and `.local/report-en-mobile.png`. Live URL remains unchanged.
+Stored reviewed evidence ─ deterministic TypeScript rules ─ evidence report
+                                                         ├─ citizen view / print / QR
+                                                         └─ officer mutation review
+```
 
-## Upload-first digitization update
+- The server owns privileged Supabase and DeepInfra calls. Service-role/API secrets are held in ignored local environment files and Cloudflare Worker secrets; never expose, echo, document, or commit them.
+- Supabase RLS is enabled; private documents and intakes are accessed through authorized server paths. Public views expose published data only. Officer identity/role is checked server-side, not inferred from UI state.
+- Postgres transactions/RPCs handle intake confirmation, correction audit and mutation consistency. `confirm_document_intake_review` retains original AI extraction, applies officer edits through audited review, and is idempotent. Separate verification and publication prevent AI output from becoming public automatically.
+- The risk/evidence engine is deterministic TypeScript. AI extracts candidate fields; it does not calculate the conflict score or make legal decisions.
+- Audits are append-only for application roles. This is not a claim that a privileged database administrator cannot alter the database.
+- Original files stay in private storage. An authorized officer may view source through a short-lived signed URL. QR links lead to the published report and cannot grant access to private sources.
 
-User approved replacing mandatory manual parcel creation with upload-first intake. Implemented `CreateLandDialog`: choose category/subtype, save original privately, run actual vision extraction, confirm parcel metadata with source/reason, then open Documents for existing pending review. Manual parcel-first entry remains optional. New shared catalog messages cover both languages; changing locale preserves entered values. JL and khatian identifiers may remain empty when unavailable; mandatory district/upazila/mouza/dag/positive baseline area require officer confirmation.
+## Data and rule behavior
 
-Applied migration `20261017000400_document_intake.sql` to linked Supabase. `document_intakes` is service-role-only, owner-scoped via authenticated server routes. Confirmation RPC locks the intake, creates master+pending document atomically, retains original/extraction metadata, audits parcel corrections, and returns the same IDs on repeat confirmation. Neither verification nor publication happens automatically. AI never substitutes a deed/mutation transfer area for baseline entitlement. Retry/manual continuation retain the stored original; the browser session remembers an unfinished intake. Polling resumes running extraction; a two-minute stale lock can recover after a terminated worker.
+Four document categories: KHATIAN, PORCHA, DEED and MUTATION. Multiple documents per subtype are allowed. Extracted values are nullable; unknown values stay unknown. Preserve source identity, dates, parties, area/share, parcel context, extraction evidence, original storage path/hash, review state and correction history.
 
-Reference distinction: this is an internal digitization draft, not the official mutation draft khatian. Official application and subsequent verification/proposal guidance: https://mutation.land.gov.bd/nirdeshika and https://mutation.land.gov.bd/namjari-steps.
+The core indicator is built from versioned, deduplicated signals. The canonical fixture is **40 excess/overlapping sale + 20 deed–mutation conflict = 60/100**. Ownership-history and timeline rules can add their documented signals when evidence supports them. The score is capped at 100. Missing checks reduce coverage and require further verification; they do not add a false clearance. Same-parcel linkage requires context, not a dag number alone. Khatian/Porcha baseline entitlement is not added twice. Deed transfer amounts are not treated as total parcel entitlement.
 
-Local validation: 20 unit tests, typecheck, lint, 389-message catalog check, and 6 targeted Firefox workflows passed, including real PDF/DeepInfra extraction, private pending draft, idempotent confirmation, correction audit, source access, invalid extraction/manual continuation and locale preservation. Final live deployment/regression status recorded below.
+Mutation and publication decisions remain human actions. The most recent named party in a record is not automatically declared legal owner. A QR/printed report is an indicative prototype dossier, not a certificate, order or DCR.
 
-Final outcome: deployed to the existing Worker (version `87ec859e-54f6-4c96-b08f-1911d2bb985b`). All **17 live Firefox workflows passed** in 1.1 minutes, including real intake extraction, citizen/other-officer intake access rejection, idempotent confirmation, audit and existing auth/verification/comparison regressions. Production/OpenNext build passed. No credentials are committed.
+## Validation actually completed
 
-Deed subtype update: added `OTHER` to the shared DEED type list. Existing bn/en catalogs render it as অন্যান্য / Other. The intake and existing-document upload selectors and server validation all use this same list.
-
-Extraction robustness fix: an uploaded deed returned `based_on_deed: false`, causing strict schema rejection. Model boolean values now become null (unknown) for document and parcel fields before validation; valid extracted fields and actual reference strings remain intact. Objects/other malformed values still fail validation. The model prompt explicitly defines references as strings/null, never yes/no flags. Regression tests cover this exact failure and retained valid data.
-
-The real `demo assets/saf_kabla.jpg` live test also exposed unsupported model date formats. Extraction now normalizes Bangla digits in ISO dates and leaves unsupported/ambiguous/impossible dates null instead of guessing or rejecting otherwise valid extraction. Strict manual review validation is unchanged. Added date regression coverage (23 unit tests pass).
-
-## Saved intake recovery / state update
-
-User reported the old empty form still appearing after the parser deployment. The original failed intake was restored from session storage; deployment alone does not re-extract its stored source. The API now flags legacy schema-failed intakes for one automatic retry on reopening, recording the current parser version on completed/failed attempts to avoid retry loops. The dialog shows progress/failure/completion explicitly, refreshes status on focus, displays extracted document fields, hides parcel confirmation until extraction completes or manual entry is selected, and offers a fresh upload without deleting stored originals. Officer edits survive status refresh; older responses cannot replace newer results. Transient network failures do not clear the saved intake pointer.
-
-Local validation for recovery: typecheck/lint clean, 392 bn/en catalog entries validated, 23 unit tests pass, 6 upload/language browser checks pass. A dedicated recovery browser test simulates the legacy failure response and then uses the real stored PDF and AI extraction; automatic retry, visible extracted fields, preserved officer edit and fresh-upload reset passed.
-
-Recovery fix deployed (Worker version `cf58d4d7-dd1a-4bfe-be78-edd8fdf8ba48`). All 3 targeted live browser workflows passed: resumed legacy failure with real extraction, regular upload/confirmation, and failure/manual continuation. Existing user files in `demo assets/` remain untracked and untouched.
-
-## Explicit intake abort
-
-Added a sticky full-width `Abort / বাতিল করুন` action to the intake dialog. It closes the dialog and clears the current browser draft selection/form. In-flight upload responses are ignored after abort, preventing an abandoned draft from being restored. Existing stored originals remain private; abort does not delete sources or publish a parcel. Abort is temporarily disabled while final confirmation is committing. The X close action retains its previous resume behavior.
-
-Typecheck, lint and 393-message localization check passed. Dedicated browser check passed for mobile button visibility, manual-form reset, abort during an artificially delayed upload, no restored session selection after late completion, and Bangla label.
-
-Abort update deployed (Worker version `65b216f8-91dc-48df-af62-2aea9fa7b168`). Live browser check passed, including abort remaining enabled after a rejected save, mobile visibility, reset, late-upload handling and bilingual label.
-
-Manual-mode navigation update: added `← নথি আপলোডে ফিরে যান / ← Back to document upload` above the manual parcel form when no source has been uploaded. Switching back clears stale validation errors and preserves typed parcel values and category/subtype state, so returning to manual entry restores the input. Existing upload-abort browser workflow now checks this round trip.
-
-Manual-mode back action deployed (Worker version `e9ffcc83-c770-4040-b694-ffbe455f4d63`); live browser workflow passed for manual → upload → manual with preserved field input, plus existing abort checks. Typecheck, production build/lint and 394-message catalog check passed.
-
-## DOCX support
-
-Added `fflate` and `fast-xml-parser` for DOCX handling. Shared `document-types.ts`, `document-upload.ts` and `docx.ts` validate real package contents and canonical MIME, preserving original bytes/hash in both intake and existing-document upload. DOCX text includes Bangla/English split runs, tables, headers/footers and notes; deleted revision text is skipped. Embedded PNG/JPEG images are resized in the browser and passed to the existing vision pipeline. Source review lazy-loads a safe text/image preview (React text, no HTML execution); original download remains available. Copy-comparison accepts DOCX too.
-
-Limits: 5 MB original; 40,000 extracted text characters, 3 referenced image sources; declared ZIP expansion limited to 20 MB, 512 entries and 5 MB per entry. No silent DOCX text/image truncation. Reject malformed packages, empty content, traversal/duplicate paths, entity declarations, macros/active objects, external images and unsupported image formats. DOC/DOCM are explicitly unsupported; encrypted documents must be resaved. Client parsers are loaded only when DOCX is selected.
-
-Applied migration `20261018000100_docx_storage.sql` to the existing private storage bucket. Updated all upload accept filters, visible limits and bn/en errors (407 catalog entries). 30 unit tests pass, typecheck/lint/catalog checks pass. Three local Firefox workflows passed, with real AI for text-only and image-only DOCX, exact original bytes/MIME, private pending draft and source preview, and server rejection of malformed files. Final deployed regression recorded below.
-
-Final DOCX outcome: deployed to the existing Worker (version `e3970645-e079-4bea-ad15-50414e67d244`). All **22 live Firefox workflows passed** in 1.7 minutes, including real text/image-only DOCX extraction, private original MIME/byte preservation, safe preview, malformed-file rejection and existing PDF/auth/i18n/recovery/abort/evidence/comparison workflows. All 30 unit tests passed; production build/typecheck/lint and 407-message catalog check passed.
-
-## User-provided porcha DOCX validation
-
-Tested `demo assets/০২_পর্চা_নমুনা.docx` (37,541 bytes) through the deployed officer upload-first UI, category PORCHA / GENERAL. Independent Python ZIP/XML inspection found 32 text nodes and confirmed every nonempty source text node was retained by our parser (716 text characters; no embedded images).
-
-Initial extraction exposed an issue-date mapping error: AI put the porcha issue date in execution_date instead of document_date. Clarified field meanings in the model prompt and enforced execution_date=null for non-DEED categories. Added a regression test; all 31 unit tests passed and production build/lint/typecheck passed. Deployed Worker version `4422c95e-e1ec-4af5-9bb0-8252f89851ff`.
-
-Reran the exact sample through the live UI and validated: document identity নথি-পর্চা-০০১, owner আবদুল করিম, khatian আরএস-১১৮, dag 207, area/baseline 20 decimals, district নরসিংদী, upazila শিবপুর, mouza কালীগঞ্জ (কাল্পনিক পরীক্ষামূলক মৌজা), JL নমুনা-জেএল-০১৭, issue date 2020-02-12, execution_date null. Bangla confirmation fields populated correctly. Original download bytes, SHA-256 and canonical DOCX MIME matched. The test remains a private, unconfirmed intake; no record was published. JSON evidence `.local/porcha-validation.json`, screenshot `.local/porcha-intake-validated.png`, and script `.local/validate-porcha.ts` are ignored. User demo assets remain untracked.
-
-## OCR preprocessing and intake field editing
-
-Audit found the upload-first dialog only displayed recognized document fields as read-only summaries, while existing document review already had editing. Added shared `DocumentFieldsEditor` with all 10 fields, including missing values and localized placeholders, in intake and source review for all four categories. Intake preserves edited document/parcel values during language changes, polling and re-extraction. Confirmation calls new transactional RPC `confirm_document_intake_review`: original extraction retained, then officer edits applied through audited review with reason; repeated confirmation stays idempotent and documents remain pending/private. Applied migration `20261018000200_intake_field_review.sql`.
-
-Added shared browser-only preprocessing for images, PDF pages and embedded DOCX scans (`ocr-preprocessor.ts`, pure `ocr-pixels.ts`): EXIF-aware decoding, bounded resolution up to about 2400px, moderate contrast/brightness enhancement preserving color, mild luminance sharpening and conservative +/-4-degree deskew if projection alignment improves. No erosion/character deletion or generated content. Originals/hashes unchanged. Enhancement toggle in intake and existing-document uploader; intake can re-extract with changed settings and preview model-input images. Native PDF/DOCX text unchanged. API validates/stores preprocessing metadata and limits image payloads. Input readability improves; no universal OCR accuracy improvement claim. Severe blur/perspective/handwriting are not solved.
-
-Strict manual date validation rejects impossible calendar dates and returns localized field-format guidance. Local validation: 34 unit tests pass; typecheck/lint and 421-message catalog check pass. All 10 targeted browser workflows passed, including existing PDF/DOCX real extraction, recognized-field correction with original AI values retained and audit, all four categories' missing-field editing/persistence, and enhancement bypass/preview. Final live regression and actual user-scan comparison recorded below.
-
-Actual-scan evaluation found preprocessing alone did not improve the seven checked fields on `demo assets/khotian.jpg`: 3/7 matched in both modes, with hallucinated dates, form/share-vs-area confusion and shifted place labels. Added a transcription-first extraction prompt and conservative source anchoring (`extraction-grounding.ts`): prefer native text over AI transcription; map a uniquely labelled current khatian separately from form/previous numbers; convert a single explicit acreage/decimal quantity for Khatian/Porcha only; leave multiple/deed area distinctions unchanged; suppress dates whose year is absent; and keep based_on_deed for Mutation only. Original model response, transcription/source kind and normalization adjustments are retained in extraction evidence. The 235B model trial timed out, so the existing 30B model remains configured. No accuracy claim from enhancement alone. New pipeline is being revalidated below.
-
-The updated transcription/grounding pipeline matched all 7 manually checked Khatian scan fields in both enhanced and unenhanced modes: official/current khatian 105, dag 207, recorded area 15 decimals from 0.15 acre, district নরসিংদী, upazila নমুনা উপজেলা, mouza নমুনা মৌজা and JL 25. Dates remained null. This demonstrates the combined extraction fix on one sample, not an enhancement-only accuracy improvement. Before-grounding results are preserved in `.local/ocr-enhancement-before-grounding.json`; current results and prepared previews in `.local/ocr-enhancement-validation.json` and `.local/khotian-*.jpg`.
-
-All 27 live workflows passed with transcription/grounding, editable fields and preprocessing. The final real Porcha DOCX retest then exposed an unescaped-control-character JSON response from the model. Added `parseExtractionJson` to escape literal controls inside JSON strings without completing truncated JSON or inventing missing content; regression coverage added. Final unit count is 40, with production/typecheck/lint passing. Final Porcha rerun and deployment status recorded below.
-
-Final deployment b96586b3-408f-45b0-8249-d29313067f5d is live at https://bhumisetu.adribmahmud.workers.dev. The supplied Porcha DOCX passed the final real live extraction after JSON control repair: official নথি-পর্চা-০০১, owner আবদুল করিম, dag 207, khatian আরএস-১১৮, area 20, expected district/upazila/mouza/JL, issue 2020-02-12 and execution null. Original 37,541-byte DOCX retained privately; no confirmation/publication. Validation totals: 40 unit tests, 27 live browser workflows before the final parser-only patch, and final real DOCX extraction after it.
-
-Model-selection question: verified official DeepInfra pages list native multimodal zai-org/GLM-5.3-Flash and deepseek-ai/DeepSeek-V4.1-Flash-1017. Both are candidates, but no measured Bangla land-record comparison against our configured Qwen yet. Production model unchanged; choose only after field accuracy, invented values, JSON success and latency comparison on representative originals.
+- Latest production Worker deployed at the URL above; code is pushed to GitHub main at `f96460f`.
+- 40 Bun unit tests passed after the final JSON parser change.
+- Typecheck, lint, OpenNext production build and 421-message localization catalog check passed for the final implementation.
+- 27 live Firefox workflows passed after the extraction/grounding, OCR preprocessing and editable-field changes. The final control-character parser patch was followed by build/unit checks and the real supplied Porcha retest; the whole 27-workflow suite was not rerun after that parser-only change.
+- On `demo assets/khotian.jpg`, the updated pipeline matched all seven manually checked fields both with and without preprocessing: current khatian 105, dag 207, area 15 decimals from 0.15 acre, district নরসিংদী, upazila নমুনা উপজেলা, mouza নমুনা মৌজা and JL 25. Dates remained null. Preprocessing by itself, before field-mapping changes, matched only 3/7 in both modes. This is one sample and does not prove general OCR accuracy or an enhancement-only gain.
+- The supplied `demo assets/০২_পর্চা_নমুনা.docx` (37,541 bytes; 32 text nodes) passed real live extraction after the final parser fix: official number নথি-পর্চা-০০১, owner আবদুল করিম, dag 207, khatian আরএস-১১৮, area 20 decimals, expected district/upazila/mouza/JL, issue date 2020-02-12 and absent execution date null. The exact original remained a private unconfirmed intake; no publication occurred.
+- These source assets and validation artifacts are local ignored/untracked data. Do not add `demo assets/` or `.local/` to Git.
+
+## Known limitations and honest claims
+
+- Synthetic records only. No real landowner dataset, government API, portal scraping, NID or phone records are used.
+- No guarantee of OCR accuracy. Bangla handwriting, blur, skew/perspective, faint marks, multi-column layouts, missing pages and ambiguous historical formats still require officer comparison with the original. Source transcription can also be wrong.
+- No comprehensive cadastral map, authoritative title adjudication, inheritance/partition resolution, or verified court/khas/acquisition data. Such checks remain unavailable in the report.
+- The indicator is not a fraud probability, title certificate, legal advice, government decision or automatic rejection. Hash equality proves byte identity with an enrolled source only.
+- Limits: 5 MB per original, PDF up to 3 pages; DOCX up to 40,000 extracted text characters, 3 embedded PNG/JPEG image sources, with package expansion and entry limits. Re-save `.doc`/`.docm` and encrypted files as supported formats.
+- Camera scanning and voice assistance are deferred. Live government-system integration is out of scope for this hackathon prototype.
+
+## Competition submission goal and remaining work
+
+The application/repository/live deployment are ready. The remaining external competition deliverables are:
+
+1. Record and review a truthful demo video of at most 90 seconds.
+2. Prepare a concept PDF of at most three pages.
+3. Add actual team/mentor details and submit through the official platform.
+
+The timed demo sequence is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md). Use the focused conflict story, then one officer correction/audit and the citizen evidence view. Rehearse restoring the canonical fixture and do not display passwords, keys, session tokens or developer tools. The user's team details are not in the repository, so do not invent them.
+
+Potential next technical improvement, only if time allows: make a small, controlled A/B comparison of current Qwen, DeepSeek V4.1 Flash 1017 and GLM 5.3 Flash on identical original scan inputs. Score field-level exactness (Bangla names, identifiers, labels, area/unit, dates), unsupported invented values, valid structured response, and latency. Keep officer review mandatory. Do not switch the live model based only on a vendor benchmark.
+
+## Useful files and commands
+
+- [README.md](README.md): user-facing project overview, setup, routes, limitations and AI disclosure.
+- [TODO.md](TODO.md): implementation tracker and completion evidence.
+- [BUILD_PLAN.md](BUILD_PLAN.md): original architecture decisions, rules and demo pitch (some early planning sections are historical; this context and the current source code describe the actual implemented stack).
+- [architecture_&_ui_ux.pdf](architecture_%26_ui_ux.pdf): supplied product/architecture reference.
+- [master_instructions.md](master_instructions.md): supplied master brief. A file named `master_prompt.md` was not present.
+- [Hackathon_Overview.md](Hackathon_Overview.md) and `landtech_hackathon_rulebook.pdf`: competition overview and rules reviewed during planning.
+- `.env.local`, `.local/`, `demo assets/`, `test-results/`: private/local material; do not commit.
+
+```bash
+bun run dev
+bun run lint
+bun run typecheck
+bun run test:unit
+bun run i18n:check
+bun run build
+TEST_BASE_URL=https://bhumisetu.adribmahmud.workers.dev bun run test:e2e
+bun run deploy
+```
+
+Live Playwright tests write synthetic records and call the actual extraction provider; use the configured test setup and restore the canonical fixture after demonstrations. Deploy only from this linked project after the relevant checks pass.
