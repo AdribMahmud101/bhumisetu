@@ -72,3 +72,5 @@ Reference distinction: this is an internal digitization draft, not the official 
 Local validation: 20 unit tests, typecheck, lint, 389-message catalog check, and 6 targeted Firefox workflows passed, including real PDF/DeepInfra extraction, private pending draft, idempotent confirmation, correction audit, source access, invalid extraction/manual continuation and locale preservation. Final live deployment/regression status recorded below.
 
 Final outcome: deployed to the existing Worker (version `87ec859e-54f6-4c96-b08f-1911d2bb985b`). All **17 live Firefox workflows passed** in 1.1 minutes, including real intake extraction, citizen/other-officer intake access rejection, idempotent confirmation, audit and existing auth/verification/comparison regressions. Production/OpenNext build passed. No credentials are committed.
+
+Deed subtype update: added `OTHER` to the shared DEED type list. Existing bn/en catalogs render it as অন্যান্য / Other. The intake and existing-document upload selectors and server validation all use this same list.

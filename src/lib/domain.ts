@@ -19,6 +19,7 @@ export const categories = {
       "BAYNAPATRA",
       "OSIYATNAMA",
       "MORTGAGE",
+      "OTHER",
     ],
   },
   MUTATION: {
