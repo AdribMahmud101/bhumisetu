@@ -1,0 +1,50 @@
+import "server-only";
+import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
+import { createSupabaseServerClient } from "./supabase/server";
+import { Land, LandDocument } from "./domain";
+import { analyzeRecords } from "./verification-engine";
+export const db = () => createSupabaseServerClient();
+export function check(error: { message: string } | null) {
+  if (error) throw new Error(error.message);
+}
+export async function officer() {
+  const token = (await cookies()).get("bs-session")?.value;
+  if (!token) return null;
+  const { data, error } = await db().auth.getUser(token);
+  return !error && data.user?.app_metadata?.role === "officer"
+    ? data.user
+    : null;
+}
+export async function requireOfficer() {
+  const user = await officer();
+  if (!user) throw new Error("UNAUTHORIZED");
+  return user;
+}
+export function publicAuth() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+}
+export async function loadLand(id: string, admin = false) {
+  let q = db().from("master_lands").select("*").eq("unique_land_id", id);
+  if (!admin) q = q.eq("is_finalized", true);
+  const { data: land, error } = await q.maybeSingle();
+  check(error);
+  if (!land) throw new Error("NOT_FOUND");
+  let d = db()
+    .from("land_documents")
+    .select("*")
+    .eq("master_land_id", land.id)
+    .order("document_date", { ascending: true });
+  if (!admin) d = d.eq("verification_status", "VERIFIED");
+  const { data: documents, error: de } = await d;
+  check(de);
+  return {
+    land: land as Land & { revision: number },
+    documents: (documents || []) as LandDocument[],
+    analysis: analyzeRecords(land, documents || []),
+  };
+}

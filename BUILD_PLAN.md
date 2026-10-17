@@ -199,3 +199,7 @@ Keep provider latency outside the critical narration by using already processed,
 - Supabase database functions: https://supabase.com/docs/guides/database/functions
 - Supabase RLS: https://supabase.com/docs/guides/database/postgres/row-level-security
 - DeepInfra image/OCR interface: https://docs.deepinfra.com/chat/vision
+
+## Implementation update — 17 October
+
+The core app is implemented and deployed at https://bhumisetu.adribmahmud.workers.dev. See `TODO.md` and README for actual validation and limitations. Cloudflare deployment required moving from Next.js 14 to supported Next.js 15.5.28 and adding the OpenNext/Workers tools. Officer auth uses the existing Supabase SDK and server-validated HttpOnly sessions. The existing browser suite now uses Firefox. Full camera scanning/voice assistance remain deferred. This update supersedes the original Vercel hosting choice and pending implementation rows above.

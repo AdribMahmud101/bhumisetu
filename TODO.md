@@ -13,31 +13,46 @@ Mark complete only after the listed behavior is verified. Add actual check resul
 
 ## Implement in order
 
-1. [ ] **0–6 min · Foundation:** domain schemas; Supabase migration/RLS/private files; fictional sample PDFs and seed; officer authentication.
-2. [ ] **6–10 min · Core:** shared rule engine + meaningful tests; SHA-256 and field comparison.
-3. [ ] **10–17 min · Experience:** workspace, real search, four categories, evidence comparison, quota overflow, history, QR and printable report.
-4. [ ] **17–25 min · Full loop:** upload → actual AI extraction → source review → audited correction → verification → mutation hearing/review → publication.
-5. [ ] **25–30 min · Prove:** lint/typecheck/build/unit tests + browser workflows; update README; commit/push; deploy if account access is ready.
+1. [x] **0–6 min · Foundation:** domain schemas; Supabase migration/RLS/private files; fictional sample PDFs and seed; officer authentication.
+2. [x] **6–10 min · Core:** shared rule engine + meaningful tests; SHA-256 and field comparison.
+3. [x] **10–17 min · Experience:** workspace, real search, four categories, evidence comparison, quota overflow, history, QR and printable report.
+4. [x] **17–25 min · Full loop:** upload → actual AI extraction → source review → audited correction → verification → mutation hearing/review → publication.
+5. [x] **25–30 min · Prove:** lint/typecheck/build/unit tests + browser workflows; update README; commit/push; deploy if account access is ready.
 6. [ ] **Submission package:** ≤90-second recording, ≤3-page concept PDF, team details and final platform submission.
 
 ## Required external setup
 
-- [ ] Supabase URL + service-role key in `.env.local`.
-- [ ] Apply migration; create officer account and server-verified role.
-- [ ] DeepInfra key and working configurable vision model.
-- [ ] Connected hosting account for a live deployment.
+- [x] Supabase URL + service-role key in `.env.local`.
+- [x] Apply migration; create officer account and server-verified role.
+- [x] DeepInfra key and working configurable vision model.
+- [x] Connected hosting account for a live deployment.
 
 ## Acceptance before calling the prototype ready
 
-- [ ] Conflicting fixture computes **40 + 20 = 60**, cites both deeds and mutation.
-- [ ] Clean and incomplete fixtures display honest coverage; missing data never implies clearance.
-- [ ] Real correction survives reload with old value, new value, reason and actor.
-- [ ] Verify twice → one mutation case; conflict blocks approval on the server.
-- [ ] Anonymous users cannot write records or view unpublished/private documents.
-- [ ] Actual source files open; hashes are computed from stored bytes.
-- [ ] AI errors stay visible/retryable; no fabricated extraction or API success.
-- [ ] Desktop/mobile demo path and production build pass.
+- [x] Conflicting fixture computes **40 + 20 = 60**, cites both deeds and mutation.
+- [x] Clean and incomplete fixtures display honest coverage; missing data never implies clearance.
+- [x] Real correction survives reload with old value, new value, reason and actor.
+- [x] Verify twice → one mutation case; conflict blocks approval on the server.
+- [x] Anonymous users cannot write records or view unpublished/private documents.
+- [x] Actual source files open; hashes are computed from stored bytes.
+- [x] AI errors stay visible/retryable; no fabricated extraction or API success.
+- [x] Desktop/mobile demo path and production build pass.
 
 ## Current status
 
-Planning complete. Implementation pending. Service configuration question sent; no keys printed or committed.
+Core implementation complete. Supabase schema/fixtures/officer account are configured. Eleven unit tests, lint, typecheck, production build and five local browser workflows passed. Live Worker: https://bhumisetu.adribmahmud.workers.dev. All six browser workflows passed against the live Worker, including actual AI extraction and the altered-copy 12-versus-25 field mismatch. Camera scanning is deferred; QR links are functional. No keys or officer passwords are committed.
+
+## Recorded implementation details
+
+- Next.js upgraded to 15.5.28 for the supported Cloudflare OpenNext adapter.
+- Supabase session is checked on the server; session cookie is HttpOnly and Secure over HTTPS.
+- Private generated sources and tampered test sample are under `.local/fixtures/`; officer credentials are in `.local/officer.json`.
+- AI extraction was tested against actual uploaded PDFs. Workers runtime fetch compatibility and identifier normalization are fixed and live-tested.
+- Timed recording script: `docs/DEMO_SCRIPT.md`. Final video, concept PDF, team details and platform submission remain pending.
+
+## Final verification
+
+- 11 unit tests passed; lint/typecheck and production/OpenNext build passed.
+- 6/6 live Firefox workflows passed (32.6 seconds).
+- Direct anonymous Supabase table read rejected (401).
+- Cloudflare address retained per user preference; no account/domain changes.

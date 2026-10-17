@@ -12,3 +12,8 @@ test-results/
 .aws/
 .agents/
 .codex/
+.dev.vars*
+.open-next/
+.wrangler/
+supabase/.temp/
+.local/

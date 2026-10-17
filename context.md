@@ -1,39 +1,45 @@
-# Session handoff
+# BhumiSetu session handoff
 
-## Goal and current request
-Build a strong functional BhumiSetu (LandArchive BD) prototype for LandTech 2026. Current authorized task: scaffold the project, validate it, and create/push a **public** GitHub repository at `AdribMahmud101/bhumisetu` using the user's existing `gh` authentication. Repository is now public at https://github.com/AdribMahmud101/bhumisetu, with the initial scaffold pushed to main.
+## Current objective and completed outcome
 
-## Read first
-- `Hackathon_Overview.md`: competition rules and deliverables; Round 1 deadline October 18, 2026; concept PDF ≤3 pages, public working repository, demo ≤90 seconds.
-- `master_instructions.md`: actual stack/architecture brief. User called it `master_prompt.md`, but that filename is absent.
-- `README.md`: scaffold setup, scope, and limitations.
+User requested a competitive, functional LandTech 2026 Round 1 prototype using the supplied architecture/UX PDF and master brief, plus public GitHub and a live Cloudflare Workers deployment. The core system is implemented and live.
 
-## Completed
-Created a Next.js 14 App Router / React 18 / TypeScript scaffold with Tailwind, shadcn configuration, Lucide landing page, `/api/health`, server-only Supabase and DeepInfra client factories, PDF/QR dependencies, Playwright smoke test/config, `.env.example`, `.gitignore`, and README with AI disclosure. `scripts/publish.sh` initializes Git, commits, and creates/pushes the requested public repo. The initial commit and public repository creation/push succeeded in the local session. JSON files and script syntax were checked.
+- Live: https://bhumisetu.adribmahmud.workers.dev
+- Repository: https://github.com/AdribMahmud101/bhumisetu
+- Supabase project: `bhumishetu`, ref `xbjlzsmkhyayogjigpaq`, linked locally.
+- User explicitly accepted the current workers.dev address and requested no domain complexity. Do not rename the Worker or account subdomain.
+- Design: modern Bangla-first Bangladesh government portal style, inspired by land.gov.bd; clearly a synthetic-data hackathon prototype, without claims of government affiliation.
 
-## Not completed / not validated
-Git commit and public GitHub publication completed. Bun 1.4 installed dependencies and generated bun.lock. Lint, TypeScript, and production build passed. Existing Playwright smoke coverage passed in installed Firefox using a temporary configuration; Chromium download was stopped after Firefox passed. The first build hit SIGBUS from an incomplete npm dependency; bun install --force restored packages and the build then passed. Full database schema, seed, OCR, verification engine, auth, mutation workflows, and reports are not implemented. UI is explicitly labelled a development scaffold. Review dependency versions and scaffold before claiming readiness.
+## Implemented
 
-## Previous environment blocker
-The old chat had restricted network (GitHub/npm connections failed; npm EAI_AGAIN), a read-only empty `.git` directory, and disabled sandbox escalation requests. `gh auth status` reported an invalid token inside that restricted session, but the user demonstrated successful authentication as AdribMahmud101 in their native terminal. Do not assume their login is broken. User started a new local Codex session with `codex --sandbox danger-full-access --ask-for-approval never` to restore normal access.
+Next.js 15.5.28 / React 18 / TypeScript / Tailwind / Bun. Upgraded from 14 to satisfy current Cloudflare OpenNext support. Supabase Postgres + private Storage + Auth, DeepInfra vision via the OpenAI SDK, PDF.js local worker, SHA-256, QR-linked citizen reports and browser-print dossier.
 
-## Original handoff next steps (completed below)
-1. Check actual permissions, network, Git state, and `gh api user` in the new session.
-2. Inspect scaffold, install packages, and run lint, typecheck, build, and Playwright smoke coverage; fix issues. Commit generated package-lock.json.
-3. Inspect files staged for public publication for secrets; supplied PDFs are project reference materials, not runtime datasets.
-4. Initialize Git on main if needed, commit scaffold, create/push public `AdribMahmud101/bhumisetu` (check whether it already exists), and report actual URL and check results.
+Citizen search, four document categories with multiple uploads per subtype, source-linked history, deterministic evidence report, 20-versus-24 quota overflow, exact-copy hashing and extracted field comparison all work. Officer login, draft creation, real PDF/image upload, actual AI extraction, source/extracted review, correction audit, verification, separate publication and mutation queue/decisions work. All service-role access stays server-side. Direct anonymous table reads fail. Drafts and unverified documents are private. Review changes invalidate publication. Mutation decisions verify current revision; conflicting cases cannot be approved. Audit edits store old/new values, actor and reason in the same transaction.
 
-## Product constraints
-Use synthetic or organizer-approved data only. No government scraping. Disclose AI tools. Keep service-role/API keys server-only. Brief has inconsistent risk-score examples (60/65/85) and naming; resolve against explicit rules before implementation. The five suggested instruction documents embedded in master_instructions.md have not been extracted or implemented. Do not start the entire product sprint without considering the user's current scaffold/publication scope.
+The canonical fictional fixture computes **60/100 = 40 sale conflict + 20 deed–mutation conflict**, not 65 or 85. Source PDFs, hashes and data are actually stored in Supabase. There are clean and incomplete/private fixtures as well. Live extraction browser tests create additional private synthetic parcels; those are real test records, not a simulated success.
 
-## Local session publication outcome
-- Public repository: https://github.com/AdribMahmud101/bhumisetu (main).
-- Dependencies use Bun per user preference; bun.lock committed. README documents frozen installs.
-- Lint, typecheck, build, and Firefox smoke coverage pass. Full product workflows remain unimplemented.
-- Publication scope is complete; do not start the full product sprint without a new request.
+## Configuration and credentials
 
-## Current direction after publication
+User supplied a DeepInfra key; saved in ignored, permission-restricted `.env.local` and uploaded as a Cloudflare Worker secret. Do not repeat it in chat, documentation, logs or Git. Supabase credentials are also in `.env.local` and Worker secrets. Vision model: `Qwen/Qwen3-VL-30B-A3B-Instruct` (confirmed available and live-tested).
 
-User now wants a competitive functional Round 1 prototype, with a 30-minute build target, and requested source review plus a documented plan and tracked implementation checklist. Read `BUILD_PLAN.md` for the architecture/contracts and `TODO.md` for the brief sequential tracker. Planning is complete; new implementation has not started. The architecture file is now `architecture_&_ui_ux.pdf`; user removed `historical_data_record_land_tech.pdf` locally. Preserve these user changes. `master_prompt.md` remains absent; use `master_instructions.md`.
+Prototype officer credentials: ignored `.local/officer.json`. Synthetic original PDFs and altered comparison sample: `.local/fixtures/`. Secret bulk deployment input: ignored `.local/worker-secrets.json`. Never commit these files. Supabase CLI and Wrangler account authentication work.
 
-Primary submission focus is P3 per the rulebook's choose-one requirement, with digitization, citizen report and mutation review supporting that story. Canonical fixture computes 60/100 (40 excess sale + 20 mutation conflict), not hardcoded 65/85. Supabase + DeepInfra setup question is pending; continue independent implementation without inventing successful service responses. Current intended stack reuses existing Next/React/Tailwind/Bun/Supabase/OpenAI/PDF/QR tooling, adding only zod and @supabase/ssr initially. Update TODO.md as acceptance checks pass.
+OpenAI SDK initially failed in Workers due to Node fetch; fixed with `openai/shims/web` and explicit global fetch. Model identifier numbers are normalized to strings before field validation. Both fixes are deployed and tested.
+
+## Validation
+
+- 11 Bun engine unit tests passed.
+- Lint, TypeScript and production/OpenNext build passed.
+- All **6 Playwright Firefox browser workflows passed against the live URL**: citizen search/evidence/history/source; unauthorized access; clean/mobile view; persisted audited correction + idempotent cases + blocked approval; real PDF upload/DeepInfra extraction; exact-hash match + altered PDF area mismatch (stored 12 vs uploaded 25).
+- Screenshots: ignored `.local/record-desktop.png` and `.local/record-mobile.png`.
+- Database migrations applied and registered in Supabase migration history.
+
+Run `bun run test:unit`, `bun run lint`, `bun run typecheck`, `bun run build`. Live browser suite: `TEST_BASE_URL=https://bhumisetu.adribmahmud.workers.dev bun run test:e2e`. It calls DeepInfra and writes synthetic review records. Deploy: `bun run deploy`.
+
+## Scope and remaining human deliverables
+
+Primary competition problem is P3 (rulebook says choose one), with digitization, integrity checks, citizen reports and mutation review supporting it. All data is fictional; no government scraping/integration. Court/khas/acquisition coverage remains explicitly unavailable. Scores are indicators, not fraud probabilities; printed reports and decisions are not official certificates/orders.
+
+Limits: 5 MB / 3 pages per upload; handwriting accuracy not established; camera QR scanning, voice and full language translation deferred. QR links work. Auth sessions last one hour; sign in again after expiry. Complex legal ownership/partition/inheritance/dag mapping is outside the implemented prototype.
+
+User still needs the team/mentor details, ≤3-page concept PDF, ≤90-second recording and final platform submission. `docs/DEMO_SCRIPT.md` provides the timed script. `TODO.md`, `BUILD_PLAN.md` and README document actual status and setup. Architecture reference is `architecture_&_ui_ux.pdf`; actual master file is `master_instructions.md` (`master_prompt.md` is absent).
