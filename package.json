@@ -15,7 +15,8 @@
     "seed": "bun run scripts/seed.ts",
     "test:unit": "bun test tests/unit",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "i18n:check": "bun run scripts/i18n/check.ts"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.12",

@@ -20,7 +20,7 @@ test("citizen can search the real conflict, inspect history, and open source PDF
   await expect(page.getByTestId("evidence-panel")).toContainText("502/2021");
   await expect(page.getByTestId("evidence-panel")).toContainText("889/2022");
   await expect(page.getByTestId("external-checks-panel")).toContainText(
-    "Data Unavailable",
+    "তথ্য অনুপস্থিত",
   );
   await page.getByRole("tab", { name: "জমির ইতিহাস" }).click();
   await expect(page.getByTestId("timeline-event-card")).toHaveCount(5);
@@ -52,7 +52,7 @@ test("clean record computes zero without claiming legal clearance", async ({
   await page.goto("/verify/LND-CLEAN-002");
   await expect(page.getByTestId("risk-indicator-score")).toHaveText("0");
   await expect(page.getByTestId("external-checks-panel")).toContainText(
-    "Data Unavailable",
+    "তথ্য অনুপস্থিত",
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: ".local/record-mobile.png", fullPage: true });
@@ -141,7 +141,7 @@ test("officer correction persists with audit, re-verification stays idempotent a
     page.getByRole("heading", { name: "ভূমি রেকর্ড ব্যবস্থাপনা" }),
   ).toBeVisible();
   await page.goto("/admin/mutations");
-  await expect(page.getByText("HEARING_REQUIRED").first()).toBeVisible();
+  await expect(page.getByText("শুনানি প্রয়োজন").first()).toBeVisible();
 });
 test("real PDF upload calls DeepInfra and stores extracted fields for review", async ({
   page,
@@ -174,7 +174,7 @@ test("real PDF upload calls DeepInfra and stores extracted fields for review", a
     { timeout: 120000 },
   );
   await page
-    .getByLabel("Upload documents")
+    .getByLabel("নথি আপলোড")
     .setInputFiles(".local/fixtures/DOC-DEED-001.pdf");
   const result = await extraction;
   const data = await result.json();
@@ -218,7 +218,7 @@ test("copy integrity matches original bytes and altered PDF produces an area mis
     { timeout: 120000 },
   );
   await page
-    .getByLabel("Compare deed")
+    .getByLabel("দলিলের তুলনা")
     .setInputFiles(".local/fixtures/TAMPERED-DEED-502.pdf");
   const response = await comparison;
   const report = await response.json();
@@ -227,5 +227,7 @@ test("copy integrity matches original bytes and altered PDF produces an area mis
   expect(report.rows.find((r: any) => r.key === "area_decimals").uploaded).toBe(
     25,
   );
-  await expect(page.getByText("Mismatch found", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("অমিল পাওয়া গেছে", { exact: true }),
+  ).toBeVisible();
 });

@@ -1,4 +1,5 @@
 "use client";
+import { useI18n } from "@/i18n/provider";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,6 +22,8 @@ export default function AuthPanel({
   role?: Role;
   register?: boolean;
 }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   const router = useRouter();
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -54,56 +57,60 @@ export default function AuthPanel({
     <div className="login-wrap auth-wrap">
       <section className="login-aside">
         {officer ? <Landmark size={46} /> : <UserRound size={46} />}
-        <h1>{officer ? "প্রশাসনিক প্রবেশ" : "নাগরিক কর্নার"}</h1>
+        <h1>
+          {officer
+            ? t("administrative_access_1aab3")
+            : t("citizen_corner_07f3b")}
+        </h1>
         <p>
           {officer
-            ? "নথি পর্যালোচনা, অডিট ইতিহাস ও নামজারি সিদ্ধান্ত—একটি কর্মক্ষেত্রে।"
-            : "জমির রেকর্ড খুঁজুন, দলিল মিলিয়ে দেখুন এবং প্রমাণসহ রিপোর্ট বুঝে নিন।"}
+            ? t("document_review_audit_history_and_mutation_decisions_cfc48")
+            : t("find_land_records_compare_deeds_and_understand_7e845")}
         </p>
         <div>
           <ShieldCheck />
           {officer
-            ? "অফিসার অনুমতি সার্ভারে যাচাই করা হয়"
-            : "প্রকাশিত ভূমি রেকর্ডে সহজ প্রবেশ"}
+            ? t("officer_permissions_are_verified_on_the_server_603fc")
+            : t("easy_access_to_published_land_records_9fa16")}
         </div>
         <div>
           <History />
           {officer
-            ? "প্রতিটি সংশোধনের সংরক্ষিত ইতিহাস"
-            : "উৎস নথিসহ জমির ইতিহাস"}
+            ? t("a_preserved_history_of_every_correction_78768")
+            : t("land_history_linked_to_source_documents_40fe0")}
         </div>
         <div>
           <LockKeyhole />
-          নিরাপদ লগইন ও পৃথক প্রবেশাধিকার
+          {t("secure_login_and_separate_access_permissions_93afb")}
         </div>
         <div className="auth-role-links">
           <Link className={!officer ? "current" : ""} href="/login">
-            নাগরিক লগইন
+            {t("citizen_login_aeb30")}
           </Link>
           <Link className={officer ? "current" : ""} href="/admin/login">
-            প্রশাসনিক লগইন
+            {t("administrative_login_f1c0b")}
           </Link>
         </div>
       </section>
       <div className="login-form">
         <span className="kicker">
           {register
-            ? "CITIZEN REGISTRATION"
+            ? t("citizen_registration")
             : officer
-              ? "OFFICER ACCESS"
-              : "CITIZEN ACCESS"}
+              ? t("officer_access")
+              : t("citizen_access")}
         </span>
         <h2>
           {register
-            ? "নাগরিক অ্যাকাউন্ট তৈরি করুন"
+            ? t("create_a_citizen_account_3f840")
             : officer
-              ? "অফিসার হিসেবে প্রবেশ করুন"
-              : "নাগরিক হিসেবে প্রবেশ করুন"}
+              ? t("sign_in_as_an_officer_3e894")
+              : t("sign_in_as_a_citizen_3b91b")}
         </h2>
         <p>
           {register
-            ? "ইমেইল ও পাসওয়ার্ড দিয়ে নিবন্ধন করুন।"
-            : "বিচারকদের জন্য এক ক্লিকে ডেমো, অথবা নিজের অ্যাকাউন্টে লগইন।"}
+            ? t("register_with_your_email_address_and_password_c3d75")
+            : t("judges_can_enter_a_demo_in_one_41612")}
         </p>
         {!register && (
           <>
@@ -120,15 +127,17 @@ export default function AuthPanel({
               ) : (
                 <Zap size={18} />
               )}{" "}
-              {officer ? "এক ক্লিকে অফিসার ডেমো" : "এক ক্লিকে নাগরিক ডেমো"}
+              {officer
+                ? t("one_click_officer_demo_d553d")
+                : t("one_click_citizen_demo_63ff4")}
               <ArrowRight size={16} />
             </button>
             <small className="demo-explanation">
-              কোনো পাসওয়ার্ড লাগবে না · শেয়ার করা কাল্পনিক ডেমো অ্যাকাউন্ট
-              {officer ? " · বাস্তব তথ্য নয়" : ""}
+              {t("no_password_needed_shared_fictional_demo_account_2b600")}
+              {officer ? t("no_real_citizen_data_95a55") : ""}
             </small>
             <div className="auth-divider">
-              <span>অথবা ইমেইল দিয়ে লগইন</span>
+              <span>{t("or_sign_in_with_email_b13d5")}</span>
             </div>
           </>
         )}
@@ -137,7 +146,7 @@ export default function AuthPanel({
             e.preventDefault();
             const values = new FormData(e.currentTarget);
             if (register && values.get("password") !== values.get("confirm")) {
-              setError("পাসওয়ার্ড দুটি মিলছে না / Passwords do not match");
+              setError(t("passwords_do_not_match_2e9b7"));
               return;
             }
             submit(register ? "register" : "login", {
@@ -151,7 +160,7 @@ export default function AuthPanel({
           <>
             {register && (
               <label>
-                আপনার নাম
+                {t("your_name_cf6cc")}
                 <input
                   name="name"
                   autoComplete="name"
@@ -163,7 +172,7 @@ export default function AuthPanel({
             )}
           </>
           <label>
-            ইমেইল
+            {t("email_1c41a")}
             <input
               name="email"
               type="email"
@@ -173,7 +182,7 @@ export default function AuthPanel({
             />
           </label>
           <label>
-            পাসওয়ার্ড
+            {t("password_16a47")}
             <input
               name="password"
               type="password"
@@ -185,7 +194,7 @@ export default function AuthPanel({
           </label>
           {register && (
             <label>
-              পাসওয়ার্ড নিশ্চিত করুন
+              {t("confirm_password_63dab")}
               <input
                 name="confirm"
                 type="password"
@@ -198,13 +207,13 @@ export default function AuthPanel({
           )}
           {error && (
             <div role="alert" className="alert error">
-              {error}
+              {tt(error)}
             </div>
           )}
           {message && (
             <div role="status" className="alert success">
               <CheckCircle2 size={17} />
-              {message}
+              {tt(message)}
             </div>
           )}
           <button disabled={!!busy} className="button primary">
@@ -213,29 +222,30 @@ export default function AuthPanel({
             ) : (
               <LockKeyhole size={17} />
             )}{" "}
-            {register ? "নিবন্ধন করুন" : "ইমেইল দিয়ে লগইন"}
+            {register ? t("register_a9a9e") : t("sign_in_with_email_14f1b")}
           </button>
         </form>
         <div className="auth-bottom">
           {register ? (
             <>
-              অ্যাকাউন্ট আছে? <Link href="/login">নাগরিক লগইন</Link>
+              {t("already_have_an_account_4608c")}
+              <Link href="/login">{t("citizen_login_aeb30")}</Link>
             </>
           ) : officer ? (
             <>
-              অফিসার অ্যাকাউন্ট প্রশাসক প্রদান করেন।{" "}
-              <Link href="/login">নাগরিক লগইন</Link>
+              {t("officer_accounts_are_provided_by_an_administrator_d5c3b")}{" "}
+              <Link href="/login">{t("citizen_login_aeb30")}</Link>
             </>
           ) : (
             <>
-              নতুন ব্যবহারকারী? <Link href="/register">নিবন্ধন করুন</Link>
+              {t("new_here_18c7d")}
+              <Link href="/register">{t("register_a9a9e")}</Link>
             </>
           )}
         </div>
         {register && (
           <small>
-            নিবন্ধন শুধু নাগরিকের জন্য। ইমেইল নিশ্চিতকরণ প্রয়োজন হতে পারে; কোনো
-            অফিসার অনুমতি দেওয়া হয় না।
+            {t("registration_is_citizen_only_email_confirmation_may_52bfb")}
           </small>
         )}
       </div>

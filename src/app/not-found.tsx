@@ -1,10 +1,14 @@
+"use client";
+import { useI18n } from "@/i18n/provider";
 import Link from "next/link";
 export default function NotFound() {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   return (
     <main style={{ padding: "80px", textAlign: "center" }}>
-      <h1>রেকর্ড বা পেজ পাওয়া যায়নি</h1>
-      <p>এই লিংকটি সঠিক কিনা যাচাই করুন।</p>
-      <Link href="/verify">জমির রেকর্ড খুঁজুন →</Link>
+      <h1>{t("record_or_page_not_found_54fbf")}</h1>
+      <p>{t("please_check_that_the_link_is_correct_eabb1")}</p>
+      <Link href="/verify">{t("search_land_records_11b4c")}</Link>
     </main>
   );
 }

@@ -2801,3 +2801,111 @@ a:focus-visible {
     top: 96px;
   }
 }
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #ffffff12;
+  border: 1px solid #ffffff25;
+  border-radius: 5px;
+  padding: 2px;
+}
+.language-switch button {
+  background: transparent;
+  color: #d9eadd;
+  font-size: 10px;
+  padding: 2px 7px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.language-switch button[aria-pressed="true"] {
+  background: #f4f7ed;
+  color: #174e36;
+  font-weight: 700;
+}
+.language-switch button:focus-visible {
+  outline: 2px solid #dbecc8;
+  outline-offset: 2px;
+}
+html[lang="en"] .brand-en {
+  display: none;
+}
+html[lang="bn"] .kicker {
+  letter-spacing: 0.3px;
+}
+html[lang="en"] .hero h1 {
+  line-height: 1.3;
+  letter-spacing: -0.8px;
+}
+html[lang="en"] .service-card h3 {
+  font-size: 15px;
+}
+html[lang="en"] .coverage-row {
+  line-height: 1.65;
+}
+html[lang="en"] .nav {
+  gap: 20px;
+}
+html[lang="en"] .brand strong {
+  font-family: Arial, sans-serif;
+}
+html[lang="en"] .entry-buttons .button {
+  font-size: 10px;
+}
+@media (max-width: 760px) {
+  .language-switch button {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+  html[lang="en"] .hero h1 {
+    font-size: 33px;
+  }
+  html[lang="en"] .nav.open {
+    gap: 9px;
+  }
+  html[lang="en"] .brand strong {
+    font-size: 20px;
+  }
+  html[lang="en"] .entry-buttons .button {
+    font-size: 8px;
+    padding: 4px 6px;
+  }
+}
+@media print {
+  .language-switch {
+    display: none !important;
+  }
+}
+.utility .flex-between > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.utility-right {
+  flex-shrink: 0;
+}
+html[lang="bn"] .risk-panel h3,
+html[lang="bn"] .signal > p,
+html[lang="bn"] .coverage-row,
+html[lang="bn"] .compare-result > p,
+html[lang="bn"] .mutation-evidence small {
+  font-family: inherit;
+}
+.modal .language-switch,
+.review-modal .language-switch {
+  background: #eef4e7;
+  border-color: #d2dfc9;
+}
+.modal .language-switch button,
+.review-modal .language-switch button {
+  color: var(--green-dark);
+}
+.modal .language-switch button[aria-pressed="true"],
+.review-modal .language-switch button[aria-pressed="true"] {
+  background: var(--green);
+  color: white;
+}
+.review-header > .language-switch {
+  margin-left: auto;
+}

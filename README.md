@@ -71,6 +71,14 @@ bun run deploy
 
 The Worker requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DEEPINFRA_API_KEY`, and optionally `DEEPINFRA_VISION_MODEL`. Never commit the secret JSON. The PDF.js worker is served locally from `public/pdf.worker.min.mjs` (upstream pdfjs-dist license applies).
 
+## Language switching (বাংলা / English)
+
+The utility bar switches the complete interface between Bangla and English immediately. The `bs-locale` preference cookie lasts one year, persists through navigation and reloads, and is read on the server for the initial HTML language. Switching does not reload the page, clear forms, sign users out or change stored records. Officer dialogs include the same shared switch.
+
+Translations live in `src/i18n/bn.json` and `src/i18n/en.json`; components use typed message keys through the shared React provider. `sources.json` maps known server messages/statuses and legacy field labels to those keys at the presentation boundary. There are no translation API requests, external translation dependencies, DOM text replacement or per-component bn/en copies. Add/edit reviewed text in the catalogs, then run `bun run i18n:check` to verify keys, placeholders and visible copy.
+
+Rule explanations use the same signal IDs/evidence references in either language. Dates use `Intl.DateTimeFormat` with an explicit locale and Bangladesh time zone. Original documents, official IDs, names, numeric evidence, correction reasons and other stored input remain unchanged. Unknown provider/source messages retain their original text rather than being guessed or sent to a translation service. Printed reports use the active language.
+
 ## Data, interpretation and limitations
 
 All sample names, land records, share identifiers and PDFs are invented. No real citizen records, NIDs, phone numbers or government datasets are used. No government portals are scraped or queried. Bangladesh's land portal informed the visual direction; this prototype is not a government website or an official service.
@@ -79,7 +87,7 @@ The score is a **rule-based indicator, not a probability of fraud**. Court litig
 
 Uploads are limited to **5 MB and 3 PDF pages** per file. OCR can be wrong, especially for handwriting; extracted fields require human review. No calibrated confidence percentages are fabricated. Inconsistent/missing parcel or ownership history requires further verification. Application roles cannot alter audit rows; a privileged database administrator retains database-level control.
 
-The visual quota meter shows recorded sales for the parcel; the rule engine groups same-seller evidence and avoids adding Khatian/Porcha entitlements twice. Complex inheritance, partition, mortgages, historical dag mapping and authoritative legal chain adjudication need further domain work. Camera QR scanning, full language translation and voice assistance are outside the implemented core.
+The visual quota meter shows recorded sales for the parcel; the rule engine groups same-seller evidence and avoids adding Khatian/Porcha entitlements twice. Complex inheritance, partition, mortgages, historical dag mapping and authoritative legal chain adjudication need further domain work. Camera QR scanning and voice assistance are outside the implemented core. The application interface supports Bangla and English; original document contents are not automatically translated.
 
 ## AI disclosure and project documents
 

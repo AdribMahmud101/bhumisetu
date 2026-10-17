@@ -64,3 +64,12 @@ Core implementation complete. Supabase schema/fixtures/officer account are confi
 - [x] Preserve normal email/password login for both roles and citizen registration.
 - [x] Enforce officer role on server; reject citizen privilege escalation.
 - [x] Deploy and pass 7 live authentication/regression browser workflows.
+
+## Bangla / English interface
+
+- [x] Shared typed catalogs and one language provider; no runtime translation service.
+- [x] Persistent language cookie, server-rendered language and accessible switch.
+- [x] Localized navigation, forms, officer dialogs, validation messages, statuses and reports.
+- [x] Preserve entered values, record identities, evidence and authentication during switching.
+- [x] Local unit checks and desktop/mobile/print browser checks.
+- [x] Final live regression: all 15 browser workflows passed on the deployed Worker; catalogs and production build pass.

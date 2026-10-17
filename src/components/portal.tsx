@@ -1,7 +1,9 @@
 "use client";
+import { useI18n, LanguageSwitch } from "@/i18n/provider";
 import Link from "next/link";
 import Image from "next/image";
 import AuthPanel from "./auth-panel";
+import { explainSignal } from "@/i18n/evidence";
 import {
   useCallback,
   useEffect,
@@ -88,18 +90,22 @@ function Badge({
   return <span className={"badge " + tone}>{children}</span>;
 }
 function Busy() {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   return (
     <div className="loading">
-      <Loader2 className="spin" /> তথ্য লোড হচ্ছে · Loading records
+      <Loader2 className="spin" /> {t("loading_records_f15e0")}
     </div>
   );
 }
 function Empty({ text }: { text: string }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   return (
     <div className="empty">
       <FileSearch size={36} />
       <h3>{text}</h3>
-      <p>নতুন তথ্য যুক্ত হলে এখানে দেখা যাবে।</p>
+      <p>{t("new_information_will_appear_here_when_it_a4796")}</p>
     </div>
   );
 }
@@ -112,6 +118,8 @@ export default function Portal({
   id?: string;
   authRole?: "citizen" | "officer";
 }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   const [isOfficer, setOfficer] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [mobile, setMobile] = useState(false);
@@ -176,10 +184,13 @@ export default function Portal({
     <>
       <div className="utility">
         <div className="container flex-between">
-          <span>LandTech 2026 · ডিজিটাল ভূমি সেবার উদ্ভাবন</span>
+          <span>
+            {t("landtech_2026_innovation_in_digital_land_services_edc90")}
+          </span>
           <span className="utility-right">
-            <Globe2 size={13} /> বাংলাদেশ{" "}
-            <span className="utility-divider">|</span> বাংলা / EN
+            <Globe2 size={13} /> {t("bangladesh_8ecd2")}{" "}
+            <span className="utility-divider">|</span>
+            <LanguageSwitch />
           </span>
         </div>
       </div>
@@ -191,27 +202,30 @@ export default function Portal({
             </span>
             <span>
               <strong>
-                ভূমিসেতু<span className="brand-en">BhumiSetu</span>
+                {t("bhumisetu_782d0")}
+                <span className="brand-en" translate="no">
+                  BhumiSetu
+                </span>
               </strong>
-              <small>স্বচ্ছ নথি, সুরক্ষিত আগামী</small>
+              <small>{t("clear_records_a_secure_tomorrow_c27ff")}</small>
             </span>
           </Link>
           <button
             className="icon-button mobile-menu"
-            aria-label="Open navigation"
+            aria-label={t("open_navigation_0ed77")}
             onClick={() => setMobile(!mobile)}
           >
             <Menu />
           </button>
           <nav className={mobile ? "nav open" : "nav"}>
             <Link className={view === "home" ? "active" : ""} href="/">
-              হোম
+              {t("home_932f2")}
             </Link>
             <Link
               className={["verify", "record"].includes(view) ? "active" : ""}
               href="/verify"
             >
-              নাগরিক সেবা
+              {t("citizen_services_e895b")}
             </Link>
             <Link
               className={
@@ -219,9 +233,9 @@ export default function Portal({
               }
               href="/admin"
             >
-              অফিস কর্নার
+              {t("officer_workspace_e4eee")}
             </Link>
-            <Link href="/#how-it-works">যেভাবে কাজ করে</Link>
+            <Link href="/#how-it-works">{t("how_it_works_56da8")}</Link>
           </nav>
           <div className="header-action">
             {authenticated ? (
@@ -235,18 +249,18 @@ export default function Portal({
                   })
                 }
               >
-                <LogOut size={15} /> লগ আউট
+                <LogOut size={15} /> {t("log_out_d8929")}
               </button>
             ) : (
               <div className="entry-buttons">
                 <Link className="button outline small" href="/login">
-                  লগইন
+                  {t("login_dfab6")}
                 </Link>
                 <Link className="button outline small" href="/register">
-                  রেজিস্ট্রেশন
+                  {t("registration_21138")}
                 </Link>
                 <Link className="button primary small" href="/admin/login">
-                  প্রশাসনিক
+                  {t("administrative_41312")}
                 </Link>
               </div>
             )}
@@ -254,12 +268,12 @@ export default function Portal({
         </div>
       </header>
       <div className="prototype-strip">
-        <span className="dot" /> কার্যকরী হ্যাকাথন প্রোটোটাইপ · সব প্রদর্শনী
-        তথ্য কাল্পনিক · সরকারি পোর্টাল নয়
+        <span className="dot" />{" "}
+        {t("working_hackathon_prototype_all_demonstration_data_is_d73db")}
       </div>
       {view !== "home" && (
         <div className="container breadcrumb">
-          <Link href="/">হোম</Link>
+          <Link href="/">{t("home_932f2")}</Link>
           <ChevronRight size={13} />
           <Link
             href={
@@ -269,8 +283,8 @@ export default function Portal({
             }
           >
             {["admin", "land", "mutations"].includes(view)
-              ? "অফিস কর্নার"
-              : "নাগরিক সেবা"}
+              ? t("officer_workspace_e4eee")
+              : t("citizen_services_e895b")}
           </Link>
           {id && (
             <>
@@ -286,13 +300,13 @@ export default function Portal({
             <ShieldAlert size={20} />
             <span>
               {error === "NOT_FOUND"
-                ? "রেকর্ড পাওয়া যায়নি / Record not found or not published"
-                : error}
+                ? t("record_not_found_or_not_published_e997c")
+                : tt(error)}
             </span>
             <button
               className="icon-button"
               onClick={() => setError("")}
-              aria-label="Dismiss"
+              aria-label={t("dismiss_48845")}
             >
               <X size={16} />
             </button>
@@ -301,7 +315,7 @@ export default function Portal({
         {notice && (
           <div role="status" className="alert success">
             <CheckCircle2 size={20} />
-            {notice}
+            {tt(notice)}
           </div>
         )}
         {view === "home" && (
@@ -310,54 +324,57 @@ export default function Portal({
               <div className="container hero-grid">
                 <div className="hero-copy">
                   <span className="eyebrow">
-                    <span className="dot" /> নথি থেকে নির্ভরযোগ্য সিদ্ধান্ত
+                    <span className="dot" />{" "}
+                    {t("from_documents_to_informed_decisions_9dd50")}
                   </span>
                   <h1>
-                    জমির নথি হোক স্বচ্ছ।
+                    {t("keep_land_records_clear_6d099")}
                     <br />
-                    <span>সিদ্ধান্ত হোক নিশ্চিন্ত।</span>
+                    <span>{t("make_informed_decisions_f8ebd")}</span>
                   </h1>
                   <p>
-                    খতিয়ান, পর্চা, দলিল ও নামজারি—এক ঠিকানায়। জমি কেনার আগে
-                    দেখুন নথির ইতিহাস, অমিল এবং সম্ভাব্য দ্বৈত বিক্রয়ের প্রমাণ।
+                    {t("khatian_porcha_deeds_and_mutation_records_in_3e323")}
                   </p>
                   <form className="hero-search" onSubmit={search}>
                     <Search size={22} />
                     <input
                       name="query"
-                      aria-label="Land ID"
-                      placeholder="জমির ইউনিক আইডি লিখুন"
+                      aria-label={t("land_id_dbdcc")}
+                      placeholder={t("enter_the_unique_land_id_45f9e")}
                       required
                     />
                     <button className="button primary" type="submit">
-                      যাচাই করুন <ArrowRight size={18} />
+                      {t("verify_now_bbe5c")}
+                      <ArrowRight size={18} />
                     </button>
                   </form>
                   <div className="hero-sample">
-                    কাল্পনিক রেকর্ড দেখুন{" "}
+                    {t("explore_a_fictional_record_47e2f")}{" "}
                     <Link href="/verify/LND-MOCK-001">
                       LND-MOCK-001 <ArrowUpRight size={13} />
                     </Link>
                   </div>
                   <div className="hero-trust">
                     <span>
-                      <ShieldCheck size={16} /> প্রমাণভিত্তিক বিশ্লেষণ
+                      <ShieldCheck size={16} />{" "}
+                      {t("evidence_based_analysis_ae4a1")}
                     </span>
                     <span>
-                      <Fingerprint size={16} /> নথির ডিজিটাল অখণ্ডতা
+                      <Fingerprint size={16} />{" "}
+                      {t("digital_document_integrity_ad1fe")}
                     </span>
                   </div>
                 </div>
                 <div className="hero-visual">
                   <div className="visual-caption">
-                    <span className="live-dot" /> একটি জমি। সব নথি। স্পষ্ট
-                    চিত্র।
+                    <span className="live-dot" />{" "}
+                    {t("one_parcel_every_document_a_clearer_picture_2413b")}
                   </div>
                   <div className="parcel-map">
                     <div className="map-grid" />
                     <svg
                       viewBox="0 0 460 260"
-                      aria-label="Illustrative parcel diagram"
+                      aria-label={t("illustrative_parcel_diagram_27795")}
                     >
                       <path
                         d="M45 170L160 104 337 126 225 204Z"
@@ -404,11 +421,14 @@ export default function Portal({
                         fill="#254d34"
                         fontSize="13"
                       >
-                        দাগ নং ২০৭
+                        {t("dag_no_207_e7097")}
                       </text>
                     </svg>
                     <span className="map-label">
-                      <MapPinned size={13} /> কাল্পনিক জমির চিত্র · মানচিত্র নয়
+                      <MapPinned size={13} />{" "}
+                      {t(
+                        "illustrative_fictional_parcel_not_a_survey_map_c2851",
+                      )}
                     </span>
                   </div>
                   <div className="floating-document">
@@ -416,13 +436,13 @@ export default function Portal({
                       <Files size={22} />
                     </span>
                     <div>
-                      <strong>সমন্বিত ভূমি রেকর্ড</strong>
-                      <small>খতিয়ান · পর্চা · দলিল · নামজারি</small>
+                      <strong>{t("integrated_land_record_44e09")}</strong>
+                      <small>{t("khatian_porcha_deed_mutation_f6d3f")}</small>
                     </div>
                     <ShieldCheck size={23} className="text-green" />
                   </div>
                   <div className="visual-bottom">
-                    <span>নথির ইতিহাস</span>
+                    <span>{t("document_history_370d9")}</span>
                     <span className="timeline-dots">
                       <i />
                       <b />
@@ -431,7 +451,8 @@ export default function Portal({
                       <i />
                     </span>
                     <span>
-                      প্রমাণসহ রিপোর্ট <ArrowUpRight size={13} />
+                      {t("evidence_backed_report_a4058")}
+                      <ArrowUpRight size={13} />
                     </span>
                   </div>
                 </div>
@@ -440,43 +461,50 @@ export default function Portal({
             <section className="container services">
               <div className="section-heading">
                 <div>
-                  <span className="kicker">নাগরিক সেবা</span>
-                  <h2>ভূমি যাচাই এখন আরও সহজ</h2>
+                  <span className="kicker">{t("citizen_services_e895b")}</span>
+                  <h2>{t("land_verification_made_easier_e7d58")}</h2>
                 </div>
-                <p>একটি জমির সম্পূর্ণ চিত্র, এক প্ল্যাটফর্মে।</p>
+                <p>{t("a_complete_view_of_one_parcel_on_bc265")}</p>
               </div>
               <div className="service-grid">
                 {[
                   {
                     icon: FileSearch,
-                    title: "জমির রেকর্ড অনুসন্ধান",
-                    en: "Find land records",
-                    description: "ইউনিক আইডি দিয়ে একসাথে সব নথি খুঁজুন।",
+                    title: t("search_land_records_15dd5"),
+                    en: t("find_land_records_0b7f7"),
+                    description: t(
+                      "find_related_documents_together_using_a_unique_317c2",
+                    ),
                     href: "/verify",
                     color: "green",
                   },
                   {
                     icon: Fingerprint,
-                    title: "দলিলের তথ্য যাচাই",
-                    en: "Verify a document",
-                    description:
-                      "সংরক্ষিত নথির সঙ্গে কপি ও তথ্য মিলিয়ে দেখুন।",
+                    title: t("check_document_details_6f08f"),
+                    en: t("verify_a_document_72e38"),
+                    description: t(
+                      "compare_a_copy_and_its_fields_against_19fe9",
+                    ),
                     href: "/verify?tab=compare",
                     color: "purple",
                   },
                   {
                     icon: ShieldAlert,
-                    title: "দ্বৈত বিক্রয় শনাক্তকরণ",
-                    en: "Detect conflicting sales",
-                    description: "সম্ভাব্য সংঘাত দেখুন কারণ ও প্রমাণসহ।",
+                    title: t("detect_conflicting_sales_a95f0"),
+                    en: t("detect_conflicting_sales_eb7e3"),
+                    description: t(
+                      "review_potential_conflicts_with_reasons_and_evidence_d1cea",
+                    ),
                     href: "/verify/LND-MOCK-001",
                     color: "orange",
                   },
                   {
                     icon: ClipboardCheck,
-                    title: "স্মার্ট নামজারি পর্যালোচনা",
-                    en: "Mutation review",
-                    description: "নথির অসংগতি যাচাই করে সিদ্ধান্ত নিন।",
+                    title: t("smart_mutation_review_4d683"),
+                    en: t("mutation_review_fb883"),
+                    description: t(
+                      "review_document_discrepancies_before_making_a_decision_15746",
+                    ),
                     href: "/admin/mutations",
                     color: "blue",
                   },
@@ -485,11 +513,12 @@ export default function Portal({
                     <span className={"service-icon " + s.color}>
                       <s.icon size={26} />
                     </span>
-                    <h3>{s.title}</h3>
+                    <h3>{tt(s.title)}</h3>
                     <small>{s.en}</small>
                     <p>{s.description}</p>
                     <span className="service-link">
-                      সেবা গ্রহণ করুন <ArrowRight size={17} />
+                      {t("access_service_921dc")}
+                      <ArrowRight size={17} />
                     </span>
                   </Link>
                 ))}
@@ -499,27 +528,33 @@ export default function Portal({
               <div className="container">
                 <div className="section-heading">
                   <div>
-                    <span className="kicker">সহজ তিনটি ধাপ</span>
-                    <h2>আপনার সিদ্ধান্তের পাশে প্রমাণ</h2>
+                    <span className="kicker">
+                      {t("three_simple_steps_0bc5f")}
+                    </span>
+                    <h2>{t("evidence_to_support_your_decision_5afb3")}</h2>
                   </div>
-                  <Badge>AI reads · Rules explain · Officers decide</Badge>
+                  <Badge>
+                    {t("ai_reads_rules_explain_officers_decide_90041")}
+                  </Badge>
                 </div>
                 <div className="steps">
                   {[
                     [
                       "01",
-                      "জমি খুঁজুন",
-                      "ইউনিক আইডি দিয়ে প্রকাশিত রেকর্ড খুলুন।",
+                      t("find_a_parcel_ce1bb"),
+                      t("open_a_published_record_using_its_unique_0ff5d"),
                     ],
                     [
                       "02",
-                      "প্রমাণ দেখুন",
-                      "দলিল, জমির পরিমাণ ও ইতিহাস মিলিয়ে দেখুন।",
+                      t("review_the_evidence_fed7e"),
+                      t("compare_deeds_land_areas_and_the_recorded_6a316"),
                     ],
                     [
                       "03",
-                      "জেনে সিদ্ধান্ত নিন",
-                      "অমিল ও অসম্পূর্ণ যাচাই বুঝে পরবর্তী পদক্ষেপ নিন।",
+                      t("decide_with_understanding_0abb1"),
+                      t(
+                        "understand_discrepancies_and_missing_checks_before_taking_c98c3",
+                      ),
                     ],
                   ].map(([n, t, d]) => (
                     <div key={n}>
@@ -534,15 +569,14 @@ export default function Portal({
             <section className="container sample-section">
               <div>
                 <ShieldCheck size={36} />
-                <h2>বিশ্বাসের ভিত্তি—স্বচ্ছতা</h2>
+                <h2>{t("trust_begins_with_transparency_2ecab")}</h2>
                 <p>
-                  AI তথ্য সংগ্রহে সহায়তা করে। বিশ্লেষণের প্রতিটি সংকেতের পাশে
-                  থাকে উৎস নথি। আইনগত সিদ্ধান্তের জন্য সংশ্লিষ্ট কর্তৃপক্ষের
-                  যাচাই প্রয়োজন।
+                  {t("ai_helps_collect_document_fields_each_analysis_a430f")}
                 </p>
               </div>
               <Link className="button outline" href="/verify/LND-MOCK-001">
-                নমুনা বিশ্লেষণ দেখুন <ArrowRight size={17} />
+                {t("explore_the_sample_analysis_3ff5f")}
+                <ArrowRight size={17} />
               </Link>
             </section>
           </>
@@ -550,9 +584,11 @@ export default function Portal({
         {view === "verify" && (
           <>
             <PageHeading
-              kicker="CITIZEN SERVICES"
-              title="জমি কেনার আগে যাচাই করুন"
-              description="প্রকাশিত রেকর্ড, নথির ইতিহাস ও সম্ভাব্য সংঘাত একসঙ্গে দেখুন।"
+              kicker={t("citizen_services_28127")}
+              title={t("verify_before_you_buy_4d646")}
+              description={t(
+                "review_published_records_document_history_and_potential_bdc21",
+              )}
             />
             <div className="search-panel">
               <form className="record-search" onSubmit={search}>
@@ -560,25 +596,26 @@ export default function Portal({
                 <input
                   data-testid="land-search-input"
                   name="query"
-                  aria-label="Land ID"
-                  placeholder="উদাহরণ: LND-MOCK-001"
+                  aria-label={t("land_id_dbdcc")}
+                  placeholder={t("example_lnd_mock_001_99fc2")}
                   required
                 />
                 <button
                   data-testid="land-search-btn"
                   className="button primary"
                 >
-                  রেকর্ড খুঁজুন <ArrowRight size={17} />
+                  {t("find_record_edd2b")}
+                  <ArrowRight size={17} />
                 </button>
               </form>
               <p>
-                <LockKeyhole size={14} /> এখানে শুধুমাত্র পর্যালোচিত ও প্রকাশিত
-                নথি দেখানো হয়।
+                <LockKeyhole size={14} />{" "}
+                {t("only_reviewed_and_published_records_are_displayed_510f3")}
               </p>
             </div>
             <div className="section-heading">
-              <h2>প্রকাশিত নমুনা রেকর্ড</h2>
-              <Badge>স্পষ্টভাবে চিহ্নিত কাল্পনিক তথ্য</Badge>
+              <h2>{t("published_sample_records_e251b")}</h2>
+              <Badge>{t("clearly_labeled_fictional_data_89f82")}</Badge>
             </div>
             {loading ? <Busy /> : <LandList lands={lands} admin={false} />}
           </>
@@ -589,40 +626,43 @@ export default function Portal({
         {view === "admin" && (
           <>
             <PageHeading
-              kicker="OFFICER WORKSPACE"
-              title="ভূমি রেকর্ড ব্যবস্থাপনা"
-              description="একটি জমি, চার ধরনের নথি—সংরক্ষণ, পর্যালোচনা ও প্রকাশ করুন।"
+              kicker={t("officer_workspace_e662e")}
+              title={t("land_record_management_20904")}
+              description={t(
+                "one_parcel_four_document_categories_store_review_13da8",
+              )}
               action={
                 <button
                   className="button primary"
                   onClick={() => setCreate(true)}
                 >
-                  <Plus size={17} /> নতুন জমির রেকর্ড
+                  <Plus size={17} /> {t("create_land_record_8f76d")}
                 </button>
               }
             />
             <div className="stats-grid">
               <Stat
-                label="মাস্টার ল্যান্ড রেকর্ড"
+                label={t("master_land_records_d4a7d")}
                 value={lands.length}
                 icon={<Layers3 />}
               />
               <Stat
-                label="প্রকাশিত রেকর্ড"
+                label={t("published_records_324dc")}
                 value={lands.filter((l) => l.is_finalized).length}
                 icon={<FileCheck2 />}
               />
               <Stat
-                label="খসড়া রেকর্ড"
+                label={t("draft_records_17866")}
                 value={lands.filter((l) => !l.is_finalized).length}
                 icon={<Clock3 />}
               />
               <Link href="/admin/mutations" className="stat-link">
                 <ClipboardCheck />
                 <span>
-                  নামজারি পর্যালোচনা
+                  {t("mutation_review_1a212")}
                   <small>
-                    Mutation workspace <ArrowRight size={14} />
+                    {t("mutation_workspace_14066")}
+                    <ArrowRight size={14} />
                   </small>
                 </span>
               </Link>
@@ -638,14 +678,12 @@ export default function Portal({
               <>
                 <PageHeading
                   kicker={
-                    view === "land"
-                      ? "MASTER LAND WORKSPACE"
-                      : "LAND RECORD & EVIDENCE"
+                    view === "land" ? t("master_workspace") : t("land_evidence")
                   }
                   title={
                     view === "land"
-                      ? "জমির নথি ও পর্যালোচনা"
-                      : "জমির সমন্বিত রেকর্ড"
+                      ? t("land_documents_and_review_9d77f")
+                      : t("integrated_land_record_8aa39")
                   }
                   description={`${bundle.land.mouza} · ${bundle.land.upazila}, ${bundle.land.district}`}
                   action={
@@ -657,21 +695,20 @@ export default function Portal({
                           onClick={() =>
                             run(async () => {
                               await api("publish/" + id, {});
-                              setNotice(
-                                "রেকর্ড প্রকাশিত হয়েছে / Record published",
-                              );
+                              setNotice(t("record_published_42e08"));
                               await refresh();
                             })
                           }
                         >
-                          <CheckCircle2 size={17} /> পর্যালোচিত রেকর্ড প্রকাশ
+                          <CheckCircle2 size={17} />{" "}
+                          {t("publish_reviewed_record_55e11")}
                         </button>
                       ) : (
                         <button
                           className="button outline"
                           onClick={() => window.print()}
                         >
-                          <Download size={17} /> রিপোর্ট / PDF
+                          <Download size={17} /> {t("report_pdf_49a93")}
                         </button>
                       )}
                     </>
@@ -683,7 +720,7 @@ export default function Portal({
                   </div>
                   <div>
                     <span className="muted tiny">
-                      ইউনিক ল্যান্ড আইডি · অভ্যন্তরীণ পরিচিতি
+                      {t("unique_land_id_internal_identifier_ec0ee")}
                     </span>
                     <h2 data-testid="master-land-id">
                       {bundle.land.unique_land_id}
@@ -692,31 +729,32 @@ export default function Portal({
                   <div className="identity-status">
                     <Badge tone={bundle.land.is_finalized ? "green" : "amber"}>
                       {bundle.land.is_finalized
-                        ? "প্রকাশিত রেকর্ড"
-                        : "খসড়া রেকর্ড"}
+                        ? t("published_record_badge")
+                        : t("draft_records_17866")}
                     </Badge>
                     <span className="tiny muted">
-                      কাল্পনিক নমুনা / Synthetic data only
+                      {t("fictional_sample_data_only_cc7b4")}
                     </span>
                   </div>
                 </div>
                 <div className="record-meta">
                   <div>
-                    <span>খতিয়ান নম্বর</span>
+                    <span>{t("khatian_number_74e57")}</span>
                     <strong>{bundle.land.current_khatian_no || "—"}</strong>
                   </div>
                   <div>
-                    <span>দাগ নম্বর</span>
+                    <span>{t("dag_number_03982")}</span>
                     <strong>{bundle.land.dag_number}</strong>
                   </div>
                   <div>
-                    <span>রেকর্ডে জমির পরিমাণ</span>
+                    <span>{t("recorded_land_area_91f11")}</span>
                     <strong data-testid="recorded-area">
-                      {bundle.land.total_area_decimals} <small>শতাংশ</small>
+                      {bundle.land.total_area_decimals}{" "}
+                      <small>{t("decimals_2dd44")}</small>
                     </strong>
                   </div>
                   <div>
-                    <span>মৌজা / JL</span>
+                    <span>{t("mouza_jl_ace98")}</span>
                     <strong>
                       {bundle.land.mouza} / {bundle.land.jl_number}
                     </strong>
@@ -724,11 +762,11 @@ export default function Portal({
                 </div>
                 <div className="tabs" role="tablist">
                   {[
-                    ["overview", "বিশ্লেষণ ও প্রমাণ", ShieldCheck],
-                    ["documents", "নথিসমূহ", Files],
-                    ["history", "জমির ইতিহাস", History],
+                    ["overview", t("analysis_and_evidence_1d8c5"), ShieldCheck],
+                    ["documents", t("documents_58873"), Files],
+                    ["history", t("land_history_741f6"), History],
                     ...(view === "record"
-                      ? [["compare", "দলিল যাচাই", Fingerprint]]
+                      ? [["compare", t("verify_document_465e4"), Fingerprint]]
                       : []),
                   ].map(([key, title, Icon]) => (
                     <button
@@ -749,7 +787,7 @@ export default function Portal({
                       <section className="panel risk-panel">
                         <div className="panel-top">
                           <span className="kicker">
-                            RULE-BASED RISK INDICATOR
+                            {t("rule_based_risk_indicator_f4894")}
                           </span>
                           <ShieldAlert size={20} />
                         </div>
@@ -771,30 +809,40 @@ export default function Portal({
                             <span>/ 100</span>
                           </div>
                         </div>
-                        <h3>{bundle.analysis.status}</h3>
-                        <p>Estimated Risk Score (Rule-Based Indicator)</p>
+                        <h3>{tt(bundle.analysis.status)}</h3>
+                        <p>
+                          {t("estimated_risk_score_rule_based_indicator_966a5")}
+                        </p>
                         <small>
-                          এটি জালিয়াতির সম্ভাবনা বা আইনগত রায় নয়।
+                          {t("this_is_neither_a_fraud_probability_nor_6e834")}
                         </small>
                         <div className="risk-foot">
-                          <span>{bundle.analysis.coverage} পর্যালোচিত নথি</span>
-                          <span>{bundle.analysis.signals.length} সংকেত</span>
+                          <span>
+                            {bundle.analysis.coverage}{" "}
+                            {t("reviewed_documents_307e7")}
+                          </span>
+                          <span>
+                            {bundle.analysis.signals.length}{" "}
+                            {t("signals_cf65c")}
+                          </span>
                         </div>
                       </section>
                       <section className="panel quota-panel">
                         <div className="panel-top">
                           <div>
-                            <span className="kicker">AREA & SHARE CHECK</span>
-                            <h3>জমির পরিমাণের হিসাব</h3>
+                            <span className="kicker">
+                              {t("area_share_check_4b8a1")}
+                            </span>
+                            <h3>{t("land_area_comparison_f7df9")}</h3>
                           </div>
                           <Layers3 size={22} />
                         </div>
                         <div className="quota-numbers">
                           <div>
                             <strong>{bundle.analysis.recorded}</strong>
-                            <span>শতাংশ রেকর্ডে</span>
+                            <span>{t("decimals_recorded_d8f3f")}</span>
                           </div>
-                          <span className="versus">বনাম</span>
+                          <span className="versus">{t("versus_393d3")}</span>
                           <div
                             className={
                               bundle.analysis.sold > bundle.analysis.recorded
@@ -803,7 +851,7 @@ export default function Portal({
                             }
                           >
                             <strong>{bundle.analysis.sold}</strong>
-                            <span>শতাংশ বিক্রয় দলিলে</span>
+                            <span>{t("decimals_in_sale_deeds_61290")}</span>
                           </div>
                         </div>
                         <div className="quota-track">
@@ -822,12 +870,15 @@ export default function Portal({
                         </div>
                         <div className="quota-legend">
                           <span>
-                            <i /> রেকর্ডকৃত সীমা: {bundle.analysis.recorded}
+                            <i /> {t("recorded_limit_ff206")}
+                            {bundle.analysis.recorded}
                           </span>
                           <span className="text-red">
                             {bundle.analysis.excess > 0
-                              ? `+${bundle.analysis.excess} শতাংশ অতিরিক্ত`
-                              : "উপলব্ধ নথির ভিত্তিতে হিসাব"}
+                              ? t("excess_area", {
+                                  area: bundle.analysis.excess,
+                                })
+                              : t("based_on_available_records_7a562")}
                           </span>
                         </div>
                         <div
@@ -839,20 +890,26 @@ export default function Portal({
                           <ShieldAlert size={20} />
                           <span>
                             {bundle.analysis.score
-                              ? "বিক্রয় ও রেকর্ডের অসংগতি আছে। সিদ্ধান্তের আগে উৎস নথি ও সংশ্লিষ্ট কর্তৃপক্ষের যাচাই প্রয়োজন।"
-                              : "উপলব্ধ নথিতে সংঘাত পাওয়া যায়নি। এটি সম্পূর্ণ যাচাই বা ক্রয়ের ছাড়পত্র নয়।"}
+                              ? t(
+                                  "there_are_inconsistencies_between_sales_and_records_344e6",
+                                )
+                              : t(
+                                  "no_conflict_was_found_in_available_records_364c7",
+                                )}
                           </span>
                         </div>
                         <div className="mini-process">
                           <span>
-                            রেকর্ড সংগ্রহ <Check size={13} />
+                            {t("collect_records_33146")}
+                            <Check size={13} />
                           </span>
                           <ChevronRight size={14} />
                           <span>
-                            নিয়মভিত্তিক বিশ্লেষণ <Check size={13} />
+                            {t("rule_based_analysis_35f49")}
+                            <Check size={13} />
                           </span>
                           <ChevronRight size={14} />
-                          <span>মানবিক পর্যালোচনা</span>
+                          <span>{t("human_review_20a6a")}</span>
                         </div>
                       </section>
                     </div>
@@ -863,12 +920,12 @@ export default function Portal({
                       <div className="section-heading">
                         <div>
                           <span className="kicker">
-                            EVERY ALERT HAS A SOURCE
+                            {t("every_alert_has_a_source_80011")}
                           </span>
-                          <h2>সংঘাতের কারণ ও প্রমাণ</h2>
+                          <h2>{t("conflict_reasons_and_evidence_686fc")}</h2>
                         </div>
                         <Badge tone={bundle.analysis.score ? "red" : "green"}>
-                          {bundle.analysis.signals.length} signals
+                          {bundle.analysis.signals.length} {t("signals_c1d2c")}
                         </Badge>
                       </div>
                       {bundle.analysis.signals.length ? (
@@ -878,10 +935,10 @@ export default function Portal({
                               <span className="signal-mark">
                                 <ShieldAlert size={18} />
                               </span>
-                              <h3>{s.title}</h3>
+                              <h3>{tt(s.title)}</h3>
                               <Badge tone="red">+{s.points}</Badge>
                             </div>
-                            <p>{s.detail}</p>
+                            <p>{explainSignal(s, bundle.documents, t)}</p>
                             <div className="evidence-links">
                               {s.evidence.map((docId) => {
                                 const d = bundle.documents.find(
@@ -908,20 +965,21 @@ export default function Portal({
                         ))
                       ) : (
                         <div className="alert success">
-                          <CheckCircle2 /> No conflict found in available
-                          records. Review the coverage below before making a
-                          decision.
+                          <CheckCircle2 />{" "}
+                          {t(
+                            "no_conflict_found_in_available_records_review_08f79",
+                          )}
                         </div>
                       )}
                       <div className="comparison-table">
                         <table>
                           <thead>
                             <tr>
-                              <th>বিক্রয় দলিল</th>
-                              <th>বিক্রেতা</th>
-                              <th>ক্রেতা</th>
-                              <th>জমি (শতাংশ)</th>
-                              <th>উৎস</th>
+                              <th>{t("sale_deed_86094")}</th>
+                              <th>{t("seller_e77b5")}</th>
+                              <th>{t("buyer_980bc")}</th>
+                              <th>{t("area_decimals_5b0ba")}</th>
+                              <th>{t("source_2a15e")}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -931,7 +989,11 @@ export default function Portal({
                                 <tr key={d.id}>
                                   <td>
                                     <strong>{d.official_number || "—"}</strong>
-                                    <small>{d.document_date}</small>
+                                    <small>
+                                      {d.document_date
+                                        ? formatDate(d.document_date)
+                                        : "—"}
+                                    </small>
                                   </td>
                                   <td>{d.seller_or_prior_owner || "—"}</td>
                                   <td>{d.buyer_or_current_owner || "—"}</td>
@@ -943,7 +1005,8 @@ export default function Portal({
                                       rel="noreferrer"
                                       href={"/api/service/document/" + d.id}
                                     >
-                                      নথি দেখুন <ArrowUpRight size={13} />
+                                      {t("view_document_fa168")}
+                                      <ArrowUpRight size={13} />
                                     </a>
                                   </td>
                                 </tr>
@@ -957,13 +1020,17 @@ export default function Portal({
                         className="panel"
                         data-testid="external-checks-panel"
                       >
-                        <span className="kicker">VERIFICATION COVERAGE</span>
-                        <h3>যা এখনও যাচাই করা হয়নি</h3>
+                        <span className="kicker">
+                          {t("verification_coverage_4390f")}
+                        </span>
+                        <h3>{t("checks_not_yet_completed_be022")}</h3>
                         {bundle.analysis.missing.map((s) => (
                           <div className="coverage-row" key={s}>
                             <CircleHelp size={17} />
-                            <span>{s}</span>
-                            <Badge tone="gray">তথ্য অনুপস্থিত</Badge>
+                            <span>{tt(s)}</span>
+                            <Badge tone="gray">
+                              {t("data_unavailable_dcb14")}
+                            </Badge>
                           </div>
                         ))}
                       </section>
@@ -973,10 +1040,11 @@ export default function Portal({
                           size={108}
                         />
                         <div>
-                          <h3>এক স্ক্যানে প্রকাশিত রেকর্ড</h3>
+                          <h3>
+                            {t("scan_to_open_the_published_record_d6544")}
+                          </h3>
                           <p>
-                            এই QR অনুমোদিত তথ্যের পেজ খুলবে; ব্যক্তিগত নথির
-                            অনুমতি এড়িয়ে যাবে না।
+                            {t("this_qr_opens_the_permitted_record_page_6316c")}
                           </p>
                           <small>{bundle.analysis.version}</small>
                         </div>
@@ -997,15 +1065,15 @@ export default function Portal({
                             <Files size={22} />
                           </span>
                           <div>
-                            <h3>{c.bn}</h3>
+                            <h3>{tt(c.bn)}</h3>
                             <span>
-                              {c.en} ·{" "}
+                              {tt(c.en)} ·{" "}
                               {
                                 bundle.documents.filter(
                                   (d) => d.category === key,
                                 ).length
                               }{" "}
-                              নথি
+                              {t("documents_bffb8")}
                             </span>
                           </div>
                         </div>
@@ -1033,7 +1101,9 @@ export default function Portal({
                               }
                             }
                             setNotice(
-                              "নথির তথ্য সংগ্রহ হয়েছে। মূল নথির সঙ্গে মিলিয়ে পর্যালোচনা করুন।",
+                              t(
+                                "document_fields_have_been_extracted_review_them_0ef99",
+                              ),
                             );
                             await refresh();
                           })
@@ -1041,7 +1111,7 @@ export default function Portal({
                       />
                     )}
                     <section className="panel document-list">
-                      <h3>সংরক্ষিত নথিসমূহ</h3>
+                      <h3>{t("stored_documents_edc82")}</h3>
                       {bundle.documents.length ? (
                         bundle.documents.map((d) => (
                           <div className="document-row" key={d.id}>
@@ -1053,12 +1123,16 @@ export default function Portal({
                                 {d.official_number || d.file_name}
                               </strong>
                               <span>
-                                {categories[d.category].bn} · {d.sub_type} ·{" "}
-                                {d.document_date || "তারিখ পর্যালোচনা বাকি"}
+                                {tt(categories[d.category].bn)} ·{" "}
+                                {tt(d.sub_type)} ·{" "}
+                                {d.document_date
+                                  ? formatDate(d.document_date)
+                                  : t("date_awaiting_review_2c598")}
                               </span>
                               {d.extraction_status === "FAILED" && (
                                 <small className="text-red">
-                                  Extraction failed: {d.extraction_error}
+                                  {t("extraction_failed_d6554")}
+                                  {tt(d.extraction_error)}
                                 </small>
                               )}
                             </div>
@@ -1070,8 +1144,8 @@ export default function Portal({
                               }
                             >
                               {d.verification_status === "VERIFIED"
-                                ? "পর্যালোচিত"
-                                : "যাচাই বাকি"}
+                                ? t("reviewed_03a01")
+                                : t("review_pending_97137")}
                             </Badge>
                             {view === "land" ? (
                               <div className="review-actions">
@@ -1101,7 +1175,7 @@ export default function Portal({
                                       })
                                     }
                                   >
-                                    পুনরায় তথ্য সংগ্রহ
+                                    {t("retry_extraction_6b5ce")}
                                   </button>
                                 )}
                                 <button
@@ -1109,7 +1183,8 @@ export default function Portal({
                                   data-testid={"review-doc-" + d.doc_code}
                                   onClick={() => setReview(d)}
                                 >
-                                  পর্যালোচনা <ArrowRight size={14} />
+                                  {t("review_5885b")}
+                                  <ArrowRight size={14} />
                                 </button>
                               </div>
                             ) : (
@@ -1119,13 +1194,16 @@ export default function Portal({
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                উৎস নথি <ArrowUpRight size={14} />
+                                {t("source_document_c24cf")}
+                                <ArrowUpRight size={14} />
                               </a>
                             )}
                           </div>
                         ))
                       ) : (
-                        <Empty text="এখনও কোনো নথি যুক্ত হয়নি" />
+                        <Empty
+                          text={t("no_documents_have_been_added_yet_9d822")}
+                        />
                       )}
                     </section>
                   </>
@@ -1134,11 +1212,14 @@ export default function Portal({
                   <section className="panel">
                     <div className="section-heading">
                       <div>
-                        <span className="kicker">DOCUMENT-LINKED TIMELINE</span>
-                        <h2>জমির রেকর্ডের ইতিহাস</h2>
+                        <span className="kicker">
+                          {t("document_linked_timeline_7e858")}
+                        </span>
+                        <h2>{t("land_record_history_0107a")}</h2>
                         <p>
-                          খতিয়ান, দলিল ও নামজারি পৃথক ধরনের রেকর্ড; এগুলো আইনগত
-                          মালিকানার রায় নয়।
+                          {t(
+                            "khatian_entries_deeds_and_mutation_records_are_98181",
+                          )}
                         </p>
                       </div>
                     </div>
@@ -1153,7 +1234,9 @@ export default function Portal({
                           >
                             <span className="timeline-point" />
                             <div className="timeline-date">
-                              {d.document_date || "তারিখ অনুপস্থিত"}
+                              {d.document_date
+                                ? formatDate(d.document_date)
+                                : t("date_unavailable_3fc6b")}
                             </div>
                             <div className="timeline-card">
                               <Badge
@@ -1163,7 +1246,8 @@ export default function Portal({
                                     : "green"
                                 }
                               >
-                                {categories[d.category].bn} · {d.sub_type}
+                                {tt(categories[d.category].bn)} ·{" "}
+                                {tt(d.sub_type)}
                               </Badge>
                               <h3>{d.official_number}</h3>
                               <p>
@@ -1173,12 +1257,13 @@ export default function Portal({
                                     <ArrowRight size={13} />{" "}
                                   </>
                                 )}
-                                {d.buyer_or_current_owner || "তথ্য অনুপস্থিত"}
+                                {d.buyer_or_current_owner ||
+                                  t("data_unavailable_dcb14")}
                               </p>
                               <div className="flex-between">
                                 <span className="muted">
-                                  {d.area_decimals ?? "—"} শতাংশ · দাগ{" "}
-                                  {d.dag_number}
+                                  {d.area_decimals ?? "—"}{" "}
+                                  {t("decimals_dag_635c2")} {d.dag_number}
                                 </span>
                                 <a
                                   href={"/api/service/document/" + d.id}
@@ -1186,7 +1271,8 @@ export default function Portal({
                                   rel="noreferrer"
                                   className="text-link"
                                 >
-                                  উৎস নথি দেখুন <ArrowUpRight size={13} />
+                                  {t("view_source_document_024b8")}
+                                  <ArrowUpRight size={13} />
                                 </a>
                               </div>
                             </div>
@@ -1194,7 +1280,8 @@ export default function Portal({
                         ))}
                     </div>
                     <div className="alert info">
-                      <CircleHelp size={18} /> সর্বশেষ রেকর্ডীয় ব্যক্তি:{" "}
+                      <CircleHelp size={18} />{" "}
+                      {t("latest_recorded_party_8aaf1")}{" "}
                       {[...bundle.documents]
                         .filter(
                           (d) =>
@@ -1204,8 +1291,9 @@ export default function Portal({
                         )
                         .sort((a, b) =>
                           b.document_date!.localeCompare(a.document_date!),
-                        )[0]?.buyer_or_current_owner || "তথ্য অনুপস্থিত"}
-                      । এটি নিশ্চিত আইনগত মালিকানার ঘোষণা নয়।
+                        )[0]?.buyer_or_current_owner ||
+                        t("data_unavailable_dcb14")}
+                      {t("this_is_not_a_declaration_of_confirmed_77c94")}
                     </div>
                   </section>
                 )}
@@ -1213,12 +1301,11 @@ export default function Portal({
                 <div className="report-disclaimer">
                   <ShieldCheck size={18} />
                   <p>
-                    শুধুমাত্র উপলব্ধ কাল্পনিক নথির ভিত্তিতে তৈরি যাচাই সহায়িকা।
-                    এটি সরকারি সনদ, আইনগত মালিকানার ঘোষণা বা ক্রয়ের অনুমোদন
-                    নয়।{" "}
+                    {t(
+                      "verification_aid_based_only_on_available_fictional_56af6",
+                    )}{" "}
                     <span>
-                      {bundle.analysis.version} ·{" "}
-                      {new Date().toLocaleDateString("en-GB")}
+                      {bundle.analysis.version} · {formatDate(new Date())}
                     </span>
                   </p>
                 </div>
@@ -1228,9 +1315,11 @@ export default function Portal({
         {view === "mutations" && (
           <>
             <PageHeading
-              kicker="SMART MUTATION REVIEW"
-              title="নামজারি পর্যালোচনা"
-              description="দলিল যাচাই থেকে তৈরি কেস—সংঘাত থাকলে শুনানির জন্য পাঠান।"
+              kicker={t("smart_mutation_review_09895")}
+              title={t("mutation_review_1a212")}
+              description={t(
+                "cases_created_from_reviewed_deeds_refer_conflicts_8d333",
+              )}
             />
             {loading ? (
               <Busy />
@@ -1243,14 +1332,14 @@ export default function Portal({
                   onDecision={(status, reason) =>
                     run(async () => {
                       await api("decision/" + c.id, { status, reason });
-                      setNotice("কেসের সিদ্ধান্ত সংরক্ষিত হয়েছে");
+                      setNotice(t("case_decision_saved_d2e43"));
                       await refresh();
                     })
                   }
                 />
               ))
             ) : (
-              <Empty text="এখনও কোনো নামজারি কেস নেই" />
+              <Empty text={t("no_mutation_cases_yet_e0865")} />
             )}
           </>
         )}
@@ -1259,55 +1348,61 @@ export default function Portal({
         <div className="container footer-main">
           <div>
             <Link href="/" className="footer-brand">
-              <Landmark size={24} /> ভূমিসেতু
+              <Landmark size={24} /> {t("bhumisetu_782d0")}
             </Link>
-            <p>নথি থেকে প্রমাণ। প্রমাণ থেকে সচেতন সিদ্ধান্ত।</p>
+            <p>
+              {t(
+                "documents_into_evidence_evidence_into_informed_decisions_5487b",
+              )}
+            </p>
           </div>
           <div>
-            <strong>উপযোগী লিংক</strong>
-            <Link href="/verify">নাগরিক যাচাই</Link>
-            <Link href="/admin">অফিস কর্নার</Link>
+            <strong>{t("useful_links_ec888")}</strong>
+            <Link href="/verify">{t("citizen_verification_9b240")}</Link>
+            <Link href="/admin">{t("officer_workspace_e4eee")}</Link>
           </div>
           <div>
-            <strong>প্রকল্পের তথ্য</strong>
+            <strong>{t("project_information_c78d0")}</strong>
             <a
               href="https://github.com/AdribMahmud101/bhumisetu"
               target="_blank"
               rel="noreferrer"
             >
-              সোর্স কোড <ArrowUpRight size={13} />
+              {t("source_code_2d4e9")}
+              <ArrowUpRight size={13} />
             </a>
             <span>LandTech 2026 · P3</span>
           </div>
           <div className="footer-note">
             <ShieldCheck size={23} />
             <span>
-              শুধুমাত্র কাল্পনিক তথ্য
+              {t("fictional_data_only_dff30")}
               <br />
-              সরকারি সিস্টেমের সঙ্গে সংযুক্ত নয়
+              {t("not_connected_to_government_systems_4911f")}
             </span>
           </div>
         </div>
         <div className="container footer-bottom">
           <span>© 2026 BhumiSetu · LandArchive BD</span>
-          <span>হ্যাকাথন প্রোটোটাইপ · AI সহায়তায় নির্মিত</span>
+          <span>{t("hackathon_prototype_built_with_ai_assistance_c6c18")}</span>
         </div>
       </footer>
       {create && (
         <div className="modal-backdrop">
-          <section className="modal">
+          <section className="modal" role="dialog" aria-modal="true">
             <div className="flex-between">
-              <h2>নতুন জমির রেকর্ড</h2>
+              <h2>{t("create_land_record_8f76d")}</h2>
+              <LanguageSwitch idPrefix="dialog-locale" />
               <button
                 className="icon-button"
-                aria-label="Close"
+                aria-label={t("close_7d9eb")}
                 onClick={() => setCreate(false)}
               >
                 <X />
               </button>
             </div>
             <p className="muted">
-              এটি নথির সংগ্রহ তৈরি করে; সরকারি দলিল তৈরি করে না।
+              {t("this_creates_a_collection_of_records_not_8df20")}
             </p>
             <form
               onSubmit={(e) => {
@@ -1322,13 +1417,13 @@ export default function Portal({
             >
               <div className="form-grid">
                 {[
-                  ["district", "জেলা"],
-                  ["upazila", "উপজেলা"],
-                  ["mouza", "মৌজা"],
-                  ["jl_number", "JL নম্বর"],
-                  ["dag_number", "দাগ নম্বর"],
-                  ["current_khatian_no", "খতিয়ান নম্বর"],
-                  ["total_area_decimals", "জমির পরিমাণ (শতাংশ)"],
+                  ["district", t("district_9c833")],
+                  ["upazila", t("upazila_3b1b8")],
+                  ["mouza", t("mouza_d199e")],
+                  ["jl_number", t("jl_number_31a6d")],
+                  ["dag_number", t("dag_number_03982")],
+                  ["current_khatian_no", t("khatian_number_74e57")],
+                  ["total_area_decimals", t("land_area_decimals_9095e")],
                 ].map(([key, title]) => (
                   <label key={key}>
                     {title}
@@ -1343,7 +1438,8 @@ export default function Portal({
                 ))}
               </div>
               <button className="button primary" disabled={busy}>
-                খসড়া তৈরি করুন <ArrowRight size={16} />
+                {t("create_draft_7f2d7")}
+                <ArrowRight size={16} />
               </button>
             </form>
           </section>
@@ -1356,7 +1452,7 @@ export default function Portal({
           onSave={async (fields, reason, status) => {
             await api("review/" + review.id, { fields, reason, status });
             await refresh();
-            setNotice("পর্যালোচনা ও অডিট ইতিহাস সংরক্ষিত হয়েছে");
+            setNotice(t("review_and_audit_history_saved_ab810"));
           }}
         />
       )}
@@ -1405,6 +1501,8 @@ function Stat({
   );
 }
 function LandList({ lands, admin }: { lands: Land[]; admin: boolean }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   return lands.length ? (
     <div className="land-grid">
       {lands.map((l) => (
@@ -1418,7 +1516,7 @@ function LandList({ lands, admin }: { lands: Land[]; admin: boolean }) {
               <MapPinned size={23} />
             </span>
             <Badge tone={l.is_finalized ? "green" : "amber"}>
-              {l.is_finalized ? "প্রকাশিত" : "খসড়া"}
+              {l.is_finalized ? t("published_6c91d") : t("draft_e3f9e")}
             </Badge>
           </div>
           <h3>{l.unique_land_id}</h3>
@@ -1427,21 +1525,24 @@ function LandList({ lands, admin }: { lands: Land[]; admin: boolean }) {
           </p>
           <div className="land-card-meta">
             <span>
-              দাগ <strong>{l.dag_number}</strong>
+              {t("dag_ba3ed")}
+              <strong>{l.dag_number}</strong>
             </span>
             <span>
-              <strong>{l.total_area_decimals}</strong> শতাংশ
+              <strong>{l.total_area_decimals}</strong> {t("decimals_2dd44")}
             </span>
           </div>
           <div className="land-card-link">
-            {admin ? "নথি পর্যালোচনা করুন" : "রেকর্ড ও বিশ্লেষণ দেখুন"}{" "}
+            {admin
+              ? t("review_documents_96806")
+              : t("view_record_and_analysis_0a7de")}{" "}
             <ArrowRight size={16} />
           </div>
         </Link>
       ))}
     </div>
   ) : (
-    <Empty text="কোনো প্রকাশিত রেকর্ড পাওয়া যায়নি" />
+    <Empty text={t("no_published_records_found_8118b")} />
   );
 }
 function UploadPanel({
@@ -1453,19 +1554,19 @@ function UploadPanel({
   busy: boolean;
   onUpload: (files: File[], category: Category, subtype: string) => void;
 }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   const [category, setCategory] = useState<Category>("KHATIAN");
   const [subtype, setSubtype] = useState("CS");
   return (
     <section className="panel upload-panel">
       <div>
-        <h3>নতুন নথি যুক্ত করুন</h3>
-        <p>
-          PDF / PNG / JPEG · সর্বোচ্চ 5 MB, 3 পৃষ্ঠা · একাধিক নথি যুক্ত করা যায়
-        </p>
+        <h3>{t("add_new_documents_c9c24")}</h3>
+        <p>{t("pdf_png_jpeg_up_to_5_mb_7129f")}</p>
       </div>
       <div className="upload-controls">
         <label>
-          বিভাগ
+          {t("category_d9096")}
           <select
             value={category}
             onChange={(e) => {
@@ -1476,16 +1577,18 @@ function UploadPanel({
           >
             {Object.entries(categories).map(([k, c]) => (
               <option key={k} value={k}>
-                {c.bn} · {c.en}
+                {tt(c.bn)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          নথির ধরন
+          {t("document_type_82172")}
           <select value={subtype} onChange={(e) => setSubtype(e.target.value)}>
             {categories[category].types.map((t) => (
-              <option key={t}>{t}</option>
+              <option key={t} value={t}>
+                {tt(t)}
+              </option>
             ))}
           </select>
         </label>
@@ -1493,9 +1596,11 @@ function UploadPanel({
           className={"button primary file-button " + (busy ? "disabled" : "")}
         >
           {busy ? <Loader2 size={18} className="spin" /> : <Upload size={18} />}{" "}
-          {busy ? "সংগ্রহ ও বিশ্লেষণ চলছে…" : "নথি আপলোড ও তথ্য সংগ্রহ"}
+          {busy
+            ? t("uploading_and_extracting_37c0f")
+            : t("upload_and_extract_document_fields_bc3eb")}
           <input
-            aria-label="Upload documents"
+            aria-label={t("upload_documents_b19cb")}
             type="file"
             multiple
             accept="application/pdf,image/png,image/jpeg"
@@ -1509,36 +1614,37 @@ function UploadPanel({
         </label>
       </div>
       <small>
-        প্রত্যেক নথির উৎস সংরক্ষিত হয়। AI-এর সংগৃহীত তথ্য কর্মকর্তার পর্যালোচনা
-        ছাড়া প্রকাশিত হবে না। {id}
+        {t("each_original_source_is_retained_ai_extracted_eb663")}
+        {id}
       </small>
     </section>
   );
 }
 function ComparePanel({ id }: { id: string }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   const [result, setResult] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   return (
     <section className="panel compare-panel">
-      <span className="kicker">DOCUMENT INTEGRITY & FIELD COMPARISON</span>
-      <h2>আপনার দলিলের কপি মিলিয়ে দেখুন</h2>
-      <p>
-        প্রথমে আসল ফাইলের SHA-256 মিলিয়ে দেখা হয়। ভিন্ন কপি হলে AI সংগৃহীত
-        তথ্য সংরক্ষিত দলিলের সঙ্গে তুলনা করে।
-      </p>
+      <span className="kicker">
+        {t("document_integrity_field_comparison_e2c8b")}
+      </span>
+      <h2>{t("compare_your_copy_of_a_deed_2b62a")}</h2>
+      <p>{t("first_the_original_file_s_sha_256_96e50")}</p>
       <label className="dropzone">
         <Fingerprint size={35} />
         <strong>
           {busy
-            ? "প্রকৃত নথি বিশ্লেষণ করা হচ্ছে…"
-            : "দলিলের PDF বা ছবি নির্বাচন করুন"}
+            ? t("analyzing_the_actual_document_5a120")
+            : t("choose_a_deed_pdf_or_image_11061")}
         </strong>
-        <span>সর্বোচ্চ 5 MB · 3 পৃষ্ঠা</span>
+        <span>{t("up_to_5_mb_3_pages_d575c")}</span>
         <input
           type="file"
           accept="application/pdf,image/png,image/jpeg"
-          aria-label="Compare deed"
+          aria-label={t("compare_deed_f2722")}
           disabled={busy}
           onChange={async (e) => {
             const file = e.target.files?.[0];
@@ -1562,7 +1668,7 @@ function ComparePanel({ id }: { id: string }) {
           }}
         />
       </label>
-      {error && <div className="alert error">{error}</div>}
+      {error && <div className="alert error">{tt(error)}</div>}
       {result && (
         <div className="compare-result">
           <Badge
@@ -1574,13 +1680,14 @@ function ComparePanel({ id }: { id: string }) {
                   : "amber"
             }
           >
-            {result.status}
+            {tt(result.status)}
           </Badge>
-          <h3>{result.mode}</h3>
-          <p>{result.detail}</p>
+          <h3>{tt(result.mode)}</h3>
+          <p>{tt(result.detail)}</p>
           {result.document && (
             <p>
-              Reviewed document: <strong>{result.document}</strong>
+              {t("reviewed_document_7782c")}
+              <strong>{result.document}</strong>
             </p>
           )}
           {result.rows.length > 0 && (
@@ -1588,10 +1695,10 @@ function ComparePanel({ id }: { id: string }) {
               <table>
                 <thead>
                   <tr>
-                    <th>তথ্য</th>
-                    <th>সংরক্ষিত রেকর্ড</th>
-                    <th>আপলোড করা কপি</th>
-                    <th>ফলাফল</th>
+                    <th>{t("field_3731b")}</th>
+                    <th>{t("enrolled_record_851c1")}</th>
+                    <th>{t("uploaded_copy_1e15f")}</th>
+                    <th>{t("result_efffe")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1600,9 +1707,9 @@ function ComparePanel({ id }: { id: string }) {
                       key={r.key}
                       className={r.status === "Mismatch" ? "mismatch" : ""}
                     >
-                      <td>{fieldLabels[r.key as keyof Fields]}</td>
+                      <td>{tt(fieldLabels[r.key as keyof Fields])}</td>
                       <td>{r.stored ?? "—"}</td>
-                      <td>{r.uploaded ?? "অস্পষ্ট"}</td>
+                      <td>{r.uploaded ?? t("unclear_c137b")}</td>
                       <td>
                         <Badge
                           tone={
@@ -1613,7 +1720,7 @@ function ComparePanel({ id }: { id: string }) {
                                 : "green"
                           }
                         >
-                          {r.status}
+                          {tt(r.status)}
                         </Badge>
                       </td>
                     </tr>
@@ -1636,6 +1743,8 @@ function ReviewDialog({
   onClose: () => void;
   onSave: (fields: Fields, reason: string, status: string) => Promise<void>;
 }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   const [fields, setFields] = useState<Fields>(
     Object.fromEntries(
       Object.keys(emptyFields).map((k) => [k, doc[k as keyof Fields]]),
@@ -1673,16 +1782,19 @@ function ReviewDialog({
         className="review-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Document review"
+        aria-label={t("document_review_da28f")}
       >
         <div className="review-header">
           <div>
-            <span className="kicker">SOURCE-FIRST DOCUMENT REVIEW</span>
+            <span className="kicker">
+              {t("source_first_document_review_bdff6")}
+            </span>
             <h2>{doc.official_number || doc.file_name}</h2>
           </div>
+          <LanguageSwitch idPrefix="dialog-locale" />
           <button
             className="icon-button"
-            aria-label="Close review"
+            aria-label={t("close_review_337f9")}
             onClick={onClose}
           >
             <X />
@@ -1691,18 +1803,19 @@ function ReviewDialog({
         <div className="review-body">
           <div className="source-preview">
             <div className="flex-between">
-              <span>মূল নথি / Original source</span>
+              <span>{t("original_source_70902")}</span>
               <a
                 href={"/api/service/document/" + doc.id}
                 target="_blank"
                 rel="noreferrer"
               >
-                আলাদা খুলুন <ArrowUpRight size={13} />
+                {t("open_separately_c807b")}
+                <ArrowUpRight size={13} />
               </a>
             </div>
             {doc.mime_type === "application/pdf" ? (
               <iframe
-                title="Original document"
+                title={t("original_document_92349")}
                 src={"/api/service/document/" + doc.id}
               />
             ) : (
@@ -1710,21 +1823,18 @@ function ReviewDialog({
                 unoptimized
                 width={640}
                 height={850}
-                alt="Original uploaded document"
+                alt={t("original_uploaded_document_a7e66")}
                 src={"/api/service/document/" + doc.id}
               />
             )}
             <small>SHA-256: {doc.sha256}</small>
           </div>
           <div className="review-fields">
-            <h3>সংগৃহীত তথ্য মিলিয়ে দেখুন</h3>
-            <p>
-              অস্পষ্ট বা অনুপস্থিত মান অনুমান করে পূরণ করবেন না। প্রতিটি সংশোধন
-              অডিট ইতিহাসে থাকবে।
-            </p>
+            <h3>{t("review_the_extracted_fields_4515e")}</h3>
+            <p>{t("do_not_guess_unclear_or_missing_values_b4c66")}</p>
             {Object.entries(fieldLabels).map(([key, label]) => (
               <label key={key}>
-                {label}
+                {tt(label)}
                 <input
                   data-testid={"edit-field-" + key}
                   type={
@@ -1751,15 +1861,17 @@ function ReviewDialog({
               </label>
             ))}
             <label>
-              সংশোধন / পর্যালোচনার কারণ *
+              {t("correction_review_reason_9a46a")}
               <textarea
                 data-testid="edit-reason-input"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="মূল নথির সঙ্গে মিলিয়ে পর্যালোচনার কারণ লিখুন"
+                placeholder={t(
+                  "explain_the_correction_or_review_against_the_52d49",
+                )}
               />
             </label>
-            {error && <div className="alert error">{error}</div>}
+            {error && <div className="alert error">{tt(error)}</div>}
             <div className="review-actions">
               <button
                 disabled={busy || reason.trim().length < 3}
@@ -1767,43 +1879,48 @@ function ReviewDialog({
                 data-testid="save-audit-correction-btn"
                 onClick={() => save("PENDING")}
               >
-                সংশোধন সংরক্ষণ
+                {t("save_correction_69ef5")}
               </button>
               <button
                 disabled={busy || reason.trim().length < 3}
                 className="button primary"
                 onClick={() => save("VERIFIED")}
               >
-                <CheckCircle2 size={16} /> যাচাই সম্পন্ন
+                <CheckCircle2 size={16} /> {t("mark_verified_85f1b")}
               </button>
               <button
                 disabled={busy || reason.trim().length < 3}
                 className="button danger"
                 onClick={() => save("NEEDS_CORRECTION")}
               >
-                সংশোধনের জন্য ফেরত
+                {t("return_for_correction_bf012")}
               </button>
             </div>
             <section className="audit-section">
-              <h3>সংশোধনের অডিট ইতিহাস</h3>
+              <h3>{t("correction_audit_history_8369d")}</h3>
               <div className="audit-log" data-testid="audit-log-table">
                 {logs.length ? (
                   logs.map((l) => (
                     <div key={l.id}>
-                      <strong>{l.field_name}</strong>
+                      <strong>
+                        {tt(
+                          fieldLabels[l.field_name as keyof Fields] ||
+                            l.field_name,
+                        )}
+                      </strong>
                       <p>
-                        <del>{l.previous_value ?? "ফাঁকা"}</del> →{" "}
-                        <ins>{l.new_value ?? "ফাঁকা"}</ins>
+                        <del>{l.previous_value ?? t("empty_1aa25")}</del> →{" "}
+                        <ins>{l.new_value ?? t("empty_1aa25")}</ins>
                       </p>
                       <span>{l.reason}</span>
                       <small>
-                        {new Date(l.created_at).toLocaleString()} ·{" "}
+                        {formatDate(l.created_at, true)} ·{" "}
                         {l.admin_id.slice(0, 8)}
                       </small>
                     </div>
                   ))
                 ) : (
-                  <p>এখনও কোনো সংশোধন হয়নি।</p>
+                  <p>{t("no_corrections_yet_64ac0")}</p>
                 )}
               </div>
             </section>
@@ -1822,50 +1939,59 @@ function MutationCard({
   busy: boolean;
   onDecision: (status: string, reason: string) => void;
 }) {
+  const { t, tt, locale, setLocale, formatDate } = useI18n();
+
   const [reason, setReason] = useState("");
   return (
     <section
       className="panel mutation-card"
       data-testid={"mutation-case-" + c.case_number}
+      data-status={c.display_status}
     >
       <div className="section-heading">
         <div>
           <span className="kicker">{c.case_number}</span>
           <h2>
-            {c.land_documents?.buyer_or_current_owner || "পর্যালোচনা বাকি"}
+            {c.land_documents?.buyer_or_current_owner ||
+              t("awaiting_review_ee5cc")}
           </h2>
           <p>
-            দলিল {c.land_documents?.official_number} ·{" "}
-            {c.land_documents?.area_decimals} শতাংশ ·{" "}
+            {t("deed_7cc56")}
+            {c.land_documents?.official_number} ·{" "}
+            {c.land_documents?.area_decimals} {t("decimals_288cb")}{" "}
             <Link href={"/admin/land/" + c.land.unique_land_id}>
               {c.land.unique_land_id}
             </Link>
           </p>
         </div>
         <Badge tone={c.analysis.score ? "red" : "green"}>
-          {c.display_status}
+          {tt(c.display_status)}
         </Badge>
       </div>
       <div className="mutation-evidence">
-        <strong>Risk indicator: {c.analysis.score}/100</strong>
+        <strong>
+          {t("risk_indicator_fc0f1")}
+          {c.analysis.score}/100
+        </strong>
         {c.analysis.signals.map((s: any) => (
           <p key={s.id}>
-            {s.title} · +{s.points}
-            <small>{s.detail}</small>
+            {tt(s.title)} · +{s.points}
+            <small>{explainSignal(s, c.documents || [], t)}</small>
           </p>
         ))}
       </div>
       {c.decision_reason && (
         <div className="alert info">
-          সংরক্ষিত সিদ্ধান্ত: {c.status} · {c.decision_reason}
+          {t("saved_decision_c33b0")}
+          {tt(c.status)} · {c.decision_reason}
         </div>
       )}
       <label>
-        কর্মকর্তার সিদ্ধান্তের কারণ
+        {t("officer_decision_reason_a1544")}
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="পর্যালোচনার সিদ্ধান্ত ও কারণ লিখুন"
+          placeholder={t("enter_the_review_decision_and_its_reason_1afb7")}
         />
       </label>
       <div className="review-actions">
@@ -1874,7 +2000,7 @@ function MutationCard({
           className="button outline"
           onClick={() => onDecision("HEARING_REQUIRED", reason)}
         >
-          শুনানির জন্য পাঠান
+          {t("refer_for_hearing_a8aac")}
         </button>
         <button
           disabled={
@@ -1886,19 +2012,18 @@ function MutationCard({
           className="button primary"
           onClick={() => onDecision("APPROVED", reason)}
         >
-          <CheckCircle2 size={16} /> প্রোটোটাইপ অনুমোদন
+          <CheckCircle2 size={16} /> {t("prototype_approval_02a6e")}
         </button>
         <button
           disabled={busy || reason.trim().length < 3}
           className="button danger"
           onClick={() => onDecision("REJECTED", reason)}
         >
-          আবেদন প্রত্যাখ্যান
+          {t("reject_application_c6c49")}
         </button>
       </div>
       <small className="muted">
-        সিস্টেম সরকারি নামজারি বা DCR ইস্যু করে না। সংঘাত বা অসম্পূর্ণ
-        পর্যালোচনা থাকলে অনুমোদন অবরুদ্ধ।
+        {t("this_system_does_not_issue_government_mutation_3abfd")}
       </small>
     </section>
   );

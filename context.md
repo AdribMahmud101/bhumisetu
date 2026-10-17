@@ -40,7 +40,7 @@ Run `bun run test:unit`, `bun run lint`, `bun run typecheck`, `bun run build`. L
 
 Primary competition problem is P3 (rulebook says choose one), with digitization, integrity checks, citizen reports and mutation review supporting it. All data is fictional; no government scraping/integration. Court/khas/acquisition coverage remains explicitly unavailable. Scores are indicators, not fraud probabilities; printed reports and decisions are not official certificates/orders.
 
-Limits: 5 MB / 3 pages per upload; handwriting accuracy not established; camera QR scanning, voice and full language translation deferred. QR links work. Auth sessions last one hour; sign in again after expiry. Complex legal ownership/partition/inheritance/dag mapping is outside the implemented prototype.
+Limits: 5 MB / 3 pages per upload; handwriting accuracy not established; camera QR scanning and voice deferred; the interface now supports full Bangla/English switching. QR links work. Auth sessions last one hour; sign in again after expiry. Complex legal ownership/partition/inheritance/dag mapping is outside the implemented prototype.
 
 User still needs the team/mentor details, ≤3-page concept PDF, ≤90-second recording and final platform submission. `docs/DEMO_SCRIPT.md` provides the timed script. `TODO.md`, `BUILD_PLAN.md` and README document actual status and setup. Architecture reference is `architecture_&_ui_ux.pdf`; actual master file is `master_instructions.md` (`master_prompt.md` is absent).
 
@@ -51,3 +51,12 @@ User requested separate citizen Login, Registration, and Administrative entries 
 Seven live regression workflows passed: citizen/officer one-click access, citizen/officer normal password access, registration validation and blocked officer self-registration, anonymous access restrictions, and existing audited correction/idempotent mutation/blocked approval. Lint/typecheck and Cloudflare production build passed. Mobile registration screenshot checked in `.local/registration-mobile.png`. Shared officer demo access is intentionally public for judges working with fictional data only. Do not put demo passwords in browser code or Git.
 
 Email-confirmation redirects now use the live Workers site; localhost login remains an allowed development redirect. Only those two auth URL properties were updated, and email confirmation remains enabled.
+
+
+## Bangla / English localization update
+
+Implemented and deployed persistent bn/en switching across the interface, including auth, navigation, citizen evidence/history/document reports, officer forms/dialogs, status labels, known validation/server errors and print layouts. `src/i18n/bn.json` and `en.json` hold 371 reviewed messages. `core.ts` provides typed keys/interpolation/known-message aliases and Intl date formatting; `provider.tsx` holds the shared React context and switch. No external translation service/dependency or DOM text rewriting is used. The `bs-locale` cookie is read in the root server layout (default bn) and updated immediately on switch; HTML lang stays correct on reload/navigation. Root routes render dynamically to respect the locale cookie.
+
+Names, official IDs, numeric evidence, uploaded source files, user inputs and audit reasons are not translated or mutated. Known engine signals retain their original IDs/points/evidence; `evidence.ts` renders localized explanations using those references. Mutation API responses now include already-loaded source documents for the officer explanation. Unknown provider/source text remains original rather than being guessed. Both create and review dialogs have their own language control, preserving open form state.
+
+Validation: 17 unit tests passed; `bun run i18n:check` verifies complete catalogs, matching placeholders, valid aliases and no untranslated JSX copy. Lint/typecheck and the Cloudflare production build passed. All **15 live Playwright browser workflows passed** in 48.6 seconds, including language persistence/server HTML, preserved form values/localized errors, English desktop/mobile/print reports, officer dialog switching, all previous authentication flows and actual DeepInfra extraction/document comparison. Screenshots: `.local/report-en-desktop.png` and `.local/report-en-mobile.png`. Live URL remains unchanged.

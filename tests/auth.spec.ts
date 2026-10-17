@@ -74,7 +74,9 @@ test("registration form validates confirmation and server blocks officer self-re
   await page.locator("input[name=password]").fill("ExamplePass123!");
   await page.locator("input[name=confirm]").fill("DifferentPass123!");
   await page.getByRole("button", { name: "নিবন্ধন করুন", exact: true }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "Passwords do not match" })).toContainText("Passwords do not match");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "পাসওয়ার্ড দুটি মিলছে না" }),
+  ).toContainText("পাসওয়ার্ড দুটি মিলছে না");
   const denied = await page.request.post("/api/service/register", {
     data: {
       name: "Synthetic Citizen",

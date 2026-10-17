@@ -119,6 +119,7 @@ export async function GET(
             ...c,
             land: result.land,
             analysis: result.analysis,
+            documents: result.documents,
             display_status:
               c.status === "REJECTED"
                 ? "REJECTED"
