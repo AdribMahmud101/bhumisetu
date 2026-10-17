@@ -93,3 +93,13 @@ Core implementation complete. Supabase schema/fixtures/officer account are confi
 - [x] Localized limits/errors and malformed/archive/content-limit tests.
 - [x] Real local AI browser tests for text DOCX and image-only DOCX.
 - [x] Final live regression: all 22 browser workflows passed, including text and image-only DOCX.
+
+## OCR preprocessing and correction coverage
+
+- [x] Audit editing gaps: replace read-only intake extraction summaries with editable fields.
+- [x] Share all 10 editable/empty fields across intake and review for all four categories.
+- [x] Preserve officer edits on language/status/re-extraction changes; transactionally audit confirmation edits.
+- [x] Shared image/PDF/DOCX preprocessing, enhancement toggle, payload bounds and model-input preview.
+- [x] Retain original files/hash, raw AI values and processing metadata; separate verification/publication.
+- [x] Local unit/typecheck/lint/catalog and 10 targeted browser checks.
+- [x] Final live regression: 27 workflows passed; 40 unit tests passed; actual Khatian scan and supplied Porcha DOCX validated.

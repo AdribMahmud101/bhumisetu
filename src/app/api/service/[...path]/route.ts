@@ -11,7 +11,11 @@ import {
   publicAuth,
   requireOfficer,
 } from "@/lib/data";
-import { fieldsSchema, landSchema } from "@/lib/validation";
+import {
+  parseReviewedFields,
+  landSchema,
+  preprocessingSchema,
+} from "@/lib/validation";
 import { extractPages } from "@/lib/extraction";
 import { validateDocumentUpload } from "@/lib/document-upload";
 import { documentExtension } from "@/lib/document-types";
@@ -329,7 +333,15 @@ export async function POST(
     if (action === "intake-extract") {
       const body = await req.json();
       validateContent(body.pages, body.text);
-      return json(await extractIntake(id, user.id, body.pages, body.text));
+      return json(
+        await extractIntake(
+          id,
+          user.id,
+          body.pages,
+          body.text,
+          body.preprocessing,
+        ),
+      );
     }
     if (action === "intake-confirm")
       return json(await confirmIntake(id, user.id, await req.json()));
@@ -407,6 +419,12 @@ export async function POST(
         throw new Error("Reviewed documents cannot be re-extracted");
       const body = await req.json();
       validateContent(body.pages, body.text);
+      const processing =
+        body.preprocessing === undefined
+          ? null
+          : preprocessingSchema.parse(body.preprocessing);
+      if (processing && processing.pages.length !== body.pages.length)
+        throw new Error("Invalid preprocessing metadata");
       await db()
         .from("land_documents")
         .update({ extraction_status: "EXTRACTING", extraction_error: null })
@@ -425,7 +443,10 @@ export async function POST(
           p_fields: result.fields,
           p_metadata: {
             model: result.model,
+            evidence: result.evidence,
+            original_model_fields: result.original_model_fields,
             source_pages: body.pages.length,
+            preprocessing: processing,
             usage: result.usage,
           },
         });
@@ -445,7 +466,7 @@ export async function POST(
     }
     if (action === "review") {
       const b = await req.json();
-      const fields = fieldsSchema.parse(b.fields);
+      const fields = parseReviewedFields(b.fields);
       if (!["PENDING", "VERIFIED", "NEEDS_CORRECTION"].includes(b.status))
         throw new Error("Invalid review status");
       if (

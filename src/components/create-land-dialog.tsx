@@ -1,9 +1,11 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import DocumentFieldsEditor from "./document-fields-editor";
 import { X, Loader2 } from "lucide-react";
 import { LanguageSwitch, useI18n } from "@/i18n/provider";
-import { categories, Category, fieldLabels, Fields } from "@/lib/domain";
+import { categories, Category, emptyFields, Fields } from "@/lib/domain";
 import { prepareDocument } from "@/lib/pdf-client";
 import { DOCUMENT_ACCEPT } from "@/lib/document-types";
 
@@ -35,6 +37,12 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [reason, setReason] = useState("");
+  const [enhance, setEnhance] = useState(true);
+  const [preview, setPreview] = useState<string[]>([]);
+  const [documentFields, setDocumentFields] = useState<Fields>({
+    ...emptyFields,
+  });
+  const documentEdits = useRef(new Set<keyof Fields>());
   const [restoring, setRestoring] = useState(true);
   const [saving, setSaving] = useState(false);
   const abandoned = useRef(false);
@@ -61,6 +69,14 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
       return;
     latest.current = { id: data.id, updated };
     setIntake(data);
+    setDocumentFields((previous) => ({
+      ...previous,
+      ...Object.fromEntries(
+        Object.entries(data.extracted_fields || {}).filter(
+          ([key]) => !documentEdits.current.has(key as keyof Fields),
+        ),
+      ),
+    }));
     setValues((previous) => ({
       ...previous,
       ...Object.fromEntries(
@@ -86,7 +102,8 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
             type: data.mime_type,
           });
         }
-        const content = await prepareDocument(file);
+        const content = await prepareDocument(file, { enhance });
+        setPreview(content.pages);
         if (abandoned.current) return;
         load(await request("intake-extract/" + data.id, content));
       } catch (e) {
@@ -101,7 +118,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
         setBusy(false);
       }
     },
-    [load],
+    [load, enhance],
   );
   useEffect(() => {
     if (restored.current) return;
@@ -149,6 +166,9 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
   function startNew() {
     sessionStorage.removeItem("bs-intake-id");
     edited.current.clear();
+    documentEdits.current.clear();
+    setDocumentFields({ ...emptyFields });
+    setPreview([]);
     latest.current = null;
     setIntake(null);
     setValues({});
@@ -189,6 +209,35 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
             <Loader2 className="animate-spin" size={18} />
             {t("intake_processing")}
           </p>
+        )}
+        {!manual && (
+          <label className="ocr-enhance-control">
+            <input
+              type="checkbox"
+              checked={enhance}
+              disabled={
+                busy || saving || restoring || intake?.status === "EXTRACTING"
+              }
+              onChange={(e) => setEnhance(e.target.checked)}
+            />
+            {t("ocr_enhance")}
+          </label>
+        )}
+        {!manual && <p className="muted">{t("ocr_enhance_help")}</p>}
+        {preview.length > 0 && (
+          <details className="ocr-preview">
+            <summary>{t("ocr_preview")}</summary>
+            {preview.map((url, index) => (
+              <Image
+                key={index}
+                src={url}
+                alt={t("ocr_preview")}
+                width={640}
+                height={850}
+                unoptimized
+              />
+            ))}
+          </details>
         )}
         {!restoring && !intake && !manual && (
           <form
@@ -293,13 +342,15 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                     ? t("intake_confirm_help")
                     : t("intake_retry_help")}
                 </p>
-                {intake.status !== "READY" && (
+                {intake.status !== "EXTRACTING" && (
                   <button
                     className="button"
                     disabled={busy || intake.status === "EXTRACTING"}
                     onClick={() => extract(intake)}
                   >
-                    {t("intake_retry")}
+                    {intake.status === "READY"
+                      ? t("ocr_reextract")
+                      : t("intake_retry")}
                   </button>
                 )}
                 {intake.status !== "READY" && (
@@ -320,18 +371,6 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                 >
                   {t("intake_start_new")}
                 </button>
-                {intake.status === "READY" && (
-                  <dl className="form-grid">
-                    {Object.entries(intake.extracted_fields || {})
-                      .filter(([, value]) => value != null && value !== "")
-                      .map(([key, value]) => (
-                        <div key={key}>
-                          <dt>{tt(fieldLabels[key as keyof Fields] || key)}</dt>
-                          <dd>{String(value)}</dd>
-                        </div>
-                      ))}
-                  </dl>
-                )}
               </div>
             )}
             {manual && !intake && (
@@ -362,6 +401,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                       ? await request("intake-confirm/" + intake.id, {
                           land,
                           reason,
+                          fields: documentFields,
                         })
                       : await request("create", land);
                     sessionStorage.removeItem("bs-intake-id");
@@ -375,12 +415,29 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                   }
                 }}
               >
+                {intake && (
+                  <section className="ocr-field-review">
+                    <h3>{t("ocr_edit_heading")}</h3>
+                    <p className="muted">{t("ocr_edit_help")}</p>
+                    <DocumentFieldsEditor
+                      fields={documentFields}
+                      disabled={busy}
+                      prefix="intake-edit-field-"
+                      onChange={(next, key) => {
+                        documentEdits.current.add(key);
+                        setDocumentFields(next);
+                      }}
+                    />
+                    <h3>{t("ocr_parcel_heading")}</h3>
+                  </section>
+                )}
                 <div className="form-grid">
                   {fields.map(([key, title]) => (
                     <label key={key}>
                       {title}
                       <input
                         name={key}
+                        placeholder={t("ocr_empty_placeholder")}
                         value={values[key] || ""}
                         onChange={(e) => {
                           edited.current.add(key);

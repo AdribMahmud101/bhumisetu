@@ -54,7 +54,9 @@ test("legacy failed intake retries on open, displays extracted data and can star
       exact: true,
     }),
   ).toBeVisible({ timeout: 100000 });
-  await expect(page.getByRole("dialog")).toContainText("RS-118");
+  await expect(
+    page.getByTestId("intake-edit-field-official_number"),
+  ).toHaveValue("RS-118");
   await page.locator("input[name=district]").fill("Preserved officer input");
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.locator("input[name=district]")).toHaveValue(

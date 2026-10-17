@@ -778,5 +778,10 @@
   "Invalid DOCX embedded image": "docx_image_invalid",
   "DOCX embedded image dimensions exceed the supported limit": "docx_image_large",
   "DOCX embedded image exceeds the supported limit": "docx_image_large",
-  "Upload a PDF, DOCX, PNG or JPEG up to 5 MB": "file_limit_upload"
+  "Upload a PDF, DOCX, PNG or JPEG up to 5 MB": "file_limit_upload",
+  "Image preprocessing is unavailable": "ocr_unavailable",
+  "Image dimensions exceed the supported limit": "ocr_dimensions",
+  "Prepared image exceeds the supported limit": "ocr_payload",
+  "Image could not be decoded": "ocr_decode",
+  "Check document dates (YYYY-MM-DD) and positive area; leave unknown values blank": "ocr_invalid_fields"
 }

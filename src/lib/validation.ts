@@ -3,7 +3,12 @@ const nullableText = z.string().trim().max(500).nullable();
 const date = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
-  .refine((s) => !Number.isNaN(Date.parse(s)), "Invalid date")
+  .refine(
+    (s) =>
+      !Number.isNaN(Date.parse(s)) &&
+      new Date(s).toISOString().slice(0, 10) === s,
+    "Invalid date",
+  )
   .nullable();
 export const fieldsSchema = z.object({
   official_number: nullableText,
@@ -36,3 +41,28 @@ export const parcelExtractionSchema = z.object({
   current_khatian_no: nullableText,
   total_area_decimals: z.number().positive().max(10000000).nullable(),
 });
+
+export const preprocessingSchema = z.object({
+  version: z.literal("scan-v1"),
+  enhanced: z.boolean(),
+  pages: z
+    .array(
+      z.object({
+        width: z.number().int().positive().max(5000),
+        height: z.number().int().positive().max(5000),
+        rotation: z.number().min(-4).max(4),
+        contrast: z.boolean(),
+        brightened: z.boolean(),
+      }),
+    )
+    .max(3),
+});
+
+export function parseReviewedFields(value: unknown) {
+  const result = fieldsSchema.safeParse(value);
+  if (!result.success)
+    throw new Error(
+      "Check document dates (YYYY-MM-DD) and positive area; leave unknown values blank",
+    );
+  return result.data;
+}

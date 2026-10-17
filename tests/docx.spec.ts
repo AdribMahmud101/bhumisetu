@@ -28,20 +28,20 @@ test("DOCX intake extracts real text, confirms privately and previews the origin
     /\.docx/,
   );
   const buffer = Buffer.from(fixtureDocx(fixtureText));
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "synthetic-record.docx",
-      mimeType: DOCX_TYPE,
-      buffer,
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "synthetic-record.docx",
+    mimeType: DOCX_TYPE,
+    buffer,
+  });
   await page.getByRole("button", { name: "Upload and extract" }).click();
   await expect(
     page.getByText("Extraction complete — review the results below", {
       exact: true,
     }),
   ).toBeVisible({ timeout: 100000 });
-  await expect(page.getByRole("dialog")).toContainText("RS-118");
+  await expect(
+    page.getByTestId("intake-edit-field-official_number"),
+  ).toHaveValue("RS-118");
   for (const [key, value] of Object.entries(parcel))
     await page.locator(`input[name=${key}]`).fill(String(value));
   await page

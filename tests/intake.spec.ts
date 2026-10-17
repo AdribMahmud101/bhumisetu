@@ -49,6 +49,15 @@ test("upload first extracts a real PDF, confirms a private draft once and opens 
   };
   for (const [key, value] of Object.entries(land))
     await page.locator(`input[name=${key}]`).fill(value);
+  await expect(
+    page.getByTestId("intake-edit-field-official_number"),
+  ).toHaveValue("RS-118");
+  await page
+    .getByTestId("intake-edit-field-official_number")
+    .fill("RS-118-CORRECTED");
+  await page
+    .getByTestId("intake-edit-field-share_identity")
+    .fill("Synthetic reviewed share");
   const reason = "E2E confirmed against synthetic source " + Date.now();
   await page.locator("textarea[name=reason]").fill(reason);
   await page.getByTestId("dialog-locale-bn").click();
@@ -76,7 +85,14 @@ test("upload first extracts a real PDF, confirms a private draft once and opens 
   ).json();
   expect(bundle.documents).toHaveLength(1);
   expect(bundle.documents[0].verification_status).toBe("PENDING");
-  expect(bundle.documents[0].official_number).toBe("RS-118");
+  expect(bundle.documents[0].official_number).toBe("RS-118-CORRECTED");
+  expect(
+    bundle.documents[0].extracted_json.original_extracted_fields
+      .official_number,
+  ).toBe("RS-118");
+  expect(bundle.documents[0].extracted_json.preprocessing.version).toBe(
+    "scan-v1",
+  );
   expect(bundle.land.is_finalized).toBe(false);
   const repeat = await page.request.post(
     "/api/service/intake-confirm/" + intake.id,
@@ -96,6 +112,15 @@ test("upload first extracts a real PDF, confirms a private draft once and opens 
     logs.some(
       (entry: any) =>
         entry.field_name === "parcel.district" && entry.reason === reason,
+    ),
+  ).toBe(true);
+  expect(
+    logs.some(
+      (entry: any) =>
+        entry.field_name === "official_number" &&
+        entry.previous_value === "RS-118" &&
+        entry.new_value === "RS-118-CORRECTED" &&
+        entry.reason === reason,
     ),
   ).toBe(true);
   const source = await page.request.get(

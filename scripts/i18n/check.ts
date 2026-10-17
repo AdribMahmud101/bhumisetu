@@ -26,6 +26,7 @@ for (const path of [
   "src/components/portal.tsx",
   "src/components/create-land-dialog.tsx",
   "src/components/docx-preview.tsx",
+  "src/components/document-fields-editor.tsx",
   "src/components/auth-panel.tsx",
   "src/app/not-found.tsx",
 ]) {

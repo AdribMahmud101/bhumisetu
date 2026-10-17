@@ -3,6 +3,7 @@ import { useI18n, LanguageSwitch } from "@/i18n/provider";
 import Link from "next/link";
 import Image from "next/image";
 import AuthPanel from "./auth-panel";
+import DocumentFieldsEditor from "./document-fields-editor";
 import dynamic from "next/dynamic";
 const DocxPreview = dynamic(() => import("./docx-preview"), { ssr: false });
 import CreateLandDialog from "./create-land-dialog";
@@ -1087,10 +1088,12 @@ export default function Portal({
                       <UploadPanel
                         id={id!}
                         busy={busy}
-                        onUpload={(files, category, subtype) =>
+                        onUpload={(files, category, subtype, enhance) =>
                           run(async () => {
                             for (const file of files) {
-                              const content = await prepareDocument(file);
+                              const content = await prepareDocument(file, {
+                                enhance,
+                              });
                               const form = new FormData();
                               form.append("file", file);
                               form.append("category", category);
@@ -1499,18 +1502,34 @@ function UploadPanel({
 }: {
   id: string;
   busy: boolean;
-  onUpload: (files: File[], category: Category, subtype: string) => void;
+  onUpload: (
+    files: File[],
+    category: Category,
+    subtype: string,
+    enhance: boolean,
+  ) => void;
 }) {
   const { t, tt, locale, setLocale, formatDate } = useI18n();
 
   const [category, setCategory] = useState<Category>("KHATIAN");
   const [subtype, setSubtype] = useState("CS");
+  const [enhance, setEnhance] = useState(true);
   return (
     <section className="panel upload-panel">
       <div>
         <h3>{t("add_new_documents_c9c24")}</h3>
         <p>{t("pdf_png_jpeg_up_to_5_mb_7129f")}</p>
       </div>
+      <label className="ocr-enhance-control">
+        <input
+          type="checkbox"
+          checked={enhance}
+          disabled={busy}
+          onChange={(e) => setEnhance(e.target.checked)}
+        />
+        {t("ocr_enhance")}
+      </label>
+      <p className="muted">{t("ocr_enhance_help")}</p>
       <div className="upload-controls">
         <label>
           {t("category_d9096")}
@@ -1554,7 +1573,12 @@ function UploadPanel({
             disabled={busy}
             onChange={(e) => {
               if (e.target.files?.length)
-                onUpload(Array.from(e.target.files), category, subtype);
+                onUpload(
+                  Array.from(e.target.files),
+                  category,
+                  subtype,
+                  enhance,
+                );
               e.target.value = "";
             }}
           />
@@ -1781,34 +1805,11 @@ function ReviewDialog({
           <div className="review-fields">
             <h3>{t("review_the_extracted_fields_4515e")}</h3>
             <p>{t("do_not_guess_unclear_or_missing_values_b4c66")}</p>
-            {Object.entries(fieldLabels).map(([key, label]) => (
-              <label key={key}>
-                {tt(label)}
-                <input
-                  data-testid={"edit-field-" + key}
-                  type={
-                    key === "area_decimals"
-                      ? "number"
-                      : key.includes("date")
-                        ? "date"
-                        : "text"
-                  }
-                  step="0.01"
-                  value={fields[key as keyof Fields] ?? ""}
-                  onChange={(e) =>
-                    setFields({
-                      ...fields,
-                      [key]:
-                        e.target.value === ""
-                          ? null
-                          : key === "area_decimals"
-                            ? Number(e.target.value)
-                            : e.target.value,
-                    })
-                  }
-                />
-              </label>
-            ))}
+            <DocumentFieldsEditor
+              fields={fields}
+              disabled={busy}
+              onChange={setFields}
+            />
             <label>
               {t("correction_review_reason_9a46a")}
               <textarea

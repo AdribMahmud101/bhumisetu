@@ -2946,3 +2946,24 @@ html[lang="bn"] .mutation-evidence small {
   height: auto;
   margin-top: 16px;
 }
+
+.ocr-enhance-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  font-weight: 600;
+}
+.ocr-enhance-control input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #086449;
+  flex-shrink: 0;
+}
+.ocr-preview { margin: 14px 0; }
+.ocr-preview summary { cursor: pointer; color: #086449; font-weight: 600; }
+.ocr-preview img { display: block; width: 100%; height: auto; margin-top: 12px; border: 1px solid #dce5df; }
+.ocr-field-review { margin-top: 20px; }
+.ocr-field-review h3 { margin-bottom: 10px; }
+.ocr-field-review p { margin-bottom: 18px; }
+.document-fields-editor input::placeholder { color: #75877e; font-size: 11px; }

@@ -3,7 +3,11 @@ import { createHash, randomUUID } from "node:crypto";
 import { categories } from "./domain";
 import { db, check } from "./data";
 import { extractPages } from "./extraction";
-import { landSchema } from "./validation";
+import {
+  landSchema,
+  parseReviewedFields,
+  preprocessingSchema,
+} from "./validation";
 import { validateDocumentUpload } from "./document-upload";
 import { documentExtension } from "./document-types";
 export async function getIntake(id: string, actor: string) {
@@ -91,7 +95,14 @@ export async function extractIntake(
   actor: string,
   pages: string[],
   text: string,
+  preprocessing?: unknown,
 ) {
+  const processing =
+    preprocessing === undefined
+      ? null
+      : preprocessingSchema.parse(preprocessing);
+  if (processing && processing.pages.length !== pages.length)
+    throw new Error("Invalid preprocessing metadata");
   const { data, error } = await db()
     .from("document_intakes")
     .update({
@@ -124,8 +135,11 @@ export async function extractIntake(
         extraction_metadata: {
           parser_version: "2026-10-17-v2",
           model: result.model,
+          evidence: result.evidence,
+          original_model_fields: result.original_model_fields,
           usage: result.usage,
           source_pages: pages.length,
+          preprocessing: processing,
         },
         updated_at: new Date().toISOString(),
       })
@@ -158,16 +172,18 @@ export async function extractIntake(
 export async function confirmIntake(
   id: string,
   actor: string,
-  body: { land: unknown; reason: unknown },
+  body: { land: unknown; reason: unknown; fields?: unknown },
 ) {
   const land = landSchema.parse(body.land);
   const reason = String(body.reason || "").trim();
   if (reason.length < 3 || reason.length > 1000)
     throw new Error("Confirmation reason required");
-  const { data, error } = await db().rpc("confirm_document_intake", {
+  const { data, error } = await db().rpc("confirm_document_intake_review", {
     p_id: id,
     p_actor: actor,
     p_land: land,
+    p_fields:
+      body.fields === undefined ? null : parseReviewedFields(body.fields),
     p_reason: reason,
   });
   check(error);

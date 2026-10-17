@@ -405,5 +405,19 @@
   "docx_empty": "DOCX contains no readable text or supported images. Upload the original scan or a PDF instead.",
   "docx_legacy": "Save the file as DOCX or PDF before uploading. DOC and DOCM are unsupported.",
   "docx_image_invalid": "An embedded DOCX image cannot be read. Replace it or export the document as PDF.",
-  "docx_image_large": "An embedded DOCX image is too large. Reduce its size or export as PDF."
+  "docx_image_large": "An embedded DOCX image is too large. Reduce its size or export as PDF.",
+  "ocr_enhance": "Enhance scanned pages before OCR",
+  "ocr_enhance_help": "Improve contrast, gently sharpen and straighten small tilts. Original files stay unchanged. Turn off to extract from an unenhanced image. Native PDF/DOCX text is preserved.",
+  "ocr_preview": "Preview images sent to OCR",
+  "ocr_reextract": "Re-extract with selected settings",
+  "ocr_edit_heading": "Review and edit document fields",
+  "ocr_edit_help": "Edit any recognized value or fill a blank field from the original. Your changes require a reason and are saved in the correction audit; the document stays pending.",
+  "ocr_parcel_heading": "Confirm parcel details",
+  "ocr_empty_placeholder": "Not detected — enter from the original",
+  "ocr_date_placeholder": "YYYY-MM-DD (if shown in the original)",
+  "ocr_unavailable": "Image preparation is unavailable in this browser. Try another browser.",
+  "ocr_dimensions": "Image dimensions are too large. Reduce the image size before uploading.",
+  "ocr_payload": "The prepared image is too large. Reduce its size or split the document.",
+  "ocr_decode": "The image could not be read. Re-save it as PNG/JPEG and try again.",
+  "ocr_invalid_fields": "Check dates (YYYY-MM-DD) and use positive land areas. Leave unknown fields blank."
 }
