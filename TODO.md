@@ -56,3 +56,11 @@ Core implementation complete. Supabase schema/fixtures/officer account are confi
 - 6/6 live Firefox workflows passed (32.6 seconds).
 - Direct anonymous Supabase table read rejected (401).
 - Cloudflare address retained per user preference; no account/domain changes.
+
+## Judge access update
+
+- [x] Header entries: citizen login, citizen registration and administrative login.
+- [x] One-click citizen and officer demo sessions with dedicated synthetic accounts.
+- [x] Preserve normal email/password login for both roles and citizen registration.
+- [x] Enforce officer role on server; reject citizen privilege escalation.
+- [x] Deploy and pass 7 live authentication/regression browser workflows.

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
+import AuthPanel from "./auth-panel";
 import {
   useCallback,
   useEffect,
@@ -59,7 +60,8 @@ type View =
   | "admin"
   | "land"
   | "mutations"
-  | "login";
+  | "login"
+  | "register";
 type Bundle = { land: Land; documents: LandDocument[]; analysis: Analysis };
 async function api(path: string, body?: unknown) {
   const response = await fetch("/api/service/" + path, {
@@ -101,8 +103,17 @@ function Empty({ text }: { text: string }) {
     </div>
   );
 }
-export default function Portal({ view, id }: { view: View; id?: string }) {
+export default function Portal({
+  view,
+  id,
+  authRole = "citizen",
+}: {
+  view: View;
+  id?: string;
+  authRole?: "citizen" | "officer";
+}) {
   const [isOfficer, setOfficer] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [lands, setLands] = useState<Land[]>([]);
   const [bundle, setBundle] = useState<Bundle | null>(null);
@@ -122,14 +133,16 @@ export default function Portal({ view, id }: { view: View; id?: string }) {
     try {
       const session = await api("session");
       setOfficer(session.officer);
+      setAuthenticated(session.authenticated);
       if (["admin", "land", "mutations"].includes(view) && !session.officer) {
-        router.replace("/login");
+        router.replace("/admin/login");
         return;
       }
       if (view === "record" || view === "land")
         setBundle(await api("land/" + id));
       else if (view === "mutations") setCases(await api("mutations"));
-      else if (view !== "login") setLands(await api("lands"));
+      else if (!["login", "register"].includes(view))
+        setLands(await api("lands"));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -211,7 +224,7 @@ export default function Portal({ view, id }: { view: View; id?: string }) {
             <Link href="/#how-it-works">যেভাবে কাজ করে</Link>
           </nav>
           <div className="header-action">
-            {isOfficer ? (
+            {authenticated ? (
               <button
                 className="button outline small"
                 onClick={() =>
@@ -225,9 +238,17 @@ export default function Portal({ view, id }: { view: View; id?: string }) {
                 <LogOut size={15} /> লগ আউট
               </button>
             ) : (
-              <Link className="button primary small" href="/login">
-                <LockKeyhole size={15} /> অফিস লগইন
-              </Link>
+              <div className="entry-buttons">
+                <Link className="button outline small" href="/login">
+                  লগইন
+                </Link>
+                <Link className="button outline small" href="/register">
+                  রেজিস্ট্রেশন
+                </Link>
+                <Link className="button primary small" href="/admin/login">
+                  প্রশাসনিক
+                </Link>
+              </div>
             )}
           </div>
         </div>
@@ -562,70 +583,8 @@ export default function Portal({ view, id }: { view: View; id?: string }) {
             {loading ? <Busy /> : <LandList lands={lands} admin={false} />}
           </>
         )}
-        {view === "login" && (
-          <div className="login-wrap">
-            <section className="login-aside">
-              <Landmark size={46} />
-              <h1>অফিস কর্নার</h1>
-              <p>নথির পর্যালোচনা থেকে সিদ্ধান্ত—প্রতিটি ধাপে জবাবদিহিতা।</p>
-              <div>
-                <ShieldCheck /> অনুমোদিত কর্মকর্তার প্রবেশাধিকার
-              </div>
-              <div>
-                <History /> প্রতিটি সংশোধনের অডিট ইতিহাস
-              </div>
-              <div>
-                <LockKeyhole /> সুরক্ষিত মূল নথি
-              </div>
-            </section>
-            <form
-              className="login-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const b = new FormData(e.currentTarget);
-                run(async () => {
-                  await api("login", {
-                    email: b.get("email"),
-                    password: b.get("password"),
-                  });
-                  router.push("/admin");
-                });
-              }}
-            >
-              <span className="kicker">OFFICER ACCESS</span>
-              <h2>আপনার অ্যাকাউন্টে প্রবেশ করুন</h2>
-              <p>শুধুমাত্র অনুমোদিত প্রোটোটাইপ কর্মকর্তার জন্য।</p>
-              <label>
-                ইমেইল
-                <input
-                  name="email"
-                  type="email"
-                  autoComplete="username"
-                  required
-                />
-              </label>
-              <label>
-                পাসওয়ার্ড
-                <input
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
-              </label>
-              <button disabled={busy} className="button primary">
-                {busy ? (
-                  <Loader2 className="spin" size={17} />
-                ) : (
-                  <LockKeyhole size={17} />
-                )}{" "}
-                নিরাপদ লগইন
-              </button>
-              <small>
-                অফিসার লগইন একটি বাস্তব Supabase Auth সেশন ব্যবহার করে।
-              </small>
-            </form>
-          </div>
+        {(view === "login" || view === "register") && (
+          <AuthPanel role={authRole} register={view === "register"} />
         )}
         {view === "admin" && (
           <>

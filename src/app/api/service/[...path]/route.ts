@@ -7,6 +7,7 @@ import {
   db,
   loadLand,
   officer,
+  sessionUser,
   publicAuth,
   requireOfficer,
 } from "@/lib/data";
@@ -27,8 +28,15 @@ export async function GET(
 ) {
   try {
     const [action, id] = (await params).path;
-    const admin = !!(await officer());
-    if (action === "session") return json({ officer: admin });
+    const user = await sessionUser();
+    const admin = user?.app_metadata?.role === "officer";
+    if (action === "session")
+      return json({
+        officer: admin,
+        authenticated: !!user,
+        role: user ? (admin ? "officer" : "citizen") : null,
+        demo: !!user?.app_metadata?.demo,
+      });
     if (action === "lands") {
       let q = db()
         .from("master_lands")
@@ -138,23 +146,94 @@ export async function POST(
     if (origin && new URL(origin).host !== req.headers.get("host"))
       return json({ error: "Origin rejected" }, 403);
     const [action, id] = (await params).path;
-    if (action === "login") {
+    if (action === "register") {
       const b = await req.json();
-      const { data, error } = await publicAuth().auth.signInWithPassword({
-        email: String(b.email),
-        password: String(b.password),
+      if (b.role && b.role !== "citizen")
+        throw new Error(
+          "Only citizen self-registration is available. Officer accounts are provisioned by administrators.",
+        );
+      const email = String(b.email || "").trim();
+      const password = String(b.password || "");
+      const name = String(b.name || "").trim();
+      if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+        password.length < 8 ||
+        password.length > 128 ||
+        name.length < 2 ||
+        name.length > 100
+      )
+        throw new Error(
+          "Enter your name, a valid email and a password of 8–128 characters.",
+        );
+      const { data, error } = await publicAuth().auth.signUp({
+        email,
+        password,
+        options: {
+          data: { display_name: name },
+          emailRedirectTo: req.nextUrl.origin + "/login",
+        },
       });
       check(error);
-      if (data.user?.app_metadata?.role !== "officer")
-        throw new Error("Officer account required");
-      (await cookies()).set("bs-session", data.session!.access_token, {
-        httpOnly: true,
-        secure: req.nextUrl.protocol === "https:",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 3600,
+      if (data.session)
+        await setSession(
+          req,
+          data.session.access_token,
+          data.session.expires_in,
+        );
+      return json({
+        ok: true,
+        authenticated: !!data.session,
+        role: "citizen",
+        message: data.session
+          ? "Registration complete. You are signed in."
+          : "Check your email to confirm registration, then sign in. If an account already exists, use the login form.",
       });
-      return json({ ok: true });
+    }
+    if (action === "login" || action === "demo-login") {
+      const b = await req.json();
+      const role = b.role || "officer";
+      if (!["citizen", "officer"].includes(role))
+        throw new Error("Choose citizen or officer access");
+      const prefix = role === "officer" ? "DEMO_OFFICER" : "DEMO_CITIZEN";
+      const email =
+        action === "demo-login"
+          ? process.env[prefix + "_EMAIL"]
+          : String(b.email || "").trim();
+      const password =
+        action === "demo-login"
+          ? process.env[prefix + "_PASSWORD"]
+          : String(b.password || "");
+      if (!email || !password)
+        throw new Error(
+          action === "demo-login"
+            ? "Demo access is not configured"
+            : "Email and password are required",
+        );
+      const { data, error } = await publicAuth().auth.signInWithPassword({
+        email,
+        password,
+      });
+      check(error);
+      const actualRole =
+        data.user?.app_metadata?.role === "officer" ? "officer" : "citizen";
+      if (actualRole !== role)
+        throw new Error(
+          role === "officer"
+            ? "Officer account required. Citizens should use citizen login."
+            : "This is an officer account. Use administrative login.",
+        );
+      if (action === "demo-login" && !data.user?.app_metadata?.demo)
+        throw new Error("Dedicated demo account required");
+      await setSession(
+        req,
+        data.session!.access_token,
+        data.session!.expires_in,
+      );
+      return json({
+        ok: true,
+        role: actualRole,
+        demo: action === "demo-login",
+      });
     }
     if (action === "logout") {
       (await cookies()).delete("bs-session");
@@ -455,4 +534,14 @@ function validateContent(pages: unknown, text: unknown) {
     (!pages.length && !text.trim())
   )
     throw new Error("Provide 1–3 rendered pages or selectable document text");
+}
+
+async function setSession(req: NextRequest, token: string, expires: number) {
+  (await cookies()).set("bs-session", token, {
+    httpOnly: true,
+    secure: req.nextUrl.protocol === "https:",
+    sameSite: "lax",
+    path: "/",
+    maxAge: expires,
+  });
 }

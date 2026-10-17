@@ -8,13 +8,15 @@ export const db = () => createSupabaseServerClient();
 export function check(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
-export async function officer() {
+export async function sessionUser() {
   const token = (await cookies()).get("bs-session")?.value;
   if (!token) return null;
   const { data, error } = await db().auth.getUser(token);
-  return !error && data.user?.app_metadata?.role === "officer"
-    ? data.user
-    : null;
+  return error ? null : data.user;
+}
+export async function officer() {
+  const user = await sessionUser();
+  return user?.app_metadata?.role === "officer" ? user : null;
 }
 export async function requireOfficer() {
   const user = await officer();

@@ -31,6 +31,16 @@ bun run seed
 bun run dev
 ```
 
+## Citizen and officer access
+
+- `/login`: citizen email/password login and one-click citizen demo.
+- `/register`: normal citizen registration with password confirmation; Supabase email confirmation applies when enabled.
+- `/admin/login`: officer email/password login and one-click officer demo.
+
+Judges can enter either demo without a password. These use dedicated, confirmed Supabase accounts with real HttpOnly sessions. Citizen demo accounts cannot call officer APIs. Public registration never assigns officer privileges; normal officer accounts must be provisioned by an administrator. Demo officer access is intentionally public for this synthetic-data hackathon environment.
+
+Run `bun run scripts/setup-demo.ts` to provision/update demo accounts and store their credentials in ignored `.local/demo-accounts.json` and `.env.local`. Upload the generated private `.local/demo-worker-secrets.json` with `bunx wrangler secret bulk .local/demo-worker-secrets.json --name bhumisetu`. Never put demo passwords in client code or Git. Normal email registration needs Supabase's email delivery configuration; confirmation errors are shown rather than bypassed.
+
 The seed script generates fictional PDFs, stores the actual files and SHA-256 hashes in private Supabase Storage, and creates a confirmed prototype officer account. Its randomly generated credentials are stored only in ignored `.local/officer.json`. Open `/login` and use that file. Sessions expire after one hour; sign in again when needed. No passwords or API keys belong in Git.
 
 `bun run seed` does not overwrite existing document records. It publishes the reviewed canonical and clean fixtures and leaves the incomplete draft private. The generated original PDFs and an altered sample are available in ignored `.local/fixtures/` for live upload/comparison demonstrations.
