@@ -39,7 +39,10 @@ export interface Land {
   dag_number: string;
   current_khatian_no: string;
   total_area_decimals: number;
+  total_area_unit?: string | null;
   is_finalized: boolean;
+  is_deleted?: boolean;
+  deleted_at?: string | null;
   created_at: string;
 }
 export interface Fields {
@@ -50,6 +53,7 @@ export interface Fields {
   buyer_or_current_owner: string | null;
   dag_number: string | null;
   area_decimals: number | null;
+  area_unit?: string | null;
   khatian_ref: string | null;
   share_identity: string | null;
   based_on_deed: string | null;
@@ -96,7 +100,8 @@ export const fieldLabels: Record<keyof Fields, string> = {
   seller_or_prior_owner: "বিক্রেতা / Prior recorded party",
   buyer_or_current_owner: "ক্রেতা / Recorded party",
   dag_number: "দাগ নম্বর / Dag",
-  area_decimals: "জমির পরিমাণ (শতাংশ) / Decimals",
+  area_decimals: "জমির পরিমাণ / Land area",
+  area_unit: "জমির একক / Land unit",
   khatian_ref: "খতিয়ান / Khatian reference",
   share_identity: "জমির অংশ / Share identifier",
   based_on_deed: "সংশ্লিষ্ট দলিল / Referenced deed",
@@ -152,10 +157,65 @@ export const emptyFields: Fields = {
   buyer_or_current_owner: null,
   dag_number: null,
   area_decimals: null,
+  area_unit: null,
   khatian_ref: null,
   share_identity: null,
   based_on_deed: null,
 };
+
+export const LAND_UNITS = [
+  "শতাংশ",
+  "একর",
+  "বিঘা",
+  "কাঠা",
+  "ছটাক",
+] as const;
+export type LandUnit = (typeof LAND_UNITS)[number];
+
+export function formatLandArea(
+  decimals: number | null | undefined,
+  unit?: string | null,
+  locale: string = "bn",
+): string {
+  if (decimals == null) return "—";
+  const num = Number(decimals);
+  if (!Number.isFinite(num)) return "—";
+  const isEn = locale === "en";
+  const u = (unit || "").trim().toLowerCase();
+  if (u === "একর" || u === "acre" || u === "acres") {
+    const acres = (num / 100).toFixed(2).replace(/\.00$/, "");
+    return isEn
+      ? `${acres} acres (${num} decimals)`
+      : `${acres} একর (${num} শতাংশ)`;
+  }
+  if (u === "বিঘা" || u === "bigha" || u === "bighas") {
+    const bighas = (num / 33).toFixed(2).replace(/\.00$/, "");
+    return isEn
+      ? `${bighas} bighas (${num} decimals)`
+      : `${bighas} বিঘা (${num} শতাংশ)`;
+  }
+  if (u === "কাঠা" || u === "katha" || u === "kathas") {
+    const kathas = (num / 1.65).toFixed(2).replace(/\.00$/, "");
+    return isEn
+      ? `${kathas} kathas (${num} decimals)`
+      : `${kathas} কাঠা (${num} শতাংশ)`;
+  }
+  if (u === "ছটাক" || u === "chhatak") {
+    const chhataks = (num / 0.103125).toFixed(2).replace(/\.00$/, "");
+    return isEn
+      ? `${chhataks} chhataks (${num} decimals)`
+      : `${chhataks} ছটাক (${num} শতাংশ)`;
+  }
+  if (u === "একর ও শতাংশ") {
+    const acres = Math.floor(num / 100);
+    const rem = Math.round((num % 100) * 100) / 100;
+    return isEn
+      ? `${acres} acres ${rem} decimals`
+      : `${acres} একর ${rem} শতাংশ`;
+  }
+  return isEn ? `${num} decimals` : `${num} শতাংশ`;
+}
+
 export function normalize(value: unknown) {
   return String(value ?? "")
     .normalize("NFKC")

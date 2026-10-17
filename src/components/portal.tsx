@@ -7,6 +7,7 @@ import DocumentFieldsEditor from "./document-fields-editor";
 import dynamic from "next/dynamic";
 const DocxPreview = dynamic(() => import("./docx-preview"), { ssr: false });
 import CreateLandDialog from "./create-land-dialog";
+import EditLandDialog from "./edit-land-dialog";
 import { explainSignal } from "@/i18n/evidence";
 import {
   useCallback,
@@ -26,6 +27,7 @@ import {
   ClipboardCheck,
   Clock3,
   Download,
+  Eye,
   FileCheck2,
   FileSearch,
   Files,
@@ -40,10 +42,13 @@ import {
   LogOut,
   MapPinned,
   Menu,
+  Pencil,
   Plus,
+  RotateCcw,
   Search,
   ShieldCheck,
   ShieldAlert,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -55,6 +60,7 @@ import {
   emptyFields,
   fieldLabels,
   Fields,
+  formatLandArea,
   Land,
   LandDocument,
 } from "@/lib/domain";
@@ -137,6 +143,12 @@ export default function Portal({
   const [tab, setTab] = useState(view === "land" ? "documents" : "overview");
   const [review, setReview] = useState<LandDocument | null>(null);
   const [create, setCreate] = useState(false);
+  const [editingLand, setEditingLand] = useState<Land | null>(null);
+  const [deletingLand, setDeletingLand] = useState<Land | null>(null);
+  const [trashLands, setTrashLands] = useState<Land[]>([]);
+  const [purgingLand, setPurgingLand] = useState<Land | null>(null);
+  const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<LandDocument | null>(null);
   const [cases, setCases] = useState<any[]>([]);
   const [origin, setOrigin] = useState("");
   const router = useRouter();
@@ -154,8 +166,14 @@ export default function Portal({
       if (view === "record" || view === "land")
         setBundle(await api("land/" + id));
       else if (view === "mutations") setCases(await api("mutations"));
-      else if (!["login", "register"].includes(view))
-        setLands(await api("lands"));
+      else if (!["login", "register"].includes(view)) {
+        const [active, trash] = await Promise.all([
+          api("lands"),
+          session.officer ? api("trash") : Promise.resolve([]),
+        ]);
+        setLands(active);
+        setTrashLands(trash);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -661,6 +679,11 @@ export default function Portal({
                 value={lands.filter((l) => !l.is_finalized).length}
                 icon={<Clock3 />}
               />
+              <Stat
+                label={t("stat_trash")}
+                value={trashLands.length}
+                icon={<Trash2 />}
+              />
               <Link href="/admin/mutations" className="stat-link">
                 <ClipboardCheck />
                 <span>
@@ -672,7 +695,26 @@ export default function Portal({
                 </span>
               </Link>
             </div>
-            {loading ? <Busy /> : <LandList lands={lands} admin />}
+            {loading ? (
+              <Busy />
+            ) : (
+              <LandList
+                lands={lands}
+                trashLands={trashLands}
+                admin
+                onEdit={(l) => setEditingLand(l)}
+                onDelete={(l) => setDeletingLand(l)}
+                onRestore={(l) =>
+                  run(async () => {
+                    await api("restore-land/" + l.id, {});
+                    setNotice(t("land_restored_success"));
+                    await refresh();
+                  })
+                }
+                onPurge={(l) => setPurgingLand(l)}
+                onEmptyTrash={() => setEmptyTrashConfirm(true)}
+              />
+            )}
           </>
         )}
         {(view === "record" || view === "land") &&
@@ -694,20 +736,79 @@ export default function Portal({
                   action={
                     <>
                       {view === "land" ? (
-                        <button
-                          className="button primary"
-                          disabled={busy}
-                          onClick={() =>
-                            run(async () => {
-                              await api("publish/" + id, {});
-                              setNotice(t("record_published_42e08"));
-                              await refresh();
-                            })
-                          }
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "8px",
+                            flexWrap: "wrap",
+                          }}
                         >
-                          <CheckCircle2 size={17} />{" "}
-                          {t("publish_reviewed_record_55e11")}
-                        </button>
+                          {bundle.land.is_deleted ? (
+                            <>
+                              <button
+                                className="button primary"
+                                onClick={() =>
+                                  run(async () => {
+                                    await api("restore-land/" + bundle.land.id, {});
+                                    setNotice(t("land_restored_success"));
+                                    await refresh();
+                                  })
+                                }
+                                data-testid="officer-restore-land-btn"
+                              >
+                                <RotateCcw size={15} /> {t("restore_action")}
+                              </button>
+                              <button
+                                className="button outline"
+                                style={{
+                                  borderColor: "#fca5a5",
+                                  color: "#dc2626",
+                                }}
+                                onClick={() => setPurgingLand(bundle.land)}
+                                data-testid="officer-purge-land-btn"
+                              >
+                                <Trash2 size={15} /> {t("delete_permanently_action")}
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                className="button outline"
+                                onClick={() => setEditingLand(bundle.land)}
+                                data-testid="officer-edit-land-btn"
+                              >
+                                <Pencil size={15} /> {t("edit_action")}
+                              </button>
+                              <button
+                                className="button outline"
+                                style={{
+                                  borderColor: "#fca5a5",
+                                  color: "#dc2626",
+                                }}
+                                onClick={() => setDeletingLand(bundle.land)}
+                                data-testid="officer-delete-land-btn"
+                              >
+                                <Trash2 size={15} /> {t("delete_action")}
+                              </button>
+                              {!bundle.land.is_finalized && (
+                                <button
+                                  className="button primary"
+                                  disabled={busy}
+                                  onClick={() =>
+                                    run(async () => {
+                                      await api("publish/" + id, {});
+                                      setNotice(t("record_published_42e08"));
+                                      await refresh();
+                                    })
+                                  }
+                                >
+                                  <CheckCircle2 size={17} />{" "}
+                                  {t("publish_reviewed_record_55e11")}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       ) : (
                         <button
                           className="button outline"
@@ -719,6 +820,35 @@ export default function Portal({
                     </>
                   }
                 />
+                {bundle.land.is_deleted && (
+                  <div
+                    className="notice"
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      margin: "14px 0",
+                      background: "#fee2e2",
+                      borderColor: "#fca5a5",
+                      color: "#991b1b",
+                    }}
+                  >
+                    <span>{t("land_is_in_trash_notice")}</span>
+                    <button
+                      className="button primary small"
+                      onClick={() =>
+                        run(async () => {
+                          await api("restore-land/" + bundle.land.id, {});
+                          setNotice(t("land_restored_success"));
+                          await refresh();
+                        })
+                      }
+                      data-testid="restore-land-banner-btn"
+                    >
+                      <RotateCcw size={14} /> {t("restore_action")}
+                    </button>
+                  </div>
+                )}
                 <div className="record-identity">
                   <div className="identity-icon">
                     <MapPinned size={29} />
@@ -754,8 +884,11 @@ export default function Portal({
                   <div>
                     <span>{t("recorded_land_area_91f11")}</span>
                     <strong data-testid="recorded-area">
-                      {bundle.land.total_area_decimals}{" "}
-                      <small>{t("decimals_2dd44")}</small>
+                      {formatLandArea(
+                        bundle.land.total_area_decimals,
+                        (bundle.land as any).total_area_unit,
+                        locale,
+                      )}
                     </strong>
                   </div>
                   <div>
@@ -1002,7 +1135,14 @@ export default function Portal({
                                   </td>
                                   <td>{d.seller_or_prior_owner || "—"}</td>
                                   <td>{d.buyer_or_current_owner || "—"}</td>
-                                  <td>{d.area_decimals ?? "—"}</td>
+                                  <td>
+                                    {formatLandArea(
+                                      d.area_decimals,
+                                      d.area_unit ||
+                                        (d.extracted_json as any)?.area_unit,
+                                      locale,
+                                    )}
+                                  </td>
                                   <td>
                                     <a
                                       className="text-link"
@@ -1060,29 +1200,95 @@ export default function Portal({
                 {tab === "documents" && (
                   <>
                     <div className="category-grid">
-                      {Object.entries(categories).map(([key, c]) => (
-                        <div
-                          className="category-card"
-                          data-testid={"category-" + key.toLowerCase()}
-                          key={key}
-                        >
-                          <span className="service-icon green">
-                            <Files size={22} />
-                          </span>
-                          <div>
-                            <h3>{tt(c.bn)}</h3>
-                            <span>
-                              {tt(c.en)} ·{" "}
-                              {
-                                bundle.documents.filter(
-                                  (d) => d.category === key,
-                                ).length
-                              }{" "}
-                              {t("documents_bffb8")}
+                      {Object.entries(categories).map(([key, c]) => {
+                        const matching = bundle.documents.filter(
+                          (d) => d.category === key,
+                        );
+                        const hasDocs = matching.length > 0;
+                        if (view === "land") {
+                          return (
+                            <button
+                              type="button"
+                              className="category-card"
+                              data-testid={"category-" + key.toLowerCase()}
+                              key={key}
+                              onClick={() => {
+                                if (hasDocs) {
+                                  setPreviewDoc(matching[0]);
+                                } else {
+                                  setNotice(t("no_documents_in_category"));
+                                }
+                              }}
+                              style={{
+                                cursor: "pointer",
+                                textAlign: "left",
+                                background: "white",
+                                width: "100%",
+                                border: hasDocs
+                                  ? "1px solid var(--line)"
+                                  : "1px dashed var(--line)",
+                                transition: "all 0.15s ease",
+                              }}
+                              title={
+                                hasDocs
+                                  ? t("preview_action")
+                                  : t("no_documents_in_category")
+                              }
+                            >
+                              <span className="service-icon green">
+                                <Files size={22} />
+                              </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <h3 style={{ margin: 0 }}>{tt(c.bn)}</h3>
+                                  {hasDocs && (
+                                    <span
+                                      className="badge green"
+                                      style={{
+                                        fontSize: "9px",
+                                        padding: "2px 6px",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px",
+                                      }}
+                                    >
+                                      <Eye size={11} /> {t("preview_action")}
+                                    </span>
+                                  )}
+                                </div>
+                                <span>
+                                  {tt(c.en)} · {matching.length}{" "}
+                                  {t("documents_bffb8")}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        }
+                        return (
+                          <div
+                            className="category-card"
+                            data-testid={"category-" + key.toLowerCase()}
+                            key={key}
+                          >
+                            <span className="service-icon green">
+                              <Files size={22} />
                             </span>
+                            <div>
+                              <h3>{tt(c.bn)}</h3>
+                              <span>
+                                {tt(c.en)} · {matching.length}{" "}
+                                {t("documents_bffb8")}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     {view === "land" && (
                       <UploadPanel
@@ -1269,7 +1475,12 @@ export default function Portal({
                               </p>
                               <div className="flex-between">
                                 <span className="muted">
-                                  {d.area_decimals ?? "—"}{" "}
+                                  {formatLandArea(
+                                    d.area_decimals,
+                                    d.area_unit ||
+                                      (d.extracted_json as any)?.area_unit,
+                                    locale,
+                                  )}{" "}
                                   {t("decimals_dag_635c2")} {d.dag_number}
                                 </span>
                                 <a
@@ -1406,6 +1617,287 @@ export default function Portal({
           }}
         />
       )}
+      {editingLand && (
+        <EditLandDialog
+          land={editingLand}
+          onClose={() => setEditingLand(null)}
+          onSaved={async () => {
+            setNotice(t("land_updated_success"));
+            setEditingLand(null);
+            await refresh();
+          }}
+        />
+      )}
+      {deletingLand && (
+        <div className="modal-backdrop">
+          <section
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirm-title"
+            style={{ maxWidth: "480px" }}
+            data-testid="delete-land-confirm-dialog"
+          >
+            <div className="flex-between">
+              <h2 id="delete-confirm-title">
+                {t("move_to_trash_confirm_title")}
+              </h2>
+              <button
+                className="icon-button"
+                disabled={busy}
+                onClick={() => setDeletingLand(null)}
+                aria-label={t("cancel_action")}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p style={{ margin: "14px 0" }}>
+              {t("move_to_trash_confirm_desc")}
+            </p>
+            <div
+              style={{
+                background: "#f8fafc",
+                padding: "12px 14px",
+                borderRadius: "8px",
+                marginBottom: "18px",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <strong style={{ fontSize: "14px" }}>
+                {deletingLand.unique_land_id}
+              </strong>
+              <div className="muted tiny" style={{ marginTop: "4px" }}>
+                {deletingLand.mouza} · {deletingLand.upazila} · {t("dag_ba3ed")}{" "}
+                {deletingLand.dag_number}
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                type="button"
+                className="button outline"
+                disabled={busy}
+                onClick={() => setDeletingLand(null)}
+              >
+                {t("cancel_action")}
+              </button>
+              <button
+                type="button"
+                className="button primary"
+                style={{ background: "#dc2626", borderColor: "#dc2626" }}
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await api("delete-land/" + deletingLand.id, {});
+                    setNotice(t("land_moved_to_trash_success"));
+                    const wasCurrent =
+                      (view === "land" || view === "record") &&
+                      (bundle?.land.id === deletingLand.id ||
+                        bundle?.land.unique_land_id ===
+                          deletingLand.unique_land_id);
+                    setDeletingLand(null);
+                    if (wasCurrent) {
+                      router.push("/admin");
+                    } else {
+                      await refresh();
+                    }
+                  })
+                }
+                data-testid="confirm-delete-button"
+              >
+                {busy ? (
+                  <Loader2 size={16} className="spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}{" "}
+                {t("move_to_trash_action")}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {purgingLand && (
+        <div className="modal-backdrop">
+          <section
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="purge-confirm-title"
+            style={{ maxWidth: "480px" }}
+            data-testid="purge-land-confirm-dialog"
+          >
+            <div className="flex-between">
+              <h2 id="purge-confirm-title">
+                {t("delete_permanently_confirm_title")}
+              </h2>
+              <button
+                className="icon-button"
+                disabled={busy}
+                onClick={() => setPurgingLand(null)}
+                aria-label={t("cancel_action")}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p style={{ margin: "14px 0" }}>
+              {t("delete_permanently_confirm_desc")}
+            </p>
+            <div
+              style={{
+                background: "#f8fafc",
+                padding: "12px 14px",
+                borderRadius: "8px",
+                marginBottom: "18px",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <strong style={{ fontSize: "14px" }}>
+                {purgingLand.unique_land_id}
+              </strong>
+              <div className="muted tiny" style={{ marginTop: "4px" }}>
+                {purgingLand.mouza} · {purgingLand.upazila} · {t("dag_ba3ed")}{" "}
+                {purgingLand.dag_number}
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                type="button"
+                className="button outline"
+                disabled={busy}
+                onClick={() => setPurgingLand(null)}
+              >
+                {t("cancel_action")}
+              </button>
+              <button
+                type="button"
+                className="button primary"
+                style={{ background: "#dc2626", borderColor: "#dc2626" }}
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await api("purge-land/" + purgingLand.id, {});
+                    setNotice(t("land_purged_success"));
+                    const wasCurrent =
+                      (view === "land" || view === "record") &&
+                      (bundle?.land.id === purgingLand.id ||
+                        bundle?.land.unique_land_id ===
+                          purgingLand.unique_land_id);
+                    setPurgingLand(null);
+                    if (wasCurrent) {
+                      router.push("/admin");
+                    } else {
+                      await refresh();
+                    }
+                  })
+                }
+                data-testid="confirm-purge-button"
+              >
+                {busy ? (
+                  <Loader2 size={16} className="spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}{" "}
+                {t("delete_permanently_action")}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {emptyTrashConfirm && (
+        <div className="modal-backdrop">
+          <section
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="empty-trash-confirm-title"
+            style={{ maxWidth: "480px" }}
+            data-testid="empty-trash-confirm-dialog"
+          >
+            <div className="flex-between">
+              <h2 id="empty-trash-confirm-title">
+                {t("empty_trash_confirm_title")}
+              </h2>
+              <button
+                className="icon-button"
+                disabled={busy}
+                onClick={() => setEmptyTrashConfirm(false)}
+                aria-label={t("cancel_action")}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p style={{ margin: "14px 0" }}>
+              {t("empty_trash_confirm_desc")}
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+                marginTop: "20px",
+              }}
+            >
+              <button
+                type="button"
+                className="button outline"
+                disabled={busy}
+                onClick={() => setEmptyTrashConfirm(false)}
+              >
+                {t("cancel_action")}
+              </button>
+              <button
+                type="button"
+                className="button primary"
+                style={{ background: "#dc2626", borderColor: "#dc2626" }}
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await api("empty-trash", {});
+                    setNotice(t("empty_trash_success"));
+                    setEmptyTrashConfirm(false);
+                    await refresh();
+                  })
+                }
+                data-testid="confirm-empty-trash-button"
+              >
+                {busy ? (
+                  <Loader2 size={16} className="spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}{" "}
+                {t("empty_trash_action")}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {previewDoc && (
+        <DocumentPreviewModal
+          doc={previewDoc}
+          categoryDocs={
+            bundle?.documents.filter(
+              (d) => d.category === previewDoc.category,
+            ) || []
+          }
+          onSelectDoc={(d) => setPreviewDoc(d)}
+          onClose={() => setPreviewDoc(null)}
+          onReview={(d) => {
+            setPreviewDoc(null);
+            setReview(d);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -1450,49 +1942,380 @@ function Stat({
     </div>
   );
 }
-function LandList({ lands, admin }: { lands: Land[]; admin: boolean }) {
+function LandList({
+  lands,
+  trashLands = [],
+  admin,
+  onEdit,
+  onDelete,
+  onRestore,
+  onPurge,
+  onEmptyTrash,
+}: {
+  lands: Land[];
+  trashLands?: Land[];
+  admin: boolean;
+  onEdit?: (land: Land) => void;
+  onDelete?: (land: Land) => void;
+  onRestore?: (land: Land) => void;
+  onPurge?: (land: Land) => void;
+  onEmptyTrash?: () => void;
+}) {
   const { t, tt, locale, setLocale, formatDate } = useI18n();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<"ALL" | "PUBLISHED" | "DRAFT" | "TRASH">("ALL");
 
-  return lands.length ? (
-    <div className="land-grid">
-      {lands.map((l) => (
-        <Link
-          className="land-card"
-          key={l.id}
-          href={(admin ? "/admin/land/" : "/verify/") + l.unique_land_id}
+  if (!admin) {
+    return lands.length ? (
+      <div className="land-grid">
+        {lands.map((l) => (
+          <Link
+            className="land-card"
+            key={l.id}
+            href={"/verify/" + l.unique_land_id}
+          >
+            <div className="flex-between">
+              <span className="service-icon green">
+                <MapPinned size={23} />
+              </span>
+              <Badge tone={l.is_finalized ? "green" : "amber"}>
+                {l.is_finalized ? t("published_6c91d") : t("draft_e3f9e")}
+              </Badge>
+            </div>
+            <h3>{l.unique_land_id}</h3>
+            <p>
+              {l.mouza} · {l.upazila}
+            </p>
+            <div className="land-card-meta">
+              <span>
+                {t("dag_ba3ed")}
+                <strong>{l.dag_number}</strong>
+              </span>
+              <span>
+                <strong>
+                  {formatLandArea(
+                    l.total_area_decimals,
+                    (l as any).total_area_unit,
+                    locale,
+                  )}
+                </strong>
+              </span>
+            </div>
+            <div className="land-card-link">
+              {t("view_record_and_analysis_0a7de")} <ArrowRight size={16} />
+            </div>
+          </Link>
+        ))}
+      </div>
+    ) : (
+      <Empty text={t("no_published_records_found_8118b")} />
+    );
+  }
+
+  const currentList = filter === "TRASH" ? trashLands : lands;
+  const filtered = currentList.filter((l) => {
+    if (filter === "PUBLISHED" && !l.is_finalized) return false;
+    if (filter === "DRAFT" && l.is_finalized) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchId = l.unique_land_id.toLowerCase().includes(q);
+      const matchMouza = l.mouza.toLowerCase().includes(q);
+      const matchUpazila = l.upazila.toLowerCase().includes(q);
+      const matchDag = l.dag_number.toLowerCase().includes(q);
+      const matchKhatian = (l.current_khatian_no || "")
+        .toLowerCase()
+        .includes(q);
+      return matchId || matchMouza || matchUpazila || matchDag || matchKhatian;
+    }
+    return true;
+  });
+
+  return (
+    <>
+      <div
+        className="search-panel"
+        style={{ marginBottom: "24px", padding: "16px 20px" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "14px",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
         >
-          <div className="flex-between">
-            <span className="service-icon green">
-              <MapPinned size={23} />
-            </span>
-            <Badge tone={l.is_finalized ? "green" : "amber"}>
-              {l.is_finalized ? t("published_6c91d") : t("draft_e3f9e")}
-            </Badge>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              flex: "1 1 300px",
+              maxWidth: "460px",
+            }}
+          >
+            <Search size={18} style={{ color: "#78917e", flexShrink: 0 }} />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("search_lands_placeholder")}
+              aria-label={t("search_lands_placeholder")}
+              data-testid="officer-land-search"
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                borderRadius: "6px",
+                border: "1px solid var(--line)",
+              }}
+            />
           </div>
-          <h3>{l.unique_land_id}</h3>
-          <p>
-            {l.mouza} · {l.upazila}
-          </p>
-          <div className="land-card-meta">
-            <span>
-              {t("dag_ba3ed")}
-              <strong>{l.dag_number}</strong>
-            </span>
-            <span>
-              <strong>{l.total_area_decimals}</strong> {t("decimals_2dd44")}
-            </span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+            <button
+              type="button"
+              className={"button " + (filter === "ALL" ? "primary" : "outline")}
+              style={{ padding: "6px 14px", fontSize: "12px", height: "36px" }}
+              onClick={() => setFilter("ALL")}
+              data-testid="filter-all-btn"
+            >
+              {t("filter_all")} ({lands.length})
+            </button>
+            <button
+              type="button"
+              className={
+                "button " + (filter === "PUBLISHED" ? "primary" : "outline")
+              }
+              style={{ padding: "6px 14px", fontSize: "12px", height: "36px" }}
+              onClick={() => setFilter("PUBLISHED")}
+              data-testid="filter-published-btn"
+            >
+              {t("filter_published")} (
+              {lands.filter((l) => l.is_finalized).length})
+            </button>
+            <button
+              type="button"
+              className={
+                "button " + (filter === "DRAFT" ? "primary" : "outline")
+              }
+              style={{ padding: "6px 14px", fontSize: "12px", height: "36px" }}
+              onClick={() => setFilter("DRAFT")}
+              data-testid="filter-draft-btn"
+            >
+              {t("filter_draft")} ({lands.filter((l) => !l.is_finalized).length})
+            </button>
+            <button
+              type="button"
+              className={
+                "button " + (filter === "TRASH" ? "primary" : "outline")
+              }
+              style={{
+                padding: "6px 14px",
+                fontSize: "12px",
+                height: "36px",
+                borderColor: filter === "TRASH" ? undefined : "#fca5a5",
+                color: filter === "TRASH" ? undefined : "#dc2626",
+              }}
+              onClick={() => setFilter("TRASH")}
+              data-testid="filter-trash-btn"
+            >
+              <Trash2 size={13} /> {t("filter_trash")} ({trashLands.length})
+            </button>
           </div>
-          <div className="land-card-link">
-            {admin
-              ? t("review_documents_96806")
-              : t("view_record_and_analysis_0a7de")}{" "}
-            <ArrowRight size={16} />
-          </div>
-        </Link>
-      ))}
-    </div>
-  ) : (
-    <Empty text={t("no_published_records_found_8118b")} />
+        </div>
+      </div>
+
+      {filter === "TRASH" && (
+        <div
+          className="notice"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "10px",
+            marginBottom: "20px",
+            background: "#fef2f2",
+            borderColor: "#fecaca",
+          }}
+        >
+          <span style={{ color: "#991b1b" }}>{t("trash_banner_desc")}</span>
+          {trashLands.length > 0 && onEmptyTrash && (
+            <button
+              type="button"
+              className="button outline small"
+              style={{ color: "#dc2626", borderColor: "#fca5a5" }}
+              onClick={onEmptyTrash}
+              data-testid="empty-trash-btn"
+            >
+              <Trash2 size={14} /> {t("empty_trash_action")}
+            </button>
+          )}
+        </div>
+      )}
+
+      {filtered.length ? (
+        <div className="land-grid">
+          {filtered.map((l) => (
+            <div
+              className="land-card"
+              key={l.id}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div className="flex-between">
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <span
+                      className="service-icon green"
+                      style={{ width: "36px", height: "36px" }}
+                    >
+                      <MapPinned size={18} />
+                    </span>
+                    <Badge tone={filter === "TRASH" ? "red" : l.is_finalized ? "green" : "amber"}>
+                      {filter === "TRASH"
+                        ? t("status_in_trash")
+                        : l.is_finalized
+                          ? t("published_6c91d")
+                          : t("draft_e3f9e")}
+                    </Badge>
+                  </div>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {filter === "TRASH" ? (
+                      <>
+                        {onRestore && (
+                          <button
+                            type="button"
+                            className="button outline small"
+                            style={{
+                              color: "#166534",
+                              borderColor: "#86efac",
+                              padding: "4px 9px",
+                              fontSize: "11px",
+                            }}
+                            title={t("restore_action")}
+                            onClick={() => onRestore(l)}
+                            data-testid={"restore-land-" + l.unique_land_id}
+                          >
+                            <RotateCcw size={13} /> {t("restore_action")}
+                          </button>
+                        )}
+                        {onPurge && (
+                          <button
+                            type="button"
+                            className="button outline small"
+                            style={{
+                              color: "#dc2626",
+                              borderColor: "#fca5a5",
+                              padding: "4px 9px",
+                              fontSize: "11px",
+                            }}
+                            title={t("delete_permanently_action")}
+                            onClick={() => onPurge(l)}
+                            data-testid={"purge-land-" + l.unique_land_id}
+                          >
+                            <Trash2 size={13} /> {t("delete_permanently_action")}
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {onEdit && (
+                          <button
+                            type="button"
+                            className="icon-button"
+                            aria-label={t("edit_action")}
+                            title={t("edit_action")}
+                            onClick={() => onEdit(l)}
+                            data-testid={"edit-land-" + l.unique_land_id}
+                            style={{ width: "32px", height: "32px" }}
+                          >
+                            <Pencil size={15} />
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button
+                            type="button"
+                            className="icon-button"
+                            aria-label={t("delete_action")}
+                            title={t("delete_action")}
+                            onClick={() => onDelete(l)}
+                            data-testid={"delete-land-" + l.unique_land_id}
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              color: "#dc2626",
+                            }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+                <Link
+                  href={"/admin/land/" + l.unique_land_id}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "block",
+                  }}
+                >
+                  <h3 style={{ margin: "14px 0 4px" }}>{l.unique_land_id}</h3>
+                  <p
+                    style={{
+                      margin: "0 0 14px",
+                      fontSize: "12px",
+                      color: "#788677",
+                    }}
+                  >
+                    {l.mouza} · {l.upazila}
+                  </p>
+                  <div className="land-card-meta">
+                    <span>
+                      {t("dag_ba3ed")}
+                      <strong>{l.dag_number}</strong>
+                    </span>
+                    <span>
+                      <strong>
+                        {formatLandArea(
+                          l.total_area_decimals,
+                          (l as any).total_area_unit,
+                          locale,
+                        )}
+                      </strong>
+                    </span>
+                  </div>
+                </Link>
+              </div>
+              <Link
+                href={"/admin/land/" + l.unique_land_id}
+                className="land-card-link"
+              >
+                {t("review_documents_96806")} <ArrowRight size={16} />
+              </Link>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <Empty
+          text={
+            filter === "TRASH"
+              ? t("trash_empty_message")
+              : t("no_published_records_found_8118b")
+          }
+        />
+      )}
+    </>
   );
 }
 function UploadPanel({
@@ -1692,6 +2515,230 @@ function ComparePanel({ id }: { id: string }) {
         </div>
       )}
     </section>
+  );
+}
+function DocumentPreviewModal({
+  doc,
+  categoryDocs,
+  onSelectDoc,
+  onClose,
+  onReview,
+}: {
+  doc: LandDocument;
+  categoryDocs: LandDocument[];
+  onSelectDoc: (doc: LandDocument) => void;
+  onClose: () => void;
+  onReview: (doc: LandDocument) => void;
+}) {
+  const { t, tt, formatDate } = useI18n();
+
+  return (
+    <div className="modal-backdrop">
+      <section
+        className="review-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("preview_document")}
+        style={{ width: "960px", maxWidth: "100%", height: "92vh" }}
+        data-testid="document-preview-modal"
+      >
+        <div className="review-header">
+          <div>
+            <span className="kicker">
+              {tt(categories[doc.category].bn)} · {t("preview_document")}
+            </span>
+            <h2>{doc.official_number || doc.file_name}</h2>
+          </div>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <a
+              href={"/api/service/document/" + doc.id}
+              target="_blank"
+              rel="noreferrer"
+              className="button outline small"
+              title={t("open_separately_c807b")}
+            >
+              {t("open_separately_c807b")} <ArrowUpRight size={13} />
+            </a>
+            <button
+              type="button"
+              className="button primary small"
+              onClick={() => {
+                onClose();
+                onReview(doc);
+              }}
+              data-testid="preview-review-btn"
+            >
+              {t("review_5885b")} <ArrowRight size={13} />
+            </button>
+            <button
+              className="icon-button"
+              aria-label={t("cancel_action")}
+              onClick={onClose}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {categoryDocs.length > 1 && (
+          <div
+            style={{
+              display: "flex",
+              gap: "6px",
+              padding: "8px 20px",
+              background: "#f8fafc",
+              borderBottom: "1px solid var(--line)",
+              overflowX: "auto",
+            }}
+          >
+            {categoryDocs.map((cd, idx) => (
+              <button
+                key={cd.id}
+                type="button"
+                className={
+                  "button " +
+                  (cd.id === doc.id ? "primary" : "outline") +
+                  " small"
+                }
+                style={{ padding: "4px 10px", fontSize: "11px" }}
+                onClick={() => onSelectDoc(cd)}
+              >
+                {cd.official_number || cd.file_name} ({idx + 1})
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            background: "#f1f4ed",
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "hidden",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {doc.mime_type === DOCX_MIME ? (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  overflow: "auto",
+                  background: "white",
+                  padding: "16px",
+                  borderRadius: "6px",
+                }}
+              >
+                <DocxPreview src={"/api/service/document/" + doc.id} />
+              </div>
+            ) : doc.mime_type === "application/pdf" ? (
+              <iframe
+                title={t("original_document_92349")}
+                src={"/api/service/document/" + doc.id}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  border: "1px solid #dbe3d4",
+                  borderRadius: "6px",
+                  background: "white",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  overflow: "auto",
+                }}
+              >
+                <Image
+                  unoptimized
+                  width={800}
+                  height={1000}
+                  alt={t("original_uploaded_document_a7e66")}
+                  src={"/api/service/document/" + doc.id}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "contain",
+                    borderRadius: "6px",
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "10px 14px",
+              background: "white",
+              borderRadius: "6px",
+              border: "1px solid #dbe3d4",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "12px",
+              fontSize: "11px",
+            }}
+          >
+            <div>
+              <strong>
+                {tt(categories[doc.category].bn)} · {tt(doc.sub_type)}
+              </strong>
+              {doc.document_date && (
+                <span className="muted" style={{ marginLeft: "8px" }}>
+                  ({formatDate(doc.document_date)})
+                </span>
+              )}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                alignItems: "center",
+              }}
+            >
+              {doc.dag_number && (
+                <span>
+                  {t("dag_ba3ed")} <strong>{doc.dag_number}</strong>
+                </span>
+              )}
+              {doc.area_decimals != null && (
+                <span>
+                  {t("recorded_land_area_91f11")}:{" "}
+                  <strong>{doc.area_decimals}</strong>
+                </span>
+              )}
+              <Badge
+                tone={
+                  doc.verification_status === "VERIFIED" ? "green" : "amber"
+                }
+              >
+                {doc.verification_status === "VERIFIED"
+                  ? t("reviewed_03a01")
+                  : t("review_pending_97137")}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 function ReviewDialog({
@@ -1898,7 +2945,12 @@ function MutationCard({
           <p>
             {t("deed_7cc56")}
             {c.land_documents?.official_number} ·{" "}
-            {c.land_documents?.area_decimals} {t("decimals_288cb")}{" "}
+            {formatLandArea(
+              c.land_documents?.area_decimals,
+              (c.land_documents as any)?.area_unit ||
+                (c.land_documents?.extracted_json as any)?.area_unit,
+              locale,
+            )}{" "}
             <Link href={"/admin/land/" + c.land.unique_land_id}>
               {c.land.unique_land_id}
             </Link>

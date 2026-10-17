@@ -82,3 +82,37 @@ test("literal OCR transcript line breaks are parsed without altering values or a
   ).toBe('quote " and \\');
   expect(() => parseExtractionJson('{"source_text":"truncated')).toThrow();
 });
+
+test("dynamic land units (acre, bigha, katha, shotangsho) are derived and normalized", () => {
+  const bigha = groundExtraction(
+    { area_decimals: null, source_text: "জমির পরিমাণ ৫ বিঘা" },
+    "",
+    "KHATIAN",
+  );
+  expect(bigha.raw.area_decimals).toBe(165);
+  expect(bigha.raw.area_unit).toBe("bigha");
+
+  const katha = groundExtraction(
+    { area_decimals: null, source_text: "জমির পরিমাণ ১০ কাঠা" },
+    "",
+    "DEED",
+  );
+  expect(katha.raw.area_decimals).toBe(16.5);
+  expect(katha.raw.area_unit).toBe("katha");
+
+  const acre = groundExtraction(
+    { area_decimals: null, source_text: "জমির পরিমাণ ২ একর" },
+    "",
+    "PORCHA",
+  );
+  expect(acre.raw.area_decimals).toBe(200);
+  expect(acre.raw.area_unit).toBe("acre");
+
+  const shotangsho = groundExtraction(
+    { area_decimals: null, source_text: "জমির পরিমাণ ১২ শতাংশ" },
+    "",
+    "DEED",
+  );
+  expect(shotangsho.raw.area_decimals).toBe(12);
+  expect(shotangsho.raw.area_unit).toBe("decimal");
+});

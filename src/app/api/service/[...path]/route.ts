@@ -34,6 +34,42 @@ function fail(error: unknown) {
     message === "UNAUTHORIZED" ? 401 : message === "NOT_FOUND" ? 404 : 400;
   return json({ error: message }, status);
 }
+async function purgeLandRecord(landId: string) {
+  const { data: docs } = await db()
+    .from("land_documents")
+    .select("id, file_path")
+    .eq("master_land_id", landId);
+
+  await db().from("mutation_cases").delete().eq("master_land_id", landId);
+
+  if (docs?.length) {
+    const docIds = docs.map((d) => d.id);
+    await db().from("audit_logs").delete().in("document_id", docIds);
+    const paths = docs.map((d) => d.file_path).filter(Boolean);
+    if (paths.length) {
+      try {
+        await db().storage.from("land-documents").remove(paths);
+      } catch (storageErr) {
+        console.warn("Storage cleanup note:", storageErr);
+      }
+    }
+    await db().from("land_documents").delete().eq("master_land_id", landId);
+  }
+  try {
+    await db()
+      .from("document_intakes")
+      .update({ master_land_id: null, document_id: null })
+      .eq("master_land_id", landId);
+    await db().from("document_intakes").delete().eq("master_land_id", landId);
+  } catch (intakeErr) {
+    console.warn("Intake cleanup note:", intakeErr);
+  }
+  const { error: delErr } = await db()
+    .from("master_lands")
+    .delete()
+    .eq("id", landId);
+  check(delErr);
+}
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
@@ -65,11 +101,22 @@ export async function GET(
       let q = db()
         .from("master_lands")
         .select("*")
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (!admin) q = q.eq("is_finalized", true);
       const { data, error } = await q;
       check(error);
       return json(data);
+    }
+    if (action === "trash") {
+      await requireOfficer();
+      const { data, error } = await db()
+        .from("master_lands")
+        .select("*")
+        .eq("is_deleted", true)
+        .order("deleted_at", { ascending: false });
+      check(error);
+      return json(data || []);
     }
     if (action === "land") {
       const result = await loadLand(id, admin);
@@ -357,6 +404,78 @@ export async function POST(
         .single();
       check(error);
       return json(data);
+    }
+    if (action === "update-land") {
+      const b = await req.json();
+      const updateData: Record<string, any> = {};
+      if (b.district !== undefined) updateData.district = String(b.district).trim();
+      if (b.upazila !== undefined) updateData.upazila = String(b.upazila).trim();
+      if (b.mouza !== undefined) updateData.mouza = String(b.mouza).trim();
+      if (b.jl_number !== undefined) updateData.jl_number = String(b.jl_number).trim();
+      if (b.dag_number !== undefined) updateData.dag_number = String(b.dag_number).trim();
+      if (b.current_khatian_no !== undefined)
+        updateData.current_khatian_no = String(b.current_khatian_no).trim();
+      if (b.total_area_decimals !== undefined) {
+        const area = Number(b.total_area_decimals);
+        if (Number.isNaN(area) || area <= 0)
+          throw new Error("Land area must be a positive number");
+        updateData.total_area_decimals = area;
+      }
+      if (b.is_finalized !== undefined) updateData.is_finalized = Boolean(b.is_finalized);
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      let query = db().from("master_lands").update(updateData);
+      query = isUuid ? query.eq("id", id) : query.eq("unique_land_id", id);
+      const { data, error } = await query.select().single();
+      check(error);
+      return json({ ok: true, land: data });
+    }
+    if (action === "delete-land") {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      let query = db().from("master_lands").update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        is_finalized: false,
+      });
+      query = isUuid ? query.eq("id", id) : query.eq("unique_land_id", id);
+      const { data, error } = await query.select().single();
+      check(error);
+      return json({ ok: true, trashed: data.unique_land_id, land: data });
+    }
+    if (action === "restore-land") {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      let query = db().from("master_lands").update({
+        is_deleted: false,
+        deleted_at: null,
+      });
+      query = isUuid ? query.eq("id", id) : query.eq("unique_land_id", id);
+      const { data, error } = await query.select().single();
+      check(error);
+      return json({ ok: true, restored: data.unique_land_id, land: data });
+    }
+    if (action === "purge-land") {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      let query = db().from("master_lands").select("id, unique_land_id");
+      query = isUuid ? query.eq("id", id) : query.eq("unique_land_id", id);
+      const { data: land, error: le } = await query.maybeSingle();
+      check(le);
+      if (!land) throw new Error("Land record not found");
+
+      await purgeLandRecord(land.id);
+      return json({ ok: true, purged: land.unique_land_id });
+    }
+    if (action === "empty-trash") {
+      const { data: trashed, error } = await db()
+        .from("master_lands")
+        .select("id")
+        .eq("is_deleted", true);
+      check(error);
+      if (trashed?.length) {
+        for (const t of trashed) {
+          await purgeLandRecord(t.id);
+        }
+      }
+      return json({ ok: true, purged_count: trashed?.length || 0 });
     }
     if (action === "upload") {
       const { land } = await loadLand(id, true);

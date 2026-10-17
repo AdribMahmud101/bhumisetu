@@ -18,6 +18,7 @@ export const fieldsSchema = z.object({
   buyer_or_current_owner: nullableText,
   dag_number: nullableText,
   area_decimals: z.number().positive().max(10000000).nullable(),
+  area_unit: nullableText.optional(),
   khatian_ref: nullableText,
   share_identity: nullableText,
   based_on_deed: nullableText,
@@ -40,6 +41,7 @@ export const parcelExtractionSchema = z.object({
   dag_number: nullableText,
   current_khatian_no: nullableText,
   total_area_decimals: z.number().positive().max(10000000).nullable(),
+  total_area_unit: nullableText.optional(),
 });
 
 export const preprocessingSchema = z.object({

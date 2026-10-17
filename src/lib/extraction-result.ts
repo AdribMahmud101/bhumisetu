@@ -25,6 +25,8 @@ export function parseExtractionResult(
     /^\d+(?:\.\d+)?$/.test(normalize(parsed.area_decimals))
   )
     parsed.area_decimals = Number(normalize(parsed.area_decimals));
+  if (typeof parsed.area_unit === "string")
+    parsed.area_unit = parsed.area_unit.trim() || null;
   // Never guess a calendar/date order from an ambiguous model response.
   for (const key of ["document_date", "execution_date"] as const) {
     if (typeof parsed[key] === "string") parsed[key] = normalize(parsed[key]);
@@ -54,6 +56,7 @@ export function parseExtractionResult(
         "dag_number",
         "current_khatian_no",
         "total_area_decimals",
+        "total_area_unit",
       ].map((key) => [key, source[key] ?? null]),
     );
     for (const key of Object.keys(candidate))

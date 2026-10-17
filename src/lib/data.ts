@@ -32,7 +32,7 @@ export function publicAuth() {
 }
 export async function loadLand(id: string, admin = false) {
   let q = db().from("master_lands").select("*").eq("unique_land_id", id);
-  if (!admin) q = q.eq("is_finalized", true);
+  if (!admin) q = q.eq("is_finalized", true).eq("is_deleted", false);
   const { data: land, error } = await q.maybeSingle();
   check(error);
   if (!land) throw new Error("NOT_FOUND");

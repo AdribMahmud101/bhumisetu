@@ -146,11 +146,11 @@ export function groundExtraction(
     }
   }
 
-  // Area normalization and grounding across categories
+  // Area normalization and grounding across categories with dynamic unit derivation
   if (source) {
     const measured = [
       ...source.matchAll(
-        /(?<![\d.,/−-])(\d+(?:\.\d+)?)\s*(একর|acres?\b|শতাংশ|শতক|decimals?\b)/gi,
+        /(?<![\d.,/−-])(\d+(?:\.\d+)?)\s*(একর|acres?\b|বিঘা|bighas?\b|কাঠা|kathas?\b|ছটাক|chhataks?\b|শতাংশ|শতক|decimals?\b)/gi,
       ),
     ];
     const measuredContext =
@@ -163,15 +163,65 @@ export function groundExtraction(
     const shareOnly =
       /অংশ|share|percent/i.test(measuredContext) &&
       !/পরিমাণ|জমির|area/i.test(measuredContext);
-    if (measured.length === 1 && !shareOnly) {
-      const area =
-        Number(measured[0][1]) * (/একর|acre/i.test(measured[0][2]) ? 100 : 1);
+
+    if (measured.length === 2 && !shareOnly) {
+      const dist =
+        (measured[1].index || 0) -
+        ((measured[0].index || 0) + measured[0][0].length);
+      if (dist >= 0 && dist <= 30) {
+        const u1 = measured[0][2];
+        const u2 = measured[1][2];
+        if (/একর|acre/i.test(u1) && /শতাংশ|শতক|decimal/i.test(u2)) {
+          const area = Number(measured[0][1]) * 100 + Number(measured[1][1]);
+          if (area > 0 && area <= 10000000) {
+            const rounded = Math.round(area * 10000) / 10000;
+            assign("area_decimals", rounded);
+            assign("area_unit", "acre");
+            if (["KHATIAN", "PORCHA"].includes(category)) {
+              assign("total_area_decimals", rounded, true);
+              assign("total_area_unit", "acre", true);
+            }
+          }
+        }
+      }
+    } else if (measured.length === 1 && !shareOnly) {
+      const val = Number(measured[0][1]);
+      const rawUnit = measured[0][2];
+      let multiplier = 1;
+      let unit = "decimal";
+      if (/একর|acre/i.test(rawUnit)) {
+        multiplier = 100;
+        unit = "acre";
+      } else if (/বিঘা|bigha/i.test(rawUnit)) {
+        multiplier = 33;
+        unit = "bigha";
+      } else if (/কাঠা|katha/i.test(rawUnit)) {
+        multiplier = 1.65;
+        unit = "katha";
+      } else if (/ছটাক|chhatak/i.test(rawUnit)) {
+        multiplier = 0.103125;
+        unit = "chhatak";
+      } else {
+        multiplier = 1;
+        unit = "decimal";
+      }
+      const area = val * multiplier;
       if (area > 0 && area <= 10000000) {
         const rounded = Math.round(area * 10000) / 10000;
         assign("area_decimals", rounded);
+        assign("area_unit", unit);
         if (["KHATIAN", "PORCHA"].includes(category)) {
           assign("total_area_decimals", rounded, true);
+          assign("total_area_unit", unit, true);
         }
+      }
+    } else if (output.area_decimals != null && !output.area_unit) {
+      assign("area_unit", "decimal");
+      if (
+        output.parcel?.total_area_decimals != null &&
+        !output.parcel.total_area_unit
+      ) {
+        assign("total_area_unit", "decimal", true);
       }
     }
   }

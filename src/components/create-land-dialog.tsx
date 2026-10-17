@@ -83,6 +83,11 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
           .filter(([key]) => !edited.current.has(key))
           .map(([key, value]) => [key, value == null ? "" : String(value)]),
       ),
+      total_area_unit:
+        data.parcel_fields?.total_area_unit ||
+        data.extracted_fields?.area_unit ||
+        previous.total_area_unit ||
+        "decimal",
     }));
   }, []);
   const extract = useCallback(
@@ -437,21 +442,59 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                   {fields.map(([key, title]) => (
                     <label key={key}>
                       {title}
-                      <input
-                        name={key}
-                        placeholder={t("ocr_empty_placeholder")}
-                        value={values[key] || ""}
-                        onChange={(e) => {
-                          edited.current.add(key);
-                          setValues({ ...values, [key]: e.target.value });
-                        }}
-                        required={
-                          !["jl_number", "current_khatian_no"].includes(key)
-                        }
-                        type={key === "total_area_decimals" ? "number" : "text"}
-                        step="0.01"
-                        min={key === "total_area_decimals" ? "0.01" : undefined}
-                      />
+                      {key === "total_area_decimals" ? (
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <input
+                            name={key}
+                            placeholder={t("ocr_empty_placeholder")}
+                            value={values[key] || ""}
+                            onChange={(e) => {
+                              edited.current.add(key);
+                              setValues({ ...values, [key]: e.target.value });
+                            }}
+                            required
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                          />
+                          <select
+                            name="total_area_unit"
+                            value={
+                              values.total_area_unit ||
+                              intake?.extracted_fields?.area_unit ||
+                              "decimal"
+                            }
+                            onChange={(e) => {
+                              edited.current.add("total_area_unit");
+                              setValues({
+                                ...values,
+                                total_area_unit: e.target.value,
+                              });
+                            }}
+                            style={{ width: "auto", minWidth: "96px", flexShrink: 0 }}
+                          >
+                            <option value="decimal">{t("unit_decimal")}</option>
+                            <option value="acre">{t("unit_acre")}</option>
+                            <option value="bigha">{t("unit_bigha")}</option>
+                            <option value="katha">{t("unit_katha")}</option>
+                            <option value="chhatak">{t("unit_chhatak")}</option>
+                          </select>
+                        </div>
+                      ) : (
+                        <input
+                          name={key}
+                          placeholder={t("ocr_empty_placeholder")}
+                          value={values[key] || ""}
+                          onChange={(e) => {
+                            edited.current.add(key);
+                            setValues({ ...values, [key]: e.target.value });
+                          }}
+                          required={
+                            !["jl_number", "current_khatian_no"].includes(key)
+                          }
+                          type="text"
+                        />
+                      )}
                     </label>
                   ))}
                 </div>
