@@ -35,6 +35,8 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState("");
   const [reason, setReason] = useState("");
   const [restoring, setRestoring] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const abandoned = useRef(false);
   const restored = useRef(false);
   const edited = useRef(new Set<string>());
   const latest = useRef<{ id: string; updated: number } | null>(null);
@@ -48,6 +50,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
     ["total_area_decimals", t("land_area_decimals_9095e")],
   ];
   const load = useCallback((data: any) => {
+    if (abandoned.current) return;
     const updated = Date.parse(data.updated_at) || 0;
     if (
       latest.current &&
@@ -68,6 +71,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
   }, []);
   const extract = useCallback(
     async (data: any, file?: File) => {
+      if (abandoned.current) return;
       setBusy(true);
       setError("");
       setIntake({ ...data, status: "EXTRACTING" });
@@ -82,8 +86,10 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
           });
         }
         const content = await prepareDocument(file);
+        if (abandoned.current) return;
         load(await request("intake-extract/" + data.id, content));
       } catch (e) {
+        if (abandoned.current) return;
         setError((e as Error).message);
         try {
           setIntake(await request("intake/" + data.id));
@@ -193,6 +199,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
               const file = form.get("file") as File;
               try {
                 const data = await request("intake", form);
+                if (abandoned.current) return;
                 sessionStorage.setItem("bs-intake-id", data.id);
                 load(data);
                 await extract(data, file);
@@ -333,6 +340,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                   setBusy(true);
                   setError("");
                   try {
+                    setSaving(true);
                     const land = Object.fromEntries(
                       fields.map(([key]) => [key, values[key] || ""]),
                     );
@@ -349,6 +357,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                     setError((e as Error).message);
                   } finally {
                     setBusy(false);
+                    setSaving(false);
                   }
                 }}
               >
@@ -397,6 +406,21 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
             )}
           </>
         )}
+        <div className="intake-abort-actions">
+          <button
+            type="button"
+            className="button intake-abort-button"
+            data-testid="abort-intake"
+            disabled={saving}
+            onClick={() => {
+              abandoned.current = true;
+              sessionStorage.removeItem("bs-intake-id");
+              onClose();
+            }}
+          >
+            {t("intake_abort")}
+          </button>
+        </div>
       </section>
     </div>
   );

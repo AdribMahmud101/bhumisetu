@@ -86,3 +86,11 @@ User reported the old empty form still appearing after the parser deployment. Th
 Local validation for recovery: typecheck/lint clean, 392 bn/en catalog entries validated, 23 unit tests pass, 6 upload/language browser checks pass. A dedicated recovery browser test simulates the legacy failure response and then uses the real stored PDF and AI extraction; automatic retry, visible extracted fields, preserved officer edit and fresh-upload reset passed.
 
 Recovery fix deployed (Worker version `cf58d4d7-dd1a-4bfe-be78-edd8fdf8ba48`). All 3 targeted live browser workflows passed: resumed legacy failure with real extraction, regular upload/confirmation, and failure/manual continuation. Existing user files in `demo assets/` remain untracked and untouched.
+
+## Explicit intake abort
+
+Added a sticky full-width `Abort / বাতিল করুন` action to the intake dialog. It closes the dialog and clears the current browser draft selection/form. In-flight upload responses are ignored after abort, preventing an abandoned draft from being restored. Existing stored originals remain private; abort does not delete sources or publish a parcel. Abort is temporarily disabled while final confirmation is committing. The X close action retains its previous resume behavior.
+
+Typecheck, lint and 393-message localization check passed. Dedicated browser check passed for mobile button visibility, manual-form reset, abort during an artificially delayed upload, no restored session selection after late completion, and Bangla label.
+
+Abort update deployed (Worker version `65b216f8-91dc-48df-af62-2aea9fa7b168`). Live browser check passed, including abort remaining enabled after a rejected save, mobile visibility, reset, late-upload handling and bilingual label.

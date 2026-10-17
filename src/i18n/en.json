@@ -390,5 +390,6 @@
   "intake_file_invalid": "The file content does not match the selected document type.",
   "intake_complete": "Extraction complete — review the results below",
   "intake_extraction_failed": "Extraction could not finish. Your original is saved; retry or enter details manually.",
-  "intake_start_new": "Upload a different document"
+  "intake_start_new": "Upload a different document",
+  "intake_abort": "Abort"
 }
