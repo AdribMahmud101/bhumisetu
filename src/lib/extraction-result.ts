@@ -25,6 +25,17 @@ export function parseExtractionResult(
     /^\d+(?:\.\d+)?$/.test(normalize(parsed.area_decimals))
   )
     parsed.area_decimals = Number(normalize(parsed.area_decimals));
+  // Never guess a calendar/date order from an ambiguous model response.
+  for (const key of ["document_date", "execution_date"] as const) {
+    if (typeof parsed[key] === "string") parsed[key] = normalize(parsed[key]);
+    const date = fieldsSchema.shape[key].safeParse(parsed[key]);
+    if (
+      !date.success ||
+      (date.data &&
+        new Date(date.data).toISOString().slice(0, 10) !== date.data)
+    )
+      parsed[key] = null;
+  }
   const fields = fieldsSchema.parse(parsed);
   let parcel: ReturnType<typeof parcelExtractionSchema.parse> | undefined;
   if (includeParcel) {

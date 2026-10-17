@@ -71,3 +71,23 @@ test("real deed references are retained and malformed objects stay invalid", () 
     ),
   ).toThrow();
 });
+
+test("unsupported dates stay unknown while valid date digits normalize", () => {
+  const result = parseExtractionResult(
+    {
+      document_date: "12/05/2021",
+      execution_date: "২০২১-০৫-১২",
+      official_number: "502/2021",
+    },
+    "DEED",
+  );
+  expect(result.fields.document_date).toBeNull();
+  expect(result.fields.execution_date).toBe("2021-05-12");
+  expect(result.fields.official_number).toBe("502/2021");
+  expect(
+    parseExtractionResult(
+      { document_date: "2021-02-30", execution_date: "" },
+      "DEED",
+    ).fields.document_date,
+  ).toBeNull();
+});

@@ -76,3 +76,5 @@ Final outcome: deployed to the existing Worker (version `87ec859e-54f6-4c96-b08f
 Deed subtype update: added `OTHER` to the shared DEED type list. Existing bn/en catalogs render it as অন্যান্য / Other. The intake and existing-document upload selectors and server validation all use this same list.
 
 Extraction robustness fix: an uploaded deed returned `based_on_deed: false`, causing strict schema rejection. Model boolean values now become null (unknown) for document and parcel fields before validation; valid extracted fields and actual reference strings remain intact. Objects/other malformed values still fail validation. The model prompt explicitly defines references as strings/null, never yes/no flags. Regression tests cover this exact failure and retained valid data.
+
+The real `demo assets/saf_kabla.jpg` live test also exposed unsupported model date formats. Extraction now normalizes Bangla digits in ISO dates and leaves unsupported/ambiguous/impossible dates null instead of guessing or rejecting otherwise valid extraction. Strict manual review validation is unchanged. Added date regression coverage (23 unit tests pass).
