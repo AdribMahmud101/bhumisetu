@@ -31,3 +31,9 @@ Use synthetic or organizer-approved data only. No government scraping. Disclose 
 - Dependencies use Bun per user preference; bun.lock committed. README documents frozen installs.
 - Lint, typecheck, build, and Firefox smoke coverage pass. Full product workflows remain unimplemented.
 - Publication scope is complete; do not start the full product sprint without a new request.
+
+## Current direction after publication
+
+User now wants a competitive functional Round 1 prototype, with a 30-minute build target, and requested source review plus a documented plan and tracked implementation checklist. Read `BUILD_PLAN.md` for the architecture/contracts and `TODO.md` for the brief sequential tracker. Planning is complete; new implementation has not started. The architecture file is now `architecture_&_ui_ux.pdf`; user removed `historical_data_record_land_tech.pdf` locally. Preserve these user changes. `master_prompt.md` remains absent; use `master_instructions.md`.
+
+Primary submission focus is P3 per the rulebook's choose-one requirement, with digitization, citizen report and mutation review supporting that story. Canonical fixture computes 60/100 (40 excess sale + 20 mutation conflict), not hardcoded 65/85. Supabase + DeepInfra setup question is pending; continue independent implementation without inventing successful service responses. Current intended stack reuses existing Next/React/Tailwind/Bun/Supabase/OpenAI/PDF/QR tooling, adding only zod and @supabase/ssr initially. Update TODO.md as acceptance checks pass.
