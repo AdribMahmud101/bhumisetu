@@ -391,5 +391,6 @@
   "intake_complete": "Extraction complete — review the results below",
   "intake_extraction_failed": "Extraction could not finish. Your original is saved; retry or enter details manually.",
   "intake_start_new": "Upload a different document",
-  "intake_abort": "Abort"
+  "intake_abort": "Abort",
+  "intake_back_upload": "← Back to document upload"
 }

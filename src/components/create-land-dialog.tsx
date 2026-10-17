@@ -333,6 +333,19 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                 )}
               </div>
             )}
+            {manual && !intake && (
+              <button
+                type="button"
+                className="button"
+                disabled={busy}
+                onClick={() => {
+                  setManual(false);
+                  setError("");
+                }}
+              >
+                {t("intake_back_upload")}
+              </button>
+            )}
             {(manual || intake?.status === "READY") && (
               <form
                 onSubmit={async (e) => {

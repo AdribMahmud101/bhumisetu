@@ -94,3 +94,7 @@ Added a sticky full-width `Abort / বাতিল করুন` action to the i
 Typecheck, lint and 393-message localization check passed. Dedicated browser check passed for mobile button visibility, manual-form reset, abort during an artificially delayed upload, no restored session selection after late completion, and Bangla label.
 
 Abort update deployed (Worker version `65b216f8-91dc-48df-af62-2aea9fa7b168`). Live browser check passed, including abort remaining enabled after a rejected save, mobile visibility, reset, late-upload handling and bilingual label.
+
+Manual-mode navigation update: added `← নথি আপলোডে ফিরে যান / ← Back to document upload` above the manual parcel form when no source has been uploaded. Switching back clears stale validation errors and preserves typed parcel values and category/subtype state, so returning to manual entry restores the input. Existing upload-abort browser workflow now checks this round trip.
+
+Manual-mode back action deployed (Worker version `e9ffcc83-c770-4040-b694-ffbe455f4d63`); live browser workflow passed for manual → upload → manual with preserved field input, plus existing abort checks. Typecheck, production build/lint and 394-message catalog check passed.

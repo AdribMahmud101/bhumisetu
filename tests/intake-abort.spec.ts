@@ -15,6 +15,15 @@ test("abort clears manual details and prevents a late upload from restoring the 
     .getByRole("button", { name: "Enter parcel details manually" })
     .click();
   await page.locator("input[name=district]").fill("Abandoned details");
+  await page.getByRole("button", { name: "← Back to document upload" }).click();
+  await expect(page.locator("input[type=file]")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Enter parcel details manually" })
+    .click();
+  await expect(page.locator("input[name=district]")).toHaveValue(
+    "Abandoned details",
+  );
+
   for (const [key, value] of Object.entries({
     upazila: "Test",
     mouza: "Test",
@@ -26,7 +35,9 @@ test("abort clears manual details and prevents a late upload from restoring the 
     route.fulfill({ status: 400, json: { error: "Test save rejection" } }),
   );
   await page.getByRole("button", { name: "Create draft", exact: true }).click();
-  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Test save rejection");
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
+    "Test save rejection",
+  );
   await expect(page.getByTestId("abort-intake")).toBeEnabled();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByTestId("abort-intake")).toBeInViewport();
