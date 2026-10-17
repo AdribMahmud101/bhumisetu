@@ -84,3 +84,12 @@ Core implementation complete. Supabase schema/fixtures/officer account are confi
 - [x] Open Documents tab after confirmation; separate review/publication.
 - [x] Shared Bangla/English messages; preserve entered fields during switching.
 - [x] Final deployed browser regression: all 17 live workflows passed.
+
+## DOCX support
+
+- [x] Shared server validation and canonical MIME/storage extension in both upload flows.
+- [x] Bangla/English text, tables, header/footer and embedded-image extraction.
+- [x] Safe source preview and original download; support copy comparison.
+- [x] Localized limits/errors and malformed/archive/content-limit tests.
+- [x] Real local AI browser tests for text DOCX and image-only DOCX.
+- [x] Final live regression: all 22 browser workflows passed, including text and image-only DOCX.

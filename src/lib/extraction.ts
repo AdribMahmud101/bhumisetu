@@ -27,7 +27,7 @@ export async function extractPages(
           content: [
             {
               type: "text",
-              text: `Category ${category}; subtype ${subtype}. Extract the JSON object from these pages. Selectable text:\n${text.slice(0, 18000)}`,
+              text: `Category ${category}; subtype ${subtype}. Extract the JSON object from these pages. Selectable text:\n${text.slice(0, 40000)}`,
             },
             ...pages.map((url) => ({
               type: "image_url" as const,

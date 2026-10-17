@@ -40,7 +40,7 @@ Run `bun run test:unit`, `bun run lint`, `bun run typecheck`, `bun run build`. L
 
 Primary competition problem is P3 (rulebook says choose one), with digitization, integrity checks, citizen reports and mutation review supporting it. All data is fictional; no government scraping/integration. Court/khas/acquisition coverage remains explicitly unavailable. Scores are indicators, not fraud probabilities; printed reports and decisions are not official certificates/orders.
 
-Limits: 5 MB / 3 pages per upload; handwriting accuracy not established; camera QR scanning and voice deferred; the interface now supports full Bangla/English switching. QR links work. Auth sessions last one hour; sign in again after expiry. Complex legal ownership/partition/inheritance/dag mapping is outside the implemented prototype.
+Limits: 5 MB per upload; PDFs up to 3 pages; DOCX up to 40,000 text characters and 3 embedded PNG/JPEG images; handwriting accuracy not established; camera QR scanning and voice deferred; the interface now supports full Bangla/English switching. QR links work. Auth sessions last one hour; sign in again after expiry. Complex legal ownership/partition/inheritance/dag mapping is outside the implemented prototype.
 
 User still needs the team/mentor details, ≤3-page concept PDF, ≤90-second recording and final platform submission. `docs/DEMO_SCRIPT.md` provides the timed script. `TODO.md`, `BUILD_PLAN.md` and README document actual status and setup. Architecture reference is `architecture_&_ui_ux.pdf`; actual master file is `master_instructions.md` (`master_prompt.md` is absent).
 
@@ -98,3 +98,13 @@ Abort update deployed (Worker version `65b216f8-91dc-48df-af62-2aea9fa7b168`). L
 Manual-mode navigation update: added `← নথি আপলোডে ফিরে যান / ← Back to document upload` above the manual parcel form when no source has been uploaded. Switching back clears stale validation errors and preserves typed parcel values and category/subtype state, so returning to manual entry restores the input. Existing upload-abort browser workflow now checks this round trip.
 
 Manual-mode back action deployed (Worker version `e9ffcc83-c770-4040-b694-ffbe455f4d63`); live browser workflow passed for manual → upload → manual with preserved field input, plus existing abort checks. Typecheck, production build/lint and 394-message catalog check passed.
+
+## DOCX support
+
+Added `fflate` and `fast-xml-parser` for DOCX handling. Shared `document-types.ts`, `document-upload.ts` and `docx.ts` validate real package contents and canonical MIME, preserving original bytes/hash in both intake and existing-document upload. DOCX text includes Bangla/English split runs, tables, headers/footers and notes; deleted revision text is skipped. Embedded PNG/JPEG images are resized in the browser and passed to the existing vision pipeline. Source review lazy-loads a safe text/image preview (React text, no HTML execution); original download remains available. Copy-comparison accepts DOCX too.
+
+Limits: 5 MB original; 40,000 extracted text characters, 3 referenced image sources; declared ZIP expansion limited to 20 MB, 512 entries and 5 MB per entry. No silent DOCX text/image truncation. Reject malformed packages, empty content, traversal/duplicate paths, entity declarations, macros/active objects, external images and unsupported image formats. DOC/DOCM are explicitly unsupported; encrypted documents must be resaved. Client parsers are loaded only when DOCX is selected.
+
+Applied migration `20261018000100_docx_storage.sql` to the existing private storage bucket. Updated all upload accept filters, visible limits and bn/en errors (407 catalog entries). 30 unit tests pass, typecheck/lint/catalog checks pass. Three local Firefox workflows passed, with real AI for text-only and image-only DOCX, exact original bytes/MIME, private pending draft and source preview, and server rejection of malformed files. Final deployed regression recorded below.
+
+Final DOCX outcome: deployed to the existing Worker (version `e3970645-e079-4bea-ad15-50414e67d244`). All **22 live Firefox workflows passed** in 1.7 minutes, including real text/image-only DOCX extraction, private original MIME/byte preservation, safe preview, malformed-file rejection and existing PDF/auth/i18n/recovery/abort/evidence/comparison workflows. All 30 unit tests passed; production build/typecheck/lint and 407-message catalog check passed.

@@ -13,6 +13,8 @@ import {
 } from "@/lib/data";
 import { fieldsSchema, landSchema } from "@/lib/validation";
 import { extractPages } from "@/lib/extraction";
+import { validateDocumentUpload } from "@/lib/document-upload";
+import { documentExtension } from "@/lib/document-types";
 import {
   createIntake,
   getIntake,
@@ -261,12 +263,9 @@ export async function POST(
     if (action === "compare") {
       const form = await req.formData();
       const file = form.get("file");
-      if (!(file instanceof File) || file.size > 5242880)
-        throw new Error("Choose a file up to 5 MB");
+      const { bytes } = await validateDocumentUpload(file);
       const { documents } = await loadLand(id, false);
-      const sha = createHash("sha256")
-        .update(Buffer.from(await file.arrayBuffer()))
-        .digest("hex");
+      const sha = createHash("sha256").update(bytes).digest("hex");
       const exact = documents.find((d) => d.sha256 === sha);
       if (exact)
         return json({
@@ -358,19 +357,12 @@ export async function POST(
         !(categories[category].types as readonly string[]).includes(subtype)
       )
         throw new Error("Invalid category/subtype");
-      if (
-        !(file instanceof File) ||
-        file.size > 5242880 ||
-        !["application/pdf", "image/png", "image/jpeg"].includes(file.type)
-      )
-        throw new Error("Upload a PDF, PNG or JPEG up to 5 MB");
-      const bytes = Buffer.from(await file.arrayBuffer());
+      const {
+        file: original,
+        bytes,
+        mime,
+      } = await validateDocumentUpload(file);
       const hash = createHash("sha256").update(bytes).digest("hex");
-      if (
-        file.type === "application/pdf" &&
-        !bytes.subarray(0, 5).equals(Buffer.from("%PDF-"))
-      )
-        throw new Error("Invalid PDF");
       const { data: duplicate } = await db()
         .from("land_documents")
         .select("id")
@@ -379,18 +371,10 @@ export async function POST(
         .maybeSingle();
       if (duplicate)
         throw new Error("This exact document is already stored for the parcel");
-      const path =
-        land.id +
-        "/" +
-        randomUUID() +
-        (file.type === "application/pdf"
-          ? ".pdf"
-          : file.type === "image/png"
-            ? ".png"
-            : ".jpg");
+      const path = land.id + "/" + randomUUID() + documentExtension(mime);
       const { error: se } = await db()
         .storage.from("land-documents")
-        .upload(path, bytes, { contentType: file.type });
+        .upload(path, bytes, { contentType: mime });
       check(se);
       const { data, error } = await db()
         .from("land_documents")
@@ -401,8 +385,8 @@ export async function POST(
           sub_type: subtype,
           file_path: path,
           sha256: hash,
-          file_name: file.name,
-          mime_type: file.type,
+          file_name: original.name,
+          mime_type: mime,
         })
         .select()
         .single();

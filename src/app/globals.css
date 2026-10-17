@@ -2927,3 +2927,22 @@ html[lang="bn"] .mutation-evidence small {
 .intake-abort-button:hover {
   background: #fff3f3;
 }
+
+.docx-preview {
+  background: #fff;
+  color: #20372c;
+  padding: 18px;
+  overflow: auto;
+}
+.docx-preview pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.docx-preview img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 16px;
+}

@@ -25,6 +25,7 @@ for (const [source, key] of Object.entries(sources))
 for (const path of [
   "src/components/portal.tsx",
   "src/components/create-land-dialog.tsx",
+  "src/components/docx-preview.tsx",
   "src/components/auth-panel.tsx",
   "src/app/not-found.tsx",
 ]) {

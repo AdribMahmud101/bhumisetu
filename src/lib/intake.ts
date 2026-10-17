@@ -4,6 +4,8 @@ import { categories } from "./domain";
 import { db, check } from "./data";
 import { extractPages } from "./extraction";
 import { landSchema } from "./validation";
+import { validateDocumentUpload } from "./document-upload";
+import { documentExtension } from "./document-types";
 export async function getIntake(id: string, actor: string) {
   const { data, error } = await db()
     .from("document_intakes")
@@ -53,31 +55,15 @@ export async function createIntake(form: FormData, actor: string) {
     !(categories[category].types as readonly string[]).includes(subtype)
   )
     throw new Error("Invalid category/subtype");
-  if (
-    !(file instanceof File) ||
-    file.size === 0 ||
-    file.size > 5242880 ||
-    !["application/pdf", "image/png", "image/jpeg"].includes(file.type)
-  )
-    throw new Error("Upload a PDF, PNG or JPEG up to 5 MB");
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const valid =
-    file.type === "application/pdf"
-      ? bytes.subarray(0, 5).equals(Buffer.from("%PDF-"))
-      : file.type === "image/png"
-        ? bytes
-            .subarray(0, 8)
-            .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-        : bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
-  if (!valid) throw new Error("File content does not match its document type");
+  const { file: original, bytes, mime } = await validateDocumentUpload(file);
   const id = randomUUID(),
     hash = createHash("sha256").update(bytes).digest("hex");
-  const path = `intakes/${actor}/${id}${file.type === "application/pdf" ? ".pdf" : file.type === "image/png" ? ".png" : ".jpg"}`;
+  const path = `intakes/${actor}/${id}${documentExtension(mime)}`;
   check(
     (
       await db()
         .storage.from("land-documents")
-        .upload(path, bytes, { contentType: file.type })
+        .upload(path, bytes, { contentType: mime })
     ).error,
   );
   const { data, error } = await db()
@@ -87,9 +73,9 @@ export async function createIntake(form: FormData, actor: string) {
       created_by: actor,
       category,
       sub_type: subtype,
-      file_name: file.name,
+      file_name: original.name,
       file_path: path,
-      mime_type: file.type,
+      mime_type: mime,
       sha256: hash,
     })
     .select()

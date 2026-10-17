@@ -10,7 +10,7 @@ A working LandTech 2026 prototype focused on **P3: Catch Fraud & Double-Selling*
 - One deterministic engine shared by citizen reports and mutation review. The canonical fictional parcel computes **60/100 = 40 excess/overlapping sale + 20 deed–mutation conflict**.
 - Visual quota overflow: **20 decimals recorded, 24 sold**, with both competing deeds displayed.
 - Officer authentication through Supabase Auth, server-verified role checks, private document storage and RLS-enabled database tables.
-- Multi-file PDF/image uploads, actual DeepInfra vision extraction, structured validation, source/extracted review, retryable provider failures and transactional correction audit history.
+- Multi-file PDF/DOCX/image uploads, actual DeepInfra vision extraction, structured validation, source/extracted review, retryable provider failures and transactional correction audit history.
 - Verifying a sale deed creates one mutation case; repeat verification cannot duplicate it. Conflicting/incomplete cases cannot be approved through the server API. Decisions check the land revision to reject stale analyses.
 - Separate publication after review. Document changes return the parcel to draft until reviewed and published again.
 - SHA-256 copy integrity check and AI-extracted field comparison: Matched / Mismatch found / Further verification required.
@@ -104,8 +104,14 @@ Round 1 requires the public repository, a concept PDF of at most three pages, an
 
 ### Upload-first digitization
 
-In the officer workspace, choose **Create land record → category/type → original PDF/image → Upload and extract**. The original is saved privately before any parcel metadata is required. AI fills visible parcel fields; missing details stay blank. Confirm the details and record a source/reason, then review the attached pending document in the Documents tab. Verification and publication remain explicit subsequent actions. Manual parcel entry is still available.
+In the officer workspace, choose **Create land record → category/type → original PDF/DOCX/image → Upload and extract**. The original is saved privately before any parcel metadata is required. AI fills visible parcel fields; missing details stay blank. Confirm the details and record a source/reason, then review the attached pending document in the Documents tab. Verification and publication remain explicit subsequent actions. Manual parcel entry is still available.
 
-Interrupted intakes resume in the same browser session when reopening the dialog. Failed extraction retains the original, with retry or manual continuation. Confirmation is transactional and idempotent. Sold/transferred deed areas never automatically establish the parcel's total recorded entitlement. Upload limits: 5 MB, 3 PDF pages.
+Interrupted intakes resume in the same browser session when reopening the dialog. Failed extraction retains the original, with retry or manual continuation. Confirmation is transactional and idempotent. Sold/transferred deed areas never automatically establish the parcel's total recorded entitlement. Upload limits: 5 MB; PDFs up to 3 pages; DOCX up to 40,000 extracted characters and 3 embedded PNG/JPEG images.
 
 This is a prototype digitization intake, not an official mutation application or draft mutation khatian. Government mutation guidance describes application with parcel details/attachments followed by officer verification and proposal preparation: [application guide](https://mutation.land.gov.bd/nirdeshika), [mutation steps](https://mutation.land.gov.bd/namjari-steps).
+
+### DOCX documents
+
+Both new-record intake and existing-record uploads accept `.docx`; copy comparison accepts it too. Bangla/English text, split runs, tables, headers/footers and notes are read locally. Embedded PNG/JPEG scans are supplied to the same vision model. The exact original bytes and SHA-256 remain in private storage. Review shows a safe text/image preview; download the original for exact Word layout.
+
+Server validation checks the DOCX package and required parts before storage, normalizes missing browser MIME types, limits declared archive expansion (20 MB / 512 entries / 5 MB per entry), rejects traversal/duplicate paths, XML entity declarations, macros/active objects, linked images, unsupported image formats and empty/malformed content. Text over 40,000 characters or more than 3 image sources is rejected rather than silently truncated. Legacy `.doc`, macro-enabled `.docm` and encrypted documents should be resaved as an ordinary DOCX or PDF. No document HTML, embedded scripts or external links are executed/fetched by the preview.

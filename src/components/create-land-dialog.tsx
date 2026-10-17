@@ -5,6 +5,7 @@ import { X, Loader2 } from "lucide-react";
 import { LanguageSwitch, useI18n } from "@/i18n/provider";
 import { categories, Category, fieldLabels, Fields } from "@/lib/domain";
 import { prepareDocument } from "@/lib/pdf-client";
+import { DOCUMENT_ACCEPT } from "@/lib/document-types";
 
 async function request(path: string, body?: unknown) {
   const response = await fetch("/api/service/" + path, {
@@ -249,7 +250,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
               <input
                 name="file"
                 type="file"
-                accept="application/pdf,image/png,image/jpeg"
+                accept={DOCUMENT_ACCEPT}
                 required
                 disabled={busy}
               />

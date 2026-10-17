@@ -1,11 +1,15 @@
+import { documentMime, DOCX_MIME } from "./document-types";
 export async function prepareDocument(file: File) {
   if (file.size > 5242880) throw new Error("Maximum file size is 5 MB");
-  if (file.type.startsWith("image/")) {
+  const mime = documentMime(file);
+  if (mime === DOCX_MIME)
+    return (await import("./docx-client")).prepareDocx(file);
+  if (mime.startsWith("image/")) {
     const data = await new Promise<string>((resolve, reject) => {
       const r = new FileReader();
       r.onload = () => resolve(String(r.result));
       r.onerror = reject;
-      r.readAsDataURL(file);
+      r.readAsDataURL(new Blob([file], { type: mime }));
     });
     return { pages: [data], text: "" };
   }

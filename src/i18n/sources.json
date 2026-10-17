@@ -765,5 +765,18 @@
   "parcel.jl_number": "jl_number_31a6d",
   "parcel.dag_number": "dag_number_03982",
   "parcel.current_khatian_no": "khatian_number_74e57",
-  "parcel.total_area_decimals": "land_area_decimals_9095e"
+  "parcel.total_area_decimals": "land_area_decimals_9095e",
+  "Invalid DOCX document": "docx_invalid",
+  "DOCX expanded content exceeds the supported limit": "docx_expanded_limit",
+  "DOCX active or embedded objects are not supported": "docx_active",
+  "DOCX linked images must be embedded before upload": "docx_linked",
+  "DOCX supports up to 3 embedded images": "docx_image_count",
+  "DOCX embedded images must be PNG or JPEG": "docx_image_type",
+  "DOCX text exceeds 40000 characters; split the document": "docx_text_limit",
+  "DOCX contains no readable text or supported images": "docx_empty",
+  "Use DOCX instead of DOC or DOCM": "docx_legacy",
+  "Invalid DOCX embedded image": "docx_image_invalid",
+  "DOCX embedded image dimensions exceed the supported limit": "docx_image_large",
+  "DOCX embedded image exceeds the supported limit": "docx_image_large",
+  "Upload a PDF, DOCX, PNG or JPEG up to 5 MB": "file_limit_upload"
 }

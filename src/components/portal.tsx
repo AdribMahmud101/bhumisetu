@@ -3,6 +3,8 @@ import { useI18n, LanguageSwitch } from "@/i18n/provider";
 import Link from "next/link";
 import Image from "next/image";
 import AuthPanel from "./auth-panel";
+import dynamic from "next/dynamic";
+const DocxPreview = dynamic(() => import("./docx-preview"), { ssr: false });
 import CreateLandDialog from "./create-land-dialog";
 import { explainSignal } from "@/i18n/evidence";
 import {
@@ -56,6 +58,7 @@ import {
   LandDocument,
 } from "@/lib/domain";
 import { prepareDocument } from "@/lib/pdf-client";
+import { DOCUMENT_ACCEPT, DOCX_MIME } from "@/lib/document-types";
 type View =
   | "home"
   | "verify"
@@ -1547,7 +1550,7 @@ function UploadPanel({
             aria-label={t("upload_documents_b19cb")}
             type="file"
             multiple
-            accept="application/pdf,image/png,image/jpeg"
+            accept={DOCUMENT_ACCEPT}
             disabled={busy}
             onChange={(e) => {
               if (e.target.files?.length)
@@ -1587,7 +1590,7 @@ function ComparePanel({ id }: { id: string }) {
         <span>{t("up_to_5_mb_3_pages_d575c")}</span>
         <input
           type="file"
-          accept="application/pdf,image/png,image/jpeg"
+          accept={DOCUMENT_ACCEPT}
           aria-label={t("compare_deed_f2722")}
           disabled={busy}
           onChange={async (e) => {
@@ -1757,7 +1760,9 @@ function ReviewDialog({
                 <ArrowUpRight size={13} />
               </a>
             </div>
-            {doc.mime_type === "application/pdf" ? (
+            {doc.mime_type === DOCX_MIME ? (
+              <DocxPreview src={"/api/service/document/" + doc.id} />
+            ) : doc.mime_type === "application/pdf" ? (
               <iframe
                 title={t("original_document_92349")}
                 src={"/api/service/document/" + doc.id}
