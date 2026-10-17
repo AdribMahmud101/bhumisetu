@@ -74,7 +74,7 @@ export default function AuthPanel({
         </div>
         <div>
           <LockKeyhole />
-          প্রকৃত Supabase Auth সেশন
+          নিরাপদ লগইন ও পৃথক প্রবেশাধিকার
         </div>
         <div className="auth-role-links">
           <Link className={!officer ? "current" : ""} href="/login">
