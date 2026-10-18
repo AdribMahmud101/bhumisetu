@@ -55,9 +55,10 @@ test("upload first extracts a real PDF, confirms a private draft once and opens 
   await page
     .getByTestId("intake-edit-field-official_number")
     .fill("RS-118-CORRECTED");
-  await page
-    .getByTestId("intake-edit-field-share_identity")
-    .fill("Synthetic reviewed share");
+  const shareField = page.getByTestId("intake-edit-field-share_identity");
+  if (await shareField.count()) {
+    await shareField.fill("Synthetic reviewed share");
+  }
   const reason = "Officer confirmed land and document fields during source intake";
   await expect(page.locator("textarea[name=reason]")).toHaveCount(0);
   await page.getByTestId("dialog-locale-bn").click();

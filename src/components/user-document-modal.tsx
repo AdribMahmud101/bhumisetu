@@ -71,16 +71,10 @@ export default function UserDocumentModal({
   const getPartyFields = () => {
     if (doc.category === "KHATIAN" || doc.category === "PORCHA") {
       return (
-        <div className="grid two" style={{ gap: "16px" }}>
-          <div className="detail-item">
-            <span className="field-label">{t("recorded_owner_label")}</span>
-            <div className="field-value">
-              {renderValue(doc.buyer_or_current_owner)}
-            </div>
-          </div>
-          <div className="detail-item">
-            <span className="field-label">{t("ownership_share_label")}</span>
-            <div className="field-value">{renderValue(doc.share_identity)}</div>
+        <div className="detail-item">
+          <span className="field-label">{t("recorded_owner_label")}</span>
+          <div className="field-value">
+            {renderValue(doc.buyer_or_current_owner)}
           </div>
         </div>
       );
@@ -101,22 +95,14 @@ export default function UserDocumentModal({
         buyerLabel = t("mortgagee_label");
       } else if (doc.sub_type === "BANTONNAMA") {
         return (
-          <div className="grid two" style={{ gap: "16px" }}>
-            <div className="detail-item">
-              <span className="field-label">{t("co_sharers_label")}</span>
-              <div className="field-value">
-                {renderValue(
-                  [doc.buyer_or_current_owner, doc.seller_or_prior_owner]
-                    .filter(Boolean)
-                    .join(", ") || null,
-                )}
-              </div>
-            </div>
-            <div className="detail-item">
-              <span className="field-label">{t("ownership_share_label")}</span>
-              <div className="field-value">
-                {renderValue(doc.share_identity)}
-              </div>
+          <div className="detail-item">
+            <span className="field-label">{t("co_sharers_label")}</span>
+            <div className="field-value">
+              {renderValue(
+                [doc.buyer_or_current_owner, doc.seller_or_prior_owner]
+                  .filter(Boolean)
+                  .join(", ") || null,
+              )}
             </div>
           </div>
         );
@@ -135,10 +121,6 @@ export default function UserDocumentModal({
             <div className="field-value">
               {renderValue(doc.buyer_or_current_owner)}
             </div>
-          </div>
-          <div className="detail-item">
-            <span className="field-label">{t("ownership_share_label")}</span>
-            <div className="field-value">{renderValue(doc.share_identity)}</div>
           </div>
         </div>
       );
@@ -164,10 +146,6 @@ export default function UserDocumentModal({
           <div className="detail-item">
             <span className="field-label">{t("referenced_deed_label")}</span>
             <div className="field-value">{renderValue(doc.based_on_deed)}</div>
-          </div>
-          <div className="detail-item">
-            <span className="field-label">{t("ownership_share_label")}</span>
-            <div className="field-value">{renderValue(doc.share_identity)}</div>
           </div>
         </div>
       );

@@ -39,6 +39,10 @@ test.describe("User data showing vs officer full access (User_data_showing.pdf)"
     await expect(modal.locator("[data-testid=edit-reason-input]")).toHaveCount(0);
     await expect(modal.locator("[data-testid=review-doc-category-select]")).toHaveCount(0);
 
+    // Verify 'জমির অংশের পরিচিতি' (share_identity) has been completely removed
+    await expect(modal.getByText("জমির অংশের পরিচিতি")).toHaveCount(0);
+    await expect(modal.getByText("মালিকানার হিস্যা / অংশ")).toHaveCount(0);
+
     // Switch to original source preview tab
     await modal.getByRole("button", { name: "মূল নথি", exact: true }).click();
     await expect(modal.getByTitle("মূল নথি")).toBeVisible();
@@ -77,5 +81,9 @@ test.describe("User data showing vs officer full access (User_data_showing.pdf)"
     await expect(page.getByTestId("review-doc-category-select")).toBeVisible();
     await expect(page.getByTestId("review-doc-subtype-select")).toBeVisible();
     await expect(page.getByTestId("save-audit-correction-btn")).toBeVisible();
+
+    // Verify 'জমির অংশের পরিচিতি' is removed from officer editor as requested
+    await expect(page.getByText("জমির অংশের পরিচিতি")).toHaveCount(0);
+    await expect(page.locator("[data-testid=edit-field-share_identity]")).toHaveCount(0);
   });
 });

@@ -104,6 +104,11 @@ describe("User data showing specification compliance (User_data_showing.pdf)", (
     expect(categoryFields.MUTATION).toContain("based_on_deed");
     expect(categoryFields.MUTATION).toContain("seller_or_prior_owner");
     expect(categoryFields.MUTATION).toContain("buyer_or_current_owner");
+
+    expect(categoryFields.KHATIAN).not.toContain("share_identity");
+    expect(categoryFields.PORCHA).not.toContain("share_identity");
+    expect(categoryFields.DEED).not.toContain("share_identity");
+    expect(categoryFields.MUTATION).not.toContain("share_identity");
   });
 
   test("dynamic land units format correctly for document area", () => {

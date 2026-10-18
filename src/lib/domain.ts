@@ -115,7 +115,6 @@ export const categoryFields: Record<Category, (keyof Fields)[]> = {
     "document_date",
     "dag_number",
     "area_decimals",
-    "share_identity",
     "khatian_ref",
   ],
   PORCHA: [
@@ -124,7 +123,6 @@ export const categoryFields: Record<Category, (keyof Fields)[]> = {
     "document_date",
     "dag_number",
     "area_decimals",
-    "share_identity",
     "khatian_ref",
   ],
   DEED: [
@@ -135,7 +133,6 @@ export const categoryFields: Record<Category, (keyof Fields)[]> = {
     "document_date",
     "dag_number",
     "area_decimals",
-    "share_identity",
     "khatian_ref",
   ],
   MUTATION: [
@@ -146,7 +143,6 @@ export const categoryFields: Record<Category, (keyof Fields)[]> = {
     "based_on_deed",
     "dag_number",
     "area_decimals",
-    "share_identity",
     "khatian_ref",
   ],
 };

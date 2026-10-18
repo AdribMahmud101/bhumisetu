@@ -52,10 +52,13 @@ export default function DocumentFieldsEditor({
   prefix?: string;
 }) {
   const { t, tt, locale } = useI18n();
-  const activeKeys: (keyof Fields)[] =
+  const rawKeys: (keyof Fields)[] =
     category && category in categoryFields
       ? categoryFields[category as Category]
       : (Object.keys(fieldLabels) as (keyof Fields)[]);
+  const activeKeys = rawKeys.filter(
+    (k) => k !== "share_identity" && k !== "area_unit",
+  );
   return (
     <div className="form-grid document-fields-editor">
       {activeKeys.map((key) => (
