@@ -1343,36 +1343,33 @@ button {
 }
 .quota-track {
   height: 25px;
-  width: 84%;
-  background: #eaf0e2;
-  border-radius: 5px;
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 6px;
   position: relative;
   display: flex;
+  overflow: hidden;
 }
 .quota-track > span {
   height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    #438565,
-    #438565 8px,
-    #4b8e6e 8px,
-    #4b8e6e 9px
-  );
-  border-radius: 5px;
+  background: #10b981;
+  border-radius: 6px 0 0 6px;
+  transition: width 0.3s ease;
 }
 .quota-track i {
-  position: absolute;
-  left: 100%;
+  position: relative;
+  left: 0;
   height: 100%;
   background: repeating-linear-gradient(
     135deg,
-    #b9674d,
-    #b9674d 4px,
-    #c87a60 4px,
-    #c87a60 7px
+    #ef4444,
+    #ef4444 6px,
+    #dc2626 6px,
+    #dc2626 12px
   );
-  border-left: 3px solid white;
-  border-radius: 0 5px 5px 0;
+  border-left: 2px solid white;
+  border-radius: 0 6px 6px 0;
+  transition: width 0.3s ease;
 }
 .quota-legend {
   display: flex;
@@ -1383,13 +1380,20 @@ button {
   gap: 12px;
   margin: 12px 0 24px;
 }
+.quota-legend span {
+  display: inline-flex;
+  align-items: center;
+}
 .quota-legend i {
   display: inline-block;
-  width: 9px;
-  height: 9px;
-  background: #438565;
+  width: 10px;
+  height: 10px;
+  background: #10b981;
   border-radius: 2px;
   margin-right: 6px;
+}
+.quota-legend span.text-red i {
+  background: #ef4444;
 }
 .quota-message {
   display: flex;

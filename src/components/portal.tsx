@@ -1345,26 +1345,37 @@ export default function Portal({
                             <span>{t("decimals_in_sale_deeds_61290")}</span>
                           </div>
                         </div>
-                        <div className="quota-track">
-                          <span
-                            style={{
-                              width: `${Math.min(100, (bundle.analysis.sold / bundle.analysis.recorded) * 100)}%`,
-                            }}
-                          />
-                          {bundle.analysis.excess > 0 && (
-                            <i
-                              style={{
-                                width: `${Math.min(40, (bundle.analysis.excess / bundle.analysis.recorded) * 100)}%`,
-                              }}
-                            />
-                          )}
-                        </div>
+                        {(() => {
+                          const recorded = Number(bundle.analysis.recorded || 0);
+                          const sold = Number(bundle.analysis.sold || 0);
+                          const excess = Number(bundle.analysis.excess || 0);
+                          const total = Math.max(recorded, sold);
+                          const recordedPct = total > 0 ? (Math.min(recorded, sold) / total) * 100 : 0;
+                          const excessPct = total > 0 && excess > 0 ? (excess / total) * 100 : 0;
+                          return (
+                            <div className="quota-track">
+                              <span
+                                style={{
+                                  width: `${recordedPct}%`,
+                                }}
+                              />
+                              {excess > 0 && (
+                                <i
+                                  style={{
+                                    width: `${excessPct}%`,
+                                  }}
+                                />
+                              )}
+                            </div>
+                          );
+                        })()}
                         <div className="quota-legend">
                           <span>
                             <i /> {t("recorded_limit_ff206")}{" "}
                             {formatNumber(bundle.analysis.recorded)}
                           </span>
                           <span className={bundle.analysis.excess > 0 ? "text-red" : undefined}>
+                            {bundle.analysis.excess > 0 && <i />}
                             {bundle.analysis.excess > 0
                               ? t("excess_area", {
                                   area: formatNumber(bundle.analysis.excess),
