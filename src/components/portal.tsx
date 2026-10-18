@@ -13,6 +13,7 @@ import {
   useCallback,
   useEffect,
   useState,
+  type ChangeEvent,
   type FormEvent,
   type ReactNode,
 } from "react";
@@ -46,6 +47,7 @@ import {
   Menu,
   Pencil,
   Plus,
+  QrCode,
   RotateCcw,
   Search,
   ShieldCheck,
@@ -78,6 +80,20 @@ type View =
   | "login"
   | "register";
 type Bundle = { land: Land; documents: LandDocument[]; analysis: Analysis };
+function landIdFromQr(value: string, origin: string) {
+  const decoded = value.trim();
+  if (/^LND-[A-Z0-9-]{1,64}$/.test(decoded)) return decoded;
+  try {
+    const url = new URL(decoded);
+    if (url.origin !== origin) return null;
+    const match = /^\/verify\/(LND-[A-Z0-9-]{1,64})\/?$/.exec(
+      decodeURIComponent(url.pathname),
+    );
+    return match?.[1] || null;
+  } catch {
+    return null;
+  }
+}
 async function api(path: string, body?: unknown) {
   const response = await fetch("/api/service/" + path, {
     method: body ? "POST" : "GET",
@@ -153,6 +169,8 @@ export default function Portal({
   const [previewDoc, setPreviewDoc] = useState<LandDocument | null>(null);
   const [deletingDoc, setDeletingDoc] = useState<LandDocument | null>(null);
   const [showAllDocuments, setShowAllDocuments] = useState(false);
+  const [qrBusy, setQrBusy] = useState(false);
+  const [qrError, setQrError] = useState("");
   const [cases, setCases] = useState<any[]>([]);
   const [origin, setOrigin] = useState("");
   const router = useRouter();
@@ -170,7 +188,7 @@ export default function Portal({
       if (view === "record" || view === "land")
         setBundle(await api("land/" + id));
       else if (view === "mutations") setCases(await api("mutations"));
-      else if (!["login", "register"].includes(view)) {
+      else if (view === "admin") {
         const [active, trash] = await Promise.all([
           api("lands"),
           session.officer ? api("trash") : Promise.resolve([]),
@@ -209,6 +227,42 @@ export default function Portal({
       .trim()
       .toUpperCase();
     if (q) router.push("/verify/" + encodeURIComponent(q));
+  };
+  const uploadQr = async (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file || qrBusy) return;
+    setQrError("");
+    if (
+      file.size > 5 * 1024 * 1024 ||
+      !(/image\/(png|jpeg|webp)/.test(file.type) || /\.(png|jpe?g|webp)$/i.test(file.name))
+    ) {
+      setQrError(t("qr_image_invalid"));
+      input.value = "";
+      return;
+    }
+    setQrBusy(true);
+    let scanner: import("html5-qrcode").Html5Qrcode | undefined;
+    try {
+      const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
+      scanner = new Html5Qrcode("citizen-qr-reader", {
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        verbose: false,
+      });
+      const decoded = await scanner.scanFile(file, false);
+      const landId = landIdFromQr(decoded, window.location.origin);
+      if (!landId) {
+        setQrError(t("qr_record_invalid"));
+        return;
+      }
+      router.push("/verify/" + encodeURIComponent(landId));
+    } catch {
+      setQrError(t("qr_scan_failed"));
+    } finally {
+      scanner?.clear();
+      input.value = "";
+      setQrBusy(false);
+    }
   };
   const orderedDocuments = [...(bundle?.documents || [])].sort((a, b) => {
     if (view === "land") {
@@ -649,16 +703,29 @@ export default function Portal({
                   <ArrowRight size={17} />
                 </button>
               </form>
+              <div className="citizen-qr-upload">
+                <span>{t("or_upload_qr")}</span>
+                <input
+                  id="citizen-qr-upload"
+                  data-testid="citizen-qr-upload"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                  onChange={uploadQr}
+                  disabled={qrBusy}
+                />
+                <label htmlFor="citizen-qr-upload" className="button outline">
+                  {qrBusy ? <Loader2 size={17} className="spin" /> : <QrCode size={17} />}
+                  {qrBusy ? t("reading_qr") : t("upload_qr_image")}
+                </label>
+                <small>{t("qr_upload_hint")}</small>
+              </div>
+              <div id="citizen-qr-reader" className="qr-reader-offscreen" aria-hidden="true" />
+              {qrError && <p className="citizen-qr-error" role="alert">{qrError}</p>}
               <p>
                 <LockKeyhole size={14} />{" "}
                 {t("only_reviewed_and_published_records_are_displayed_510f3")}
               </p>
             </div>
-            <div className="section-heading">
-              <h2>{t("published_sample_records_e251b")}</h2>
-              <Badge>{t("clearly_labeled_fictional_data_89f82")}</Badge>
-            </div>
-            {loading ? <Busy /> : <LandList lands={lands} admin={false} />}
           </>
         )}
         {(view === "login" || view === "register") && (
@@ -719,7 +786,6 @@ export default function Portal({
               <LandList
                 lands={lands}
                 trashLands={trashLands}
-                admin
                 onEdit={(l) => setEditingLand(l)}
                 onDelete={(l) => setDeletingLand(l)}
                 onRestore={(l) =>
@@ -2117,7 +2183,6 @@ function Stat({
 function LandList({
   lands,
   trashLands = [],
-  admin,
   onEdit,
   onDelete,
   onRestore,
@@ -2126,7 +2191,6 @@ function LandList({
 }: {
   lands: Land[];
   trashLands?: Land[];
-  admin: boolean;
   onEdit?: (land: Land) => void;
   onDelete?: (land: Land) => void;
   onRestore?: (land: Land) => void;
@@ -2146,53 +2210,6 @@ function LandList({
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-
-  if (!admin) {
-    return lands.length ? (
-      <div className="land-grid">
-        {lands.map((l) => (
-          <Link
-            className="land-card"
-            key={l.id}
-            href={"/verify/" + l.unique_land_id}
-          >
-            <div className="flex-between">
-              <span className="service-icon green">
-                <MapPinned size={23} />
-              </span>
-              <Badge tone={l.is_finalized ? "green" : "amber"}>
-                {l.is_finalized ? t("published_6c91d") : t("draft_e3f9e")}
-              </Badge>
-            </div>
-            <h3>{l.unique_land_id}</h3>
-            <p>
-              {l.mouza} · {l.upazila}
-            </p>
-            <div className="land-card-meta">
-              <span>
-                {t("dag_ba3ed")}
-                <strong>{l.dag_number}</strong>
-              </span>
-              <span>
-                <strong>
-                  {formatLandArea(
-                    l.total_area_decimals,
-                    (l as any).total_area_unit,
-                    locale,
-                  )}
-                </strong>
-              </span>
-            </div>
-            <div className="land-card-link">
-              {t("view_record_and_analysis_0a7de")} <ArrowRight size={16} />
-            </div>
-          </Link>
-        ))}
-      </div>
-    ) : (
-      <Empty text={t("no_published_records_found_8118b")} />
-    );
-  }
 
   const currentList = filter === "TRASH" ? trashLands : lands;
   const filtered = currentList.filter((l) => {

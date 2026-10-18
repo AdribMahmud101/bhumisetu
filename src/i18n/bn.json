@@ -476,6 +476,13 @@
   "show_more_documents": "আরও দেখুন ({count}টি বাকি)",
   "show_fewer_documents": "কম দেখুন",
   "show_more_lands": "আরও জমির রেকর্ড দেখুন ({count}টি বাকি)",
-  "show_fewer_lands": "কম জমির রেকর্ড দেখুন"
+  "show_fewer_lands": "কম জমির রেকর্ড দেখুন",
+  "or_upload_qr": "অথবা আপনার রেকর্ডের QR কোড ব্যবহার করুন",
+  "upload_qr_image": "QR ছবিটি আপলোড করুন",
+  "reading_qr": "QR কোড পড়া হচ্ছে…",
+  "qr_upload_hint": "PNG, JPG বা WebP, সর্বোচ্চ ৫ MB। ছবি এই ব্রাউজারেই থাকে।",
+  "qr_image_invalid": "৫ MB-এর কম আকারের PNG, JPG বা WebP ছবি বেছে নিন।",
+  "qr_record_invalid": "এই QR কোডটি ভূমিসেতুর জমির রেকর্ডে নিয়ে যায় না।",
+  "qr_scan_failed": "ছবিতে পড়ার উপযোগী QR কোড পাওয়া যায়নি। আরও পরিষ্কার ছবি ব্যবহার করুন।"
 }
 

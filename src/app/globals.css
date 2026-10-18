@@ -816,6 +816,50 @@ button {
   color: #859080;
   margin-top: 13px;
 }
+.citizen-qr-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+.citizen-qr-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+.citizen-qr-upload input:focus-visible + label {
+  outline: 3px solid #8ac6a1;
+  outline-offset: 4px;
+}
+.citizen-qr-upload input:disabled + label {
+  opacity: .6;
+  pointer-events: none;
+}
+.citizen-qr-upload label {
+  cursor: pointer;
+}
+.citizen-qr-upload small {
+  flex-basis: 100%;
+}
+.qr-reader-offscreen {
+  position: absolute;
+  left: -10000px;
+  width: 320px;
+  height: 320px;
+  overflow: hidden;
+}
+.search-panel > .citizen-qr-error {
+  color: #b42318;
+  font-size: 12px;
+}
 .land-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

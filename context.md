@@ -32,7 +32,7 @@ Then show one officer correction against a real stored source, the persisted old
 
 ## Current state
 
-- Live prototype: https://bhumisetu.adribmahmud.workers.dev
+- Live prototype: https://bhumisetu.adribmahmud.workers.dev (Worker version `7e735cfd-cc1d-4e5b-891b-25c708673b74` for citizen search/QR entry)
 - Public repository: https://github.com/AdribMahmud101/bhumisetu
 - Recent feature commits: `1ac722d` (OCR/category fields), `d7917b9` (land management/trash), and `4e8666d` (extraction speed/document management). They and the intake-form change `2ccd21c` are included in the Worker deployment below.
 - Stack: Next.js 15.5.28 App Router, React 18, TypeScript, Tailwind, Bun; Cloudflare Workers through OpenNext; Supabase Auth, Postgres and private Storage; DeepInfra vision through the OpenAI SDK; PDF.js for PDF text/rendering; `fflate` and `fast-xml-parser` for DOCX; Zod validation; Playwright Firefox and Bun tests.
@@ -44,6 +44,7 @@ Then show one officer correction against a real stored source, the persisted old
 
 ### Citizens
 
+- The `/verify` citizen entry page is search-led: it no longer displays a grid of land records or fetches the land list. Citizens can enter a land ID or upload a PNG/JPG/WebP image of the QR code printed on a BhumiSetu record. The QR image is read locally in the browser; only a same-origin BhumiSetu `/verify/LND-…` URL or a bare land ID is accepted. The list API now requires an officer session, while an individual published record remains reachable by its ID or QR link. Live Firefox validation confirmed no card grid, anonymous list access denied (401), image upload from the record's own QR reaching `LND-MOCK-001`, a 60/100 indicator, and manual ID search. The canonical synthetic `LND-MOCK-001` and `LND-CLEAN-002` fixtures had been moved to Trash and unpublished; both were restored and republished after confirming all their documents were verified. Their live scores are 60 and 0 respectively.
 - Search and open published fictional land records.
 - Read the deterministic evidence report, source-linked history, document comparisons, quota/area conflict, coverage gaps and next steps.
 - Open a QR-linked public record and print a bilingual evidence dossier.

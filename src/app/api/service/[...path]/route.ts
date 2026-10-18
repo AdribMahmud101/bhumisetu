@@ -98,13 +98,12 @@ export async function GET(
       return json(intake);
     }
     if (action === "lands") {
-      let q = db()
+      await requireOfficer();
+      const { data, error } = await db()
         .from("master_lands")
         .select("*")
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
-      if (!admin) q = q.eq("is_finalized", true);
-      const { data, error } = await q;
       check(error);
       return json(data);
     }
