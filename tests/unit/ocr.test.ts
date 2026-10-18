@@ -69,5 +69,25 @@ test("officer corrections reject impossible dates and invalid areas with readabl
     parseReviewedFields({ ...emptyFields, document_date: "2020-02-29" })
       .document_date,
   ).toBe("2020-02-29");
+  expect(
+    parseReviewedFields({ ...emptyFields, document_date: "১৯/৫/২০২২" })
+      .document_date,
+  ).toBe("2022-05-19");
+  expect(
+    parseReviewedFields({ ...emptyFields, execution_date: "19/5/2022" })
+      .execution_date,
+  ).toBe("2022-05-19");
+  expect(
+    parseReviewedFields({ ...emptyFields, document_date: "2022" })
+      .document_date,
+  ).toBe("2022-01-01");
+  expect(
+    parseReviewedFields({ ...emptyFields, document_date: "২০২২" })
+      .document_date,
+  ).toBe("2022-01-01");
+  expect(
+    parseReviewedFields({ ...emptyFields, document_date: "১২ ফেব্রুয়ারি ২০২০" })
+      .document_date,
+  ).toBe("2020-02-12");
   expect(parseReviewedFields(emptyFields).area_decimals).toBeNull();
 });

@@ -37,6 +37,7 @@ export function parseExtractionResult(
         new Date(date.data).toISOString().slice(0, 10) !== date.data)
     )
       parsed[key] = null;
+    else parsed[key] = date.data;
   }
   if (category !== "DEED") parsed.execution_date = null;
   if (category !== "MUTATION") parsed.based_on_deed = null;

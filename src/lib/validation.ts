@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { dateFromDisplay } from "./date-input";
+
 const nullableText = z.string().trim().max(500).nullable();
 const date = z
   .string()
@@ -61,6 +63,26 @@ export const preprocessingSchema = z.object({
 });
 
 export function parseReviewedFields(value: unknown) {
+  if (value && typeof value === "object") {
+    const raw = { ...value } as Record<string, any>;
+    for (const key of ["document_date", "execution_date"] as const) {
+      if (typeof raw[key] === "string") {
+        const trimmed = raw[key].trim();
+        if (!trimmed) {
+          raw[key] = null;
+        } else {
+          const parsed = dateFromDisplay(trimmed);
+          raw[key] = parsed ?? "INVALID_DATE";
+        }
+      }
+    }
+    const result = fieldsSchema.safeParse(raw);
+    if (!result.success)
+      throw new Error(
+        "Check document dates (YYYY-MM-DD) and positive area; leave unknown values blank",
+      );
+    return result.data;
+  }
   const result = fieldsSchema.safeParse(value);
   if (!result.success)
     throw new Error(

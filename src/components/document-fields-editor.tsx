@@ -2,7 +2,7 @@
 import { useI18n } from "@/i18n/provider";
 import { Category, categoryFields, Fields, fieldLabels } from "@/lib/domain";
 import { dateFromDisplay, dateToDisplay } from "@/lib/date-input";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function ReviewDateInput({
   value,
@@ -18,21 +18,49 @@ function ReviewDateInput({
   placeholder: string;
 }) {
   const [display, setDisplay] = useState(() => dateToDisplay(value));
-  useEffect(() => setDisplay(dateToDisplay(value)), [value]);
+  const lastSentRef = useRef<string | null>(value);
+
+  useEffect(() => {
+    if (value !== lastSentRef.current) {
+      setDisplay(dateToDisplay(value));
+      lastSentRef.current = value;
+    }
+  }, [value]);
+
   return (
     <input
       name={name}
       data-testid={name}
       disabled={disabled}
       type="text"
-      inputMode="numeric"
-      maxLength={10}
       placeholder={placeholder}
       value={display}
       onChange={(event) => {
         const next = event.target.value;
         setDisplay(next);
-        onChange(next === "" ? null : dateFromDisplay(next) || next);
+        if (!next.trim()) {
+          lastSentRef.current = null;
+          onChange(null);
+        } else {
+          const parsed = dateFromDisplay(next);
+          const toSend = parsed || next;
+          lastSentRef.current = toSend;
+          onChange(toSend);
+        }
+      }}
+      onBlur={() => {
+        if (!display.trim()) {
+          setDisplay("");
+          lastSentRef.current = null;
+          onChange(null);
+        } else {
+          const parsed = dateFromDisplay(display);
+          if (parsed) {
+            setDisplay(dateToDisplay(parsed));
+            lastSentRef.current = parsed;
+            onChange(parsed);
+          }
+        }
       }}
     />
   );
