@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useI18n } from "@/i18n/provider";
 import {
   AlertTriangle,
@@ -14,31 +15,109 @@ import {
   XCircle,
   RefreshCw,
   Search,
+  Eye,
+  Edit3,
+  ArrowRight,
+  ArrowLeft,
+  FileSpreadsheet,
 } from "lucide-react";
-import { DeedVerificationResult } from "@/lib/deed-comparison-engine";
+import { DeedVerificationResult, ExtractedDeedFields } from "@/lib/deed-comparison-engine";
 import { prepareDocument } from "@/lib/pdf-client";
+import { DOCUMENT_ACCEPT } from "@/lib/document-types";
+import { toAsciiDigits, toBengaliDigits } from "@/lib/numbers";
 
 interface P2DeedVerifierProps {
   initialLandId?: string;
   onVerified?: (result: DeedVerificationResult) => void;
 }
 
+type VerifierStage = "input" | "extracting" | "review" | "verifying" | "result";
+
 export function P2DeedVerifier({
   initialLandId,
   onVerified,
 }: P2DeedVerifierProps) {
   const { t, formatNumber, locale } = useI18n();
+  const [stage, setStage] = useState<VerifierStage>("input");
   const [tab, setTab] = useState<"upload" | "qr">("upload");
   const [landId, setLandId] = useState(initialLandId || "");
   const [qrText, setQrText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [previewPages, setPreviewPages] = useState<string[]>([]);
+  const [extractedFields, setExtractedFields] = useState<{
+    deedNumber: string;
+    deedDate: string;
+    sellerName: string;
+    buyerName: string;
+    dagNumber: string;
+    landAreaDecimals: string;
+    khatianNumber: string;
+    mouza: string;
+  }>({
+    deedNumber: "",
+    deedDate: "",
+    sellerName: "",
+    buyerName: "",
+    dagNumber: "",
+    landAreaDecimals: "",
+    khatianNumber: "",
+    mouza: "",
+  });
+  const [areaUnit, setAreaUnit] = useState<string>("decimal");
   const [loadingStep, setLoadingStep] = useState<1 | 2 | 3>(1);
   const [result, setResult] = useState<DeedVerificationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [scanning, setScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleQrVerify = useCallback(
+    async (textToVerify?: string) => {
+      const payload = textToVerify || qrText;
+      if (!payload.trim()) {
+        setError(locale === "bn" ? "কিউআর কোডের টেক্সট বা লিংক লিখুন" : "Enter QR code text or URL");
+        return;
+      }
+      setError(null);
+      setStage("verifying");
+      setLoadingStep(1);
+
+      try {
+        const stepTimer1 = setTimeout(() => setLoadingStep(2), 600);
+        const stepTimer2 = setTimeout(() => setLoadingStep(3), 1200);
+
+        const res = await fetch("/api/service/verify-deed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            qrPayload: payload.trim(),
+            landId: landId.trim() || undefined,
+          }),
+        });
+
+        clearTimeout(stepTimer1);
+        clearTimeout(stepTimer2);
+
+        if (!res.ok) {
+          throw new Error("Verification request failed");
+        }
+
+        const data: DeedVerificationResult = await res.json();
+        setResult(data);
+        setStage("result");
+        if (onVerified) onVerified(data);
+      } catch (e) {
+        console.error(e);
+        setError(
+          locale === "bn"
+            ? "যাচাই প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।"
+            : "Could not complete deed verification. Please try again.",
+        );
+        setStage("input");
+      }
+    },
+    [qrText, locale, landId, onVerified],
+  );
 
   // Stop scanner when tab changes or unmounts
   useEffect(() => {
@@ -88,27 +167,143 @@ export function P2DeedVerifier({
         activeScanner.stop().catch(() => {});
       }
     };
-  }, [tab, scanning]);
+  }, [tab, scanning, handleQrVerify]);
 
-  const handleQrVerify = async (textToVerify?: string) => {
-    const payload = textToVerify || qrText;
-    if (!payload.trim()) {
-      setError(locale === "bn" ? "কিউআর কোডের টেক্সট বা লিংক লিখুন" : "Enter QR code text or URL");
+  const handleExtractFromDocument = async (fileToUpload?: File) => {
+    const targetFile = fileToUpload || selectedFile;
+    if (!targetFile) {
+      setError(locale === "bn" ? "অনুগ্রহ করে একটি দলিল ফাইল (PDF বা ছবি) নির্বাচন করুন" : "Please select a deed file (PDF or Image)");
       return;
     }
     setError(null);
-    setLoading(true);
+    setStage("extracting");
     setLoadingStep(1);
 
     try {
-      const stepTimer1 = setTimeout(() => setLoadingStep(2), 600);
-      const stepTimer2 = setTimeout(() => setLoadingStep(3), 1200);
+      // Enhanced OCR preprocessing: scaling, deskewing, contrast normalization
+      const prepared = await prepareDocument(targetFile, { enhance: true });
+      setPreviewPages(prepared.pages || []);
+
+      setLoadingStep(2);
+      const form = new FormData();
+      form.append("file", targetFile);
+      form.append("pages", JSON.stringify(prepared.pages));
+      form.append("text", prepared.text);
+      form.append("extractOnly", "true");
+      if (landId.trim()) {
+        form.append("landId", landId.trim());
+      }
+
+      const res = await fetch("/api/service/verify-deed", {
+        method: "POST",
+        body: form,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to extract deed data");
+      }
+
+      const data = await res.json();
+      const extracted: ExtractedDeedFields = data.extracted || {};
+
+      setExtractedFields({
+        deedNumber: extracted.deedNumber || "",
+        deedDate: extracted.deedDate || "",
+        sellerName: extracted.sellerName || "",
+        buyerName: extracted.buyerName || "",
+        dagNumber: extracted.dagNumber || "",
+        landAreaDecimals:
+          extracted.landAreaDecimals != null
+            ? locale === "bn"
+              ? toBengaliDigits(extracted.landAreaDecimals)
+              : String(extracted.landAreaDecimals)
+            : "",
+        khatianNumber: extracted.khatianNumber || "",
+        mouza: extracted.mouza || "",
+      });
+
+      setStage("review");
+    } catch (e: any) {
+      console.error(e);
+      setError(
+        locale === "bn"
+          ? "দলিল থেকে স্বয়ংক্রিয় তথ্য সংগ্রহ করা যায়নি। আপনি নিচের ফর্মে সরাসরি তথ্য লিখে যাচাই করতে পারেন।"
+          : "Automatic extraction could not complete. You can manually enter the deed details below.",
+      );
+      // Fallback directly to review screen with manual editing
+      setStage("review");
+    }
+  };
+
+  const handleManualEntry = () => {
+    setError(null);
+    setExtractedFields({
+      deedNumber: "",
+      deedDate: "",
+      sellerName: "",
+      buyerName: "",
+      dagNumber: "",
+      landAreaDecimals: "",
+      khatianNumber: "",
+      mouza: "",
+    });
+    setPreviewPages([]);
+    setStage("review");
+  };
+
+  const handleFinalVerify = async () => {
+    const rawDeedNo = extractedFields.deedNumber.trim();
+    const rawDag = extractedFields.dagNumber.trim();
+
+    if (!rawDeedNo && !rawDag && !landId.trim()) {
+      setError(
+        locale === "bn"
+          ? "যাচাইয়ের জন্য অন্তত দলিল নম্বর অথবা দাগ নম্বর প্রয়োজন।"
+          : "Please enter at least Deed Number or Dag Number for verification.",
+      );
+      return;
+    }
+
+    setError(null);
+    setStage("verifying");
+    setLoadingStep(1);
+
+    try {
+      const stepTimer1 = setTimeout(() => setLoadingStep(2), 500);
+      const stepTimer2 = setTimeout(() => setLoadingStep(3), 1100);
+
+      // Convert unit if necessary
+      let areaDecimals: number | null = null;
+      if (extractedFields.landAreaDecimals.trim()) {
+        const ascii = toAsciiDigits(extractedFields.landAreaDecimals).replace(/[^0-9.]/g, "");
+        const baseNum = Number(ascii);
+        if (!Number.isNaN(baseNum) && baseNum > 0) {
+          if (areaUnit === "acre") areaDecimals = baseNum * 100;
+          else if (areaUnit === "bigha") areaDecimals = baseNum * 33;
+          else if (areaUnit === "katha") areaDecimals = baseNum * 1.65;
+          else if (areaUnit === "chhatak") areaDecimals = baseNum * 0.103125;
+          else areaDecimals = baseNum;
+        }
+      }
+
+      const payloadFields: ExtractedDeedFields = {
+        deedNumber: rawDeedNo ? toAsciiDigits(rawDeedNo) : null,
+        deedDate: extractedFields.deedDate.trim() ? toAsciiDigits(extractedFields.deedDate.trim()) : null,
+        sellerName: extractedFields.sellerName.trim() || null,
+        buyerName: extractedFields.buyerName.trim() || null,
+        dagNumber: rawDag ? toAsciiDigits(rawDag) : null,
+        landAreaDecimals: areaDecimals,
+        khatianNumber: extractedFields.khatianNumber.trim() ? toAsciiDigits(extractedFields.khatianNumber.trim()) : null,
+        mouza: extractedFields.mouza.trim() || null,
+        qrPayload: qrText.trim() || undefined,
+      };
 
       const res = await fetch("/api/service/verify-deed", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          qrPayload: payload.trim(),
+          extractedFields: payloadFields,
           landId: landId.trim() || undefined,
         }),
       });
@@ -122,74 +317,44 @@ export function P2DeedVerifier({
 
       const data: DeedVerificationResult = await res.json();
       setResult(data);
+      setStage("result");
       if (onVerified) onVerified(data);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       setError(
         locale === "bn"
           ? "যাচাই প্রক্রিয়া সম্পন্ন করা সম্ভব হয়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।"
           : "Could not complete deed verification. Please try again.",
       );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePdfVerify = async (fileToUpload?: File) => {
-    const targetFile = fileToUpload || selectedFile;
-    if (!targetFile) {
-      setError(locale === "bn" ? "অনুগ্রহ করে একটি দলিল PDF নির্বাচন করুন" : "Please select a deed PDF file");
-      return;
-    }
-    setError(null);
-    setLoading(true);
-    setLoadingStep(1);
-
-    try {
-      const prepared = await prepareDocument(targetFile);
-
-      setLoadingStep(2);
-      const form = new FormData();
-      form.append("file", targetFile);
-      form.append("pages", JSON.stringify(prepared.pages));
-      form.append("text", prepared.text);
-      if (landId.trim()) {
-        form.append("landId", landId.trim());
-      }
-
-      setLoadingStep(3);
-      const res = await fetch("/api/service/verify-deed", {
-        method: "POST",
-        body: form,
-      });
-
-      if (!res.ok) {
-        throw new Error("Verification request failed");
-      }
-
-      const data: DeedVerificationResult = await res.json();
-      setResult(data);
-      if (onVerified) onVerified(data);
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || "Failed to process PDF file");
-    } finally {
-      setLoading(false);
+      setStage("review");
     }
   };
 
   const handleReset = () => {
     setResult(null);
     setSelectedFile(null);
+    setPreviewPages([]);
+    setExtractedFields({
+      deedNumber: "",
+      deedDate: "",
+      sellerName: "",
+      buyerName: "",
+      dagNumber: "",
+      landAreaDecimals: "",
+      khatianNumber: "",
+      mouza: "",
+    });
+    setAreaUnit("decimal");
     setQrText("");
     setError(null);
-    setLoading(false);
+    setStage("input");
     setScanning(false);
   };
 
   return (
     <div className="p2-verifier-container" data-testid="p2-deed-verifier">
-      {!result && !loading && (
+      {/* Step 1: Upload or QR Input Panel */}
+      {stage === "input" && (
         <section className="panel" style={{ maxWidth: 680, margin: "30px auto" }}>
           <div className="section-heading" style={{ marginBottom: 18 }}>
             <div>
@@ -248,7 +413,7 @@ export function P2DeedVerifier({
             </div>
           )}
 
-          {/* Tab 1: PDF Upload */}
+          {/* Tab 1: Enhanced Document Upload */}
           {tab === "upload" && (
             <div>
               <div
@@ -270,21 +435,21 @@ export function P2DeedVerifier({
                   }
                 }}
               >
-                <Upload size={32} color="#64748b" style={{ margin: "0 auto 10px", display: "block" }} />
+                <Upload size={32} color="#059669" style={{ margin: "0 auto 10px", display: "block" }} />
                 <strong style={{ display: "block", fontSize: 15, color: "#1e293b", marginBottom: 4 }}>
                   {selectedFile ? selectedFile.name : t("drag_drop_deed_pdf")}
                 </strong>
                 <span style={{ fontSize: 12.5, color: "#64748b" }}>
                   {selectedFile
                     ? `${(selectedFile.size / 1024).toFixed(1)} KB`
-                    : "PDF, max 5 MB, up to 3 pages"}
+                    : "PDF, ছবি (PNG, JPG), DOCX · সর্বোচ্চ ৫ MB, ৩ পৃষ্ঠা"}
                 </span>
 
                 <input
                   type="file"
                   ref={fileInputRef}
                   style={{ display: "none" }}
-                  accept="application/pdf"
+                  accept={DOCUMENT_ACCEPT}
                   onChange={(e) => {
                     if (e.target.files?.[0]) {
                       setSelectedFile(e.target.files[0]);
@@ -293,16 +458,26 @@ export function P2DeedVerifier({
                 />
               </div>
 
-              <div style={{ marginTop: 18, display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <div style={{ marginTop: 20, display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center" }}>
+                <button
+                  type="button"
+                  className="button outline"
+                  onClick={handleManualEntry}
+                  style={{ fontSize: 13 }}
+                >
+                  <Edit3 size={14} style={{ marginRight: 6 }} />
+                  <span>{t("manual_entry_btn")}</span>
+                </button>
+
                 <button
                   type="button"
                   className="button primary"
                   disabled={!selectedFile}
-                  onClick={() => handlePdfVerify()}
+                  onClick={() => handleExtractFromDocument()}
                   data-testid="p2-verify-pdf-btn"
                 >
-                  <FileCheck2 size={16} />
-                  <span>{t("verify_deed_action")}</span>
+                  <FileSpreadsheet size={16} />
+                  <span>{t("process_and_review_btn")}</span>
                 </button>
               </div>
             </div>
@@ -374,8 +549,367 @@ export function P2DeedVerifier({
         </section>
       )}
 
-      {/* Step 2: Animated Extraction & Verification Loading Card */}
-      {loading && (
+      {/* Step 2: Animated OCR Extraction Screen */}
+      {stage === "extracting" && (
+        <section className="panel" style={{ maxWidth: 640, margin: "40px auto", textAlign: "center", padding: "36px 24px" }}>
+          <RefreshCw
+            size={36}
+            color="#059669"
+            style={{ margin: "0 auto 18px", display: "block", animation: "spin 1.5s linear infinite" }}
+          />
+          <h3 style={{ fontSize: 18, margin: "0 0 10px" }}>
+            {locale === "bn" ? "দলিল বিশ্লেষণ ও তথ্য সংগ্রহ করা হচ্ছে..." : "Processing Deed & Extracting Fields with Enhanced OCR..."}
+          </h3>
+          <p style={{ color: "#64748b", fontSize: 13.5, margin: 0 }}>
+            {locale === "bn"
+              ? "ছবি/পিডিএফ রেজোলিউশন ও কন্ট্রাস্ট বৃদ্ধি করে স্বয়ংক্রিয়ভাবে দলিলের মূল তথ্য পড়া হচ্ছে।"
+              : "Enhancing document contrast, deskewing, and reading core deed metadata."}
+          </p>
+        </section>
+      )}
+
+      {/* Step 3: Intermediate Editable Fields Review Screen */}
+      {stage === "review" && (
+        <section className="panel" style={{ maxWidth: 740, margin: "30px auto" }} data-testid="p2-fields-review-panel">
+          <div className="section-heading" style={{ marginBottom: 16 }}>
+            <div>
+              <span className="kicker" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Edit3 size={14} color="#059669" /> {t("review_extracted_heading")}
+              </span>
+              <h2 style={{ fontSize: 20, margin: "6px 0 4px" }}>{t("review_extracted_heading")}</h2>
+              <p style={{ margin: 0, color: "#64748b", fontSize: 13.5 }}>{t("review_extracted_help")}</p>
+            </div>
+          </div>
+
+          {error && (
+            <div
+              style={{
+                backgroundColor: "#fffbeb",
+                border: "1px solid #fde68a",
+                color: "#92400e",
+                padding: "10px 14px",
+                borderRadius: 8,
+                fontSize: 13,
+                marginBottom: 16,
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* Document Visual Preview (Collapsible) */}
+          {previewPages.length > 0 && (
+            <details className="ocr-preview" open style={{ marginBottom: 20 }}>
+              <summary style={{ cursor: "pointer", color: "#059669", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Eye size={15} />
+                <span>
+                  {t("ocr_preview")} ({formatNumber(previewPages.length)} {locale === "bn" ? "টি পৃষ্ঠা" : "page(s)"})
+                </span>
+              </summary>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: previewPages.length > 1 ? "repeat(auto-fit, minmax(280px, 1fr))" : "1fr",
+                  gap: 12,
+                  marginTop: 10,
+                  maxHeight: 360,
+                  overflowY: "auto",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 8,
+                  padding: 10,
+                  backgroundColor: "#f8fafc",
+                }}
+              >
+                {previewPages.map((url, idx) => (
+                  <Image
+                    key={idx}
+                    src={url}
+                    alt={`Deed Page ${idx + 1}`}
+                    width={640}
+                    height={850}
+                    unoptimized
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      objectFit: "contain",
+                      borderRadius: 6,
+                      border: "1px solid #cbd5e1",
+                    }}
+                  />
+                ))}
+              </div>
+            </details>
+          )}
+
+          {/* Form Grid for Manual Review / Editing */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleFinalVerify();
+            }}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: 14,
+                marginBottom: 20,
+              }}
+            >
+              {/* 1. Deed Number */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("deed_number_label")} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={extractedFields.deedNumber}
+                  onChange={(e) =>
+                    setExtractedFields({ ...extractedFields, deedNumber: e.target.value })
+                  }
+                  placeholder="যেমন: ৫০২/২০২১"
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-deed-number"
+                />
+              </div>
+
+              {/* 2. Deed Date */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("deed_date_label")}
+                </label>
+                <input
+                  type="text"
+                  value={extractedFields.deedDate}
+                  onChange={(e) =>
+                    setExtractedFields({ ...extractedFields, deedDate: e.target.value })
+                  }
+                  placeholder="YYYY-MM-DD বা DD/MM/YYYY"
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-deed-date"
+                />
+              </div>
+
+              {/* 3. Seller Name */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("seller_name_label")}
+                </label>
+                <input
+                  type="text"
+                  value={extractedFields.sellerName}
+                  onChange={(e) =>
+                    setExtractedFields({ ...extractedFields, sellerName: e.target.value })
+                  }
+                  placeholder="বিক্রেতার নাম লিখুন"
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-seller"
+                />
+              </div>
+
+              {/* 4. Buyer Name */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("buyer_name_label")}
+                </label>
+                <input
+                  type="text"
+                  value={extractedFields.buyerName}
+                  onChange={(e) =>
+                    setExtractedFields({ ...extractedFields, buyerName: e.target.value })
+                  }
+                  placeholder="ক্রেতার নাম লিখুন"
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-buyer"
+                />
+              </div>
+
+              {/* 5. Dag Number */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("dag_number_label")}
+                </label>
+                <input
+                  type="text"
+                  value={extractedFields.dagNumber}
+                  onChange={(e) =>
+                    setExtractedFields({ ...extractedFields, dagNumber: e.target.value })
+                  }
+                  placeholder="যেমন: ২০৭"
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-dag"
+                />
+              </div>
+
+              {/* 6. Land Area & Unit */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("land_area_label")}
+                </label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={extractedFields.landAreaDecimals}
+                    onChange={(e) =>
+                      setExtractedFields({ ...extractedFields, landAreaDecimals: e.target.value })
+                    }
+                    placeholder="যেমন: ১২.০০"
+                    style={{
+                      flex: 1,
+                      padding: "9px 12px",
+                      borderRadius: 6,
+                      border: "1px solid #cbd5e1",
+                      fontSize: 14,
+                    }}
+                    data-testid="p2-input-area"
+                  />
+                  <select
+                    value={areaUnit}
+                    onChange={(e) => setAreaUnit(e.target.value)}
+                    style={{
+                      width: "auto",
+                      minWidth: 100,
+                      padding: "9px 10px",
+                      borderRadius: 6,
+                      border: "1px solid #cbd5e1",
+                      fontSize: 13,
+                    }}
+                    data-testid="p2-select-unit"
+                  >
+                    <option value="decimal">{t("unit_decimal")}</option>
+                    <option value="acre">{t("unit_acre")}</option>
+                    <option value="bigha">{t("unit_bigha")}</option>
+                    <option value="katha">{t("unit_katha")}</option>
+                    <option value="chhatak">{t("unit_chhatak")}</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 7. Khatian Reference */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("khatian_number_label")}
+                </label>
+                <input
+                  type="text"
+                  value={extractedFields.khatianNumber}
+                  onChange={(e) =>
+                    setExtractedFields({ ...extractedFields, khatianNumber: e.target.value })
+                  }
+                  placeholder="যেমন: RS-১১৮"
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-khatian"
+                />
+              </div>
+
+              {/* 8. Mouza */}
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("mouza_label")}
+                </label>
+                <input
+                  type="text"
+                  value={extractedFields.mouza}
+                  onChange={(e) =>
+                    setExtractedFields({ ...extractedFields, mouza: e.target.value })
+                  }
+                  placeholder="মৌজার নাম লিখুন"
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-mouza"
+                />
+              </div>
+
+              {/* 9. Target Land ID (Optional) */}
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#334155", marginBottom: 5 }}>
+                  {t("target_land_id_label")}
+                </label>
+                <input
+                  type="text"
+                  value={landId}
+                  onChange={(e) => setLandId(e.target.value)}
+                  placeholder={t("target_land_id_placeholder")}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 6,
+                    border: "1px solid #cbd5e1",
+                    fontSize: 14,
+                  }}
+                  data-testid="p2-input-land-id"
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #e2e8f0", paddingTop: 16 }}>
+              <button
+                type="button"
+                className="button outline"
+                onClick={() => setStage("input")}
+              >
+                <ArrowLeft size={15} style={{ marginRight: 6 }} />
+                <span>{t("reupload_document")}</span>
+              </button>
+
+              <button
+                type="submit"
+                className="button primary"
+                data-testid="p2-confirm-verify-btn"
+              >
+                <FileCheck2 size={16} />
+                <span>{t("confirm_and_verify")}</span>
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {/* Step 4: Final Comparison Loading Card */}
+      {stage === "verifying" && (
         <section className="panel" style={{ maxWidth: 640, margin: "40px auto", textAlign: "center", padding: "36px 24px" }}>
           <RefreshCw
             size={36}
@@ -383,7 +917,7 @@ export function P2DeedVerifier({
             style={{ margin: "0 auto 18px", display: "block", animation: "spin 1.5s linear infinite" }}
           />
           <h3 style={{ fontSize: 18, margin: "0 0 16px" }}>
-            {locale === "bn" ? "দলিল বিশ্লেষণ ও মিলিয়ে দেখা হচ্ছে..." : "Analyzing Deed & Cross-Matching..."}
+            {locale === "bn" ? "সংরক্ষিত রেকর্ডের সাথে মিলিয়ে দেখা হচ্ছে..." : "Cross-Checking with Official Land Database..."}
           </h3>
 
           <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "left", display: "grid", gap: 12 }}>
@@ -393,11 +927,11 @@ export function P2DeedVerifier({
                 alignItems: "center",
                 gap: 10,
                 fontSize: 14,
-                color: loadingStep >= 1 ? "#047857" : "#94a3b8",
-                fontWeight: loadingStep === 1 ? 700 : 500,
+                color: "#047857",
+                fontWeight: 600,
               }}
             >
-              {loadingStep > 1 ? <CheckCircle2 size={18} color="#10b981" /> : <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid currentColor" }} />}
+              <CheckCircle2 size={18} color="#10b981" />
               <span>{t("reading_extracting_fields")}</span>
             </div>
 
@@ -432,8 +966,8 @@ export function P2DeedVerifier({
         </section>
       )}
 
-      {/* Step 3: Verification Report (The 4 Visual Zones) */}
-      {result && !loading && (
+      {/* Step 5: Verification Report (The 4 Visual Zones) */}
+      {result && stage === "result" && (
         <div style={{ maxWidth: 840, margin: "30px auto" }}>
           {/* Zone 1: High-Impact Verdict Banner */}
           <div

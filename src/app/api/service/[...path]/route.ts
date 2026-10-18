@@ -428,6 +428,27 @@ export async function POST(
 
       if (contentType.includes("application/json")) {
         const body = await req.json();
+        if (body.extractOnly) {
+          const pages = body.pages || [];
+          const text = body.text || "";
+          validateContent(pages, text);
+          const { fields } = await extractPages(pages, text, "DEED", "SAF_KABALA");
+          const extractedDeed: ExtractedDeedFields = {
+            deedNumber: fields.official_number,
+            deedDate: fields.document_date || fields.execution_date,
+            sellerName: fields.seller_or_prior_owner,
+            buyerName: fields.buyer_or_current_owner,
+            dagNumber: fields.dag_number,
+            landAreaDecimals: fields.area_decimals != null ? Number(fields.area_decimals) : null,
+            khatianNumber: fields.khatian_ref,
+            qrPayload: body.qrPayload,
+          };
+          return json({
+            ok: true,
+            extracted: extractedDeed,
+            fields,
+          });
+        }
         qrPayload = body.qrPayload;
         targetLandId = targetLandId || body.landId || body.masterLandId;
         extracted = body.extractedFields || {};
@@ -436,6 +457,7 @@ export async function POST(
         }
       } else {
         const form = await req.formData();
+        const extractOnly = form.get("extractOnly") === "true";
         qrPayload = form.get("qrPayload") ? String(form.get("qrPayload")) : undefined;
         targetLandId = targetLandId || (form.get("landId") ? String(form.get("landId")) : undefined);
         const file = form.get("file");
@@ -446,7 +468,7 @@ export async function POST(
           const { fields } = await extractPages(pages, text, "DEED", "SAF_KABALA");
           extracted = {
             deedNumber: fields.official_number,
-            deedDate: fields.document_date,
+            deedDate: fields.document_date || fields.execution_date,
             sellerName: fields.seller_or_prior_owner,
             buyerName: fields.buyer_or_current_owner,
             dagNumber: fields.dag_number,
@@ -454,9 +476,23 @@ export async function POST(
             khatianNumber: fields.khatian_ref,
             qrPayload,
           };
+          if (extractOnly) {
+            return json({
+              ok: true,
+              extracted,
+              fields,
+            });
+          }
         } else if (qrPayload) {
           extracted = { qrPayload };
         }
+      }
+
+      if (extracted.landAreaDecimals != null) {
+        const raw = String(extracted.landAreaDecimals);
+        const ascii = toAsciiDigits(raw).replace(/[^0-9.]/g, "");
+        const num = Number(ascii);
+        extracted.landAreaDecimals = !Number.isNaN(num) && ascii !== "" ? num : null;
       }
 
       // If we don't have targetLandId yet, attempt to resolve via QR or deed number

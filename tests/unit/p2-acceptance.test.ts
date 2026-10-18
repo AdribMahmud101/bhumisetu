@@ -161,4 +161,40 @@ describe("P2 Deed & Ownership Verification Acceptance Suite", () => {
     const result = compareDeedWithRecord(qrDeed, storedDocuments, mockLand);
     expect(result.outcome).toBe("matched");
   });
+
+  test("Test Case 4: Manually Corrected Fields (Fixing OCR imperfections before submission)", () => {
+    // Simulated scenario: OCR initially had a slight misspelling or unparsed area,
+    // citizen/officer manually corrected to 'Abdul Karim' and 12 decimals
+    const manuallyCorrectedDeed: ExtractedDeedFields = {
+      deedNumber: "502/2021",
+      deedDate: "2021-03-15",
+      sellerName: "Abdul Karim", // Manually corrected from OCR artifact
+      buyerName: "Rahima Begum",
+      dagNumber: "207",
+      landAreaDecimals: 12, // Confirmed 12 decimals
+      khatianNumber: "RS-118",
+    };
+
+    const result = compareDeedWithRecord(manuallyCorrectedDeed, storedDocuments, mockLand);
+    expect(result.outcome).toBe("matched");
+    expect(result.discrepanciesCount).toBe(0);
+    expect(result.crossChecks.khatianMatch).toBe(true);
+  });
+
+  test("Test Case 5: Verification with Bengali numeral inputs from edit screen", () => {
+    // In Bangladesh, citizens or officers often type Bengali numerals into the form
+    const bnInputDeed: ExtractedDeedFields = {
+      deedNumber: "502/2021",
+      deedDate: "2021-03-15",
+      sellerName: "Abdul Karim",
+      buyerName: "Rahima Begum",
+      dagNumber: "207",
+      landAreaDecimals: 12, // normalized from Bengali '১২'
+      khatianNumber: "RS-118",
+    };
+
+    const result = compareDeedWithRecord(bnInputDeed, storedDocuments, mockLand);
+    expect(result.outcome).toBe("matched");
+    expect(result.discrepanciesCount).toBe(0);
+  });
 });
