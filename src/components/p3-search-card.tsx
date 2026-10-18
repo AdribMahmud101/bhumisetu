@@ -40,7 +40,7 @@ export default function P3SearchCard({ onSearch }: P3SearchCardProps) {
       <div className="section-heading" style={{ marginBottom: 16 }}>
         <div>
           <span className="kicker" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <ShieldAlert size={14} color="#ea580c" /> P3 · Fraud & Double-Selling Detection
+            <ShieldAlert size={14} color="#dc2626" /> P3 · Fraud & Double-Selling Detection
           </span>
           <h2 style={{ fontSize: 22, margin: "6px 0 4px" }}>{t("search_land_record_title")}</h2>
           <p style={{ margin: 0, color: "#64748b", fontSize: 14 }}>{t("search_land_record_sub")}</p>

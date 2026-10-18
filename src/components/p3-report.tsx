@@ -75,7 +75,11 @@ export default function P3ReportView({
             </h2>
           </div>
           <span className={`severity-badge ${severityClass}`}>
-            <ShieldAlert size={15} />
+            {vr.severityLevel === "low" ? (
+              <ShieldCheck size={15} />
+            ) : (
+              <ShieldAlert size={15} />
+            )}
             {vr.severityLevel === "critical"
               ? t("critical_conflict_indicator")
               : vr.severityLevel === "elevated"
@@ -187,12 +191,12 @@ export default function P3ReportView({
                       gap: 12,
                       padding: "12px 16px",
                       borderRadius: 8,
-                      backgroundColor: alert.ruleId === "RULE_DOUBLE_SALE" ? "#fff1f2" : "#fff7ed",
-                      border: `1px solid ${alert.ruleId === "RULE_DOUBLE_SALE" ? "#fecdd3" : "#fed7aa"}`,
+                      backgroundColor: "#fef2f2",
+                      border: "1px solid #fecdd3",
                     }}
                   >
                     <span style={{ fontSize: 18, lineHeight: 1.2 }}>
-                      {alert.ruleId === "RULE_DOUBLE_SALE" ? "🔴" : "🟠"}
+                      🔴
                     </span>
                     <div style={{ flex: 1 }}>
                       <strong style={{ display: "block", fontSize: 14, color: "#1e293b", marginBottom: 2 }}>

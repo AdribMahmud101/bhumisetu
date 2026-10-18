@@ -47,19 +47,13 @@ export default function P5CitizenReport({
       {/* 1. Dynamic Top Banner */}
       <div
         className={`verdict-banner ${
-          vr.severityLevel === "critical"
-            ? "verdict-critical"
-            : vr.severityLevel === "elevated" || vr.severityLevel === "moderate"
-              ? "verdict-elevated"
-              : "verdict-low"
+          vr.severityLevel === "low" ? "verdict-low" : "verdict-critical"
         }`}
       >
-        {vr.severityLevel === "critical" ? (
-          <XCircle size={32} style={{ flexShrink: 0 }} />
-        ) : vr.severityLevel === "elevated" || vr.severityLevel === "moderate" ? (
-          <AlertTriangle size={32} style={{ flexShrink: 0 }} />
-        ) : (
+        {vr.severityLevel === "low" ? (
           <CheckCircle2 size={32} style={{ flexShrink: 0 }} />
+        ) : (
+          <XCircle size={32} style={{ flexShrink: 0 }} />
         )}
         <div>
           <h2>
@@ -148,13 +142,13 @@ export default function P5CitizenReport({
                 style={{
                   padding: 16,
                   borderRadius: 10,
-                  backgroundColor: alert.ruleId === "RULE_DOUBLE_SALE" ? "#fff1f2" : "#fff7ed",
-                  border: `1.5px solid ${alert.ruleId === "RULE_DOUBLE_SALE" ? "#fda4af" : "#fed7aa"}`,
+                  backgroundColor: "#fef2f2",
+                  border: "1.5px solid #fecdd3",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                   <span style={{ fontSize: 18 }}>
-                    {alert.ruleId === "RULE_DOUBLE_SALE" ? "🔴" : "🟠"}
+                    🔴
                   </span>
                   <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1e293b" }}>
                     {alert.shortTitle}
@@ -187,7 +181,7 @@ export default function P5CitizenReport({
                   <th style={{ width: "37.5%" }}>
                     {t("deed_7cc56")} #1 ({firstDeed.official_number || "502/2021"}) - {firstDeed.buyer_or_current_owner}
                   </th>
-                  <th style={{ width: "37.5%", backgroundColor: "#fff7ed", color: "#c2410c" }}>
+                  <th style={{ width: "37.5%", backgroundColor: "#fef2f2", color: "#991b1b" }}>
                     {t("deed_7cc56")} #2 ({secondDeed.official_number || "889/2022"}) - {secondDeed.buyer_or_current_owner}
                   </th>
                 </tr>
@@ -226,7 +220,7 @@ export default function P5CitizenReport({
                 <tr>
                   <td><strong>{t("mutation_review_fb883")}</strong></td>
                   <td>
-                    <span style={{ color: "#d97706", fontWeight: 600 }}>
+                    <span style={{ color: "#dc2626", fontWeight: 600 }}>
                       {t("discrepancy_found")}: {t("mutation_not_found")}
                     </span>
                   </td>

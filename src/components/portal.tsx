@@ -807,7 +807,7 @@ export default function Portal({
                 </Link>
               </div>
 
-              <div className="panel" style={{ padding: 18, borderTop: "4px solid #ea580c" }}>
+              <div className="panel" style={{ padding: 18, borderTop: "4px solid #dc2626" }}>
                 <span className="kicker">{t("option_3")}</span>
                 <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("detect_conflicting_sales_a95f0")}</h3>
                 <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
@@ -986,7 +986,7 @@ export default function Portal({
                           <Link
                             href={`/p3/report/${bundle.land.unique_land_id || id}`}
                             className="toolbar-btn"
-                            style={{ color: "#ea580c", fontWeight: 700 }}
+                            style={{ color: "#dc2626", fontWeight: 700 }}
                             title={t("fraud_and_double_selling_detection")}
                             data-testid="p3-fraud-detection-btn"
                           >
@@ -1595,7 +1595,7 @@ export default function Portal({
                                       <th style={{ width: "37.5%" }}>
                                         {t("deed_7cc56")} #1 ({d1.official_number || "502/2021"}) - {d1.buyer_or_current_owner}
                                       </th>
-                                      <th style={{ width: "37.5%", backgroundColor: "#fff7ed", color: "#c2410c" }}>
+                                      <th style={{ width: "37.5%", backgroundColor: "#fef2f2", color: "#991b1b" }}>
                                         {t("deed_7cc56")} #2 ({d2.official_number || "889/2022"}) - {d2.buyer_or_current_owner}
                                       </th>
                                     </tr>
@@ -1634,7 +1634,7 @@ export default function Portal({
                                     <tr>
                                       <td><strong>{t("mutation_review_fb883")}</strong></td>
                                       <td>
-                                        <span style={{ color: "#d97706", fontWeight: 600 }}>
+                                        <span style={{ color: "#dc2626", fontWeight: 600 }}>
                                           {t("discrepancy_found")}: {t("mutation_not_found")}
                                         </span>
                                       </td>
