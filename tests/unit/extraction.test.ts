@@ -106,3 +106,33 @@ test("porcha issue date is retained without a spurious deed execution date", () 
   expect(result.fields.execution_date).toBeNull();
   expect(result.fields.official_number).toBe("নথি-পর্চা-০০১");
 });
+
+test("parseExtractionJson parses YAML-like key-value vision model outputs cleanly", async () => {
+  const { parseExtractionJson } = await import(
+    "../../src/lib/extraction-json"
+  );
+  const yamlOutput = `source_text: sample
+official_number: 502/2018
+document_date: 2018-06-12
+seller_or_prior_owner: Abdul Karim
+area_decimals: 12`;
+
+  const parsed = parseExtractionJson(yamlOutput) as Record<string, unknown>;
+  expect(parsed.official_number).toBe("502/2018");
+  expect(parsed.document_date).toBe("2018-06-12");
+  expect(parsed.seller_or_prior_owner).toBe("Abdul Karim");
+  expect(parsed.area_decimals).toBe(12);
+});
+
+test("parseExtractionJson extracts JSON from surrounding markdown or explanatory text", async () => {
+  const { parseExtractionJson } = await import(
+    "../../src/lib/extraction-json"
+  );
+  const textWithJson = `Here is the extracted document data:
+{"official_number":"502/2021","area_decimals":15}
+Hope this helps!`;
+
+  const parsed = parseExtractionJson(textWithJson) as Record<string, unknown>;
+  expect(parsed.official_number).toBe("502/2021");
+  expect(parsed.area_decimals).toBe(15);
+});

@@ -185,18 +185,15 @@ export function P2DeedVerifier({
       setPreviewPages(prepared.pages || []);
 
       setLoadingStep(2);
-      const form = new FormData();
-      form.append("file", targetFile);
-      form.append("pages", JSON.stringify(prepared.pages));
-      form.append("text", prepared.text);
-      form.append("extractOnly", "true");
-      if (landId.trim()) {
-        form.append("landId", landId.trim());
-      }
-
       const res = await fetch("/api/service/verify-deed", {
         method: "POST",
-        body: form,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          extractOnly: true,
+          pages: prepared.pages,
+          text: prepared.text,
+          landId: landId.trim() || undefined,
+        }),
       });
 
       if (!res.ok) {

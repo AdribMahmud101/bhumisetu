@@ -20,7 +20,8 @@ export async function extractPages(
         process.env.DEEPINFRA_VISION_MODEL ||
         "Qwen/Qwen3-VL-30B-A3B-Instruct",
       temperature: 0,
-      max_tokens: hasNativeText ? 800 : 1500,
+      max_tokens: hasNativeText ? 500 : 700,
+      response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
@@ -41,7 +42,7 @@ export async function extractPages(
         },
       ],
     },
-    { timeout: 45000, maxRetries: 1 },
+    { timeout: 25000, maxRetries: 0 },
   );
   const raw = result.choices[0]?.message.content || "";
   const parsed = parseExtractionJson(raw);
