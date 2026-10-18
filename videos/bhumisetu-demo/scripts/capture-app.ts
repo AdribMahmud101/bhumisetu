@@ -21,7 +21,7 @@ await context.addInitScript(() => {
     const pointer=document.createElement('div'); pointer.id='capture-pointer';
     pointer.style.cssText='position:fixed;left:-50px;top:-50px;width:18px;height:18px;border:3px solid #086447;border-radius:50%;background:#ffffffaa;z-index:2147483647;pointer-events:none;box-shadow:0 0 0 4px #08644720';
     document.body.append(pointer);
-    addEventListener('mousemove',e=>{pointer.style.left=(e.clientX-9)+'px';pointer.style.top=(e.clientY-9)+'px'});
+    addEventListener('mousemove',(e: any)=>{pointer.style.left=(e.clientX-9)+'px';pointer.style.top=(e.clientY-9)+'px'});
   });
 });
 const page=await context.newPage();

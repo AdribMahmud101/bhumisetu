@@ -50,6 +50,7 @@ import {
   LayoutDashboard,
   Loader2,
   LockKeyhole,
+  LogIn,
   LogOut,
   MapPinned,
   Menu,
@@ -64,6 +65,7 @@ import {
   Trash2,
   Upload,
   UserCheck,
+  UserPlus,
   X,
 } from "lucide-react";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
@@ -423,12 +425,17 @@ export default function Portal({
             <Menu />
           </button>
           <nav className={mobile ? "nav open" : "nav"}>
-            <Link className={view === "home" ? "active" : ""} href="/">
+            <Link
+              className={view === "home" ? "active" : ""}
+              href="/"
+              onClick={() => setMobile(false)}
+            >
               {t("home_932f2")}
             </Link>
             <Link
               className={["verify", "record"].includes(view) ? "active" : ""}
               href="/verify"
+              onClick={() => setMobile(false)}
             >
               {t("citizen_services_e895b")}
             </Link>
@@ -437,15 +444,59 @@ export default function Portal({
                 ["admin", "land", "mutations", "audit"].includes(view) ? "active" : ""
               }
               href="/admin"
+              onClick={() => setMobile(false)}
             >
               {t("officer_workspace_e4eee")}
             </Link>
-            <Link href="/#how-it-works">{t("how_it_works_56da8")}</Link>
+            <Link href="/#how-it-works" onClick={() => setMobile(false)}>
+              {t("how_it_works_56da8")}
+            </Link>
+            <div className="mobile-nav-auth">
+              {authenticated ? (
+                <button
+                  className="button outline small mobile-auth-btn"
+                  onClick={() => {
+                    setMobile(false);
+                    run(async () => {
+                      await api("logout", {});
+                      router.push("/");
+                      await refresh();
+                    });
+                  }}
+                >
+                  <LogOut size={15} /> <span>{t("log_out_d8929")}</span>
+                </button>
+              ) : (
+                <>
+                  <Link
+                    className="button outline small mobile-auth-btn"
+                    href="/login"
+                    onClick={() => setMobile(false)}
+                  >
+                    <LogIn size={15} /> <span>{t("login_dfab6")}</span>
+                  </Link>
+                  <Link
+                    className="button outline small mobile-auth-btn"
+                    href="/register"
+                    onClick={() => setMobile(false)}
+                  >
+                    <UserPlus size={15} /> <span>{t("registration_21138")}</span>
+                  </Link>
+                  <Link
+                    className="button primary small mobile-auth-btn"
+                    href="/admin/login"
+                    onClick={() => setMobile(false)}
+                  >
+                    <ShieldCheck size={15} /> <span>{t("administrative_41312")}</span>
+                  </Link>
+                </>
+              )}
+            </div>
           </nav>
           <div className="header-action">
             {authenticated ? (
               <button
-                className="button outline small"
+                className="button outline small btn-logout"
                 onClick={() =>
                   run(async () => {
                     await api("logout", {});
@@ -454,18 +505,18 @@ export default function Portal({
                   })
                 }
               >
-                <LogOut size={15} /> {t("log_out_d8929")}
+                <LogOut size={15} /> <span>{t("log_out_d8929")}</span>
               </button>
             ) : (
               <div className="entry-buttons">
-                <Link className="button outline small" href="/login">
-                  {t("login_dfab6")}
+                <Link className="button outline small btn-login" href="/login">
+                  <LogIn size={14} /> <span>{t("login_dfab6")}</span>
                 </Link>
-                <Link className="button outline small" href="/register">
-                  {t("registration_21138")}
+                <Link className="button outline small btn-register" href="/register">
+                  <UserPlus size={14} /> <span>{t("registration_21138")}</span>
                 </Link>
-                <Link className="button primary small" href="/admin/login">
-                  {t("administrative_41312")}
+                <Link className="button primary small btn-admin" href="/admin/login">
+                  <ShieldCheck size={14} /> <span>{t("administrative_41312")}</span>
                 </Link>
               </div>
             )}

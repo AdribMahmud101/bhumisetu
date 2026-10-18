@@ -223,6 +223,7 @@ button {
   white-space: nowrap;
 }
 .button.primary {
+  outline: none !important;
   color: white;
   background: var(--green);
   box-shadow: 0 3px 8px #074b3610;
@@ -232,12 +233,15 @@ button {
   box-shadow: 0 5px 16px #074b3625;
 }
 .button.outline {
+  outline: none !important;
   background: white;
-  border: 1px solid #cfdbd2;
-  color: var(--green-dark);
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
 }
 .button.outline:hover {
-  background: #f0f7ed;
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
 }
 .button.danger {
   background: #f9ebe7;
@@ -2172,30 +2176,48 @@ a:focus-visible {
     margin: 0 3px;
   }
   .header-inner {
-    height: 79px;
+    height: 64px;
+    min-height: 64px;
     position: relative;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    gap: 8px;
   }
   .brand-mark {
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
   }
   .brand strong {
-    font-size: 25px;
+    font-size: 20px;
+    line-height: 1.1;
   }
   .brand small {
     font-size: 9px;
+    margin-top: 2px;
+    white-space: nowrap;
   }
   .header-action {
     margin-left: auto;
-  }
-  .header-action .button {
-    font-size: 10px;
-    padding: 8px;
+    order: 2;
   }
   .mobile-menu {
     display: flex;
+    align-items: center;
+    justify-content: center;
     order: 3;
+    width: 38px;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1e293b;
+    padding: 0;
+    margin-left: 6px;
+    cursor: pointer;
+  }
+  .mobile-menu:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
   }
   .nav {
     display: none;
@@ -2203,21 +2225,30 @@ a:focus-visible {
   .nav.open {
     display: flex;
     position: absolute;
-    top: 79px;
+    top: 64px;
     left: 0;
     right: 0;
-    z-index: 25;
+    z-index: 50;
     background: white;
-    padding: 18px;
+    padding: 16px 20px 22px;
     height: auto;
-    box-shadow: 0 8px 12px #163a2915;
-    gap: 20px;
-    flex-wrap: wrap;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+    border-bottom: 1px solid #e2e8f0;
+    flex-direction: column;
+    gap: 4px;
   }
   .nav a {
     height: auto;
-    padding: 6px;
-    font-size: 12px;
+    padding: 10px 4px;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .nav a.active {
+    color: #086449;
+    font-weight: 700;
+    border-bottom-color: #086449;
   }
   .prototype-strip {
     font-size: 8px;
@@ -2835,12 +2866,76 @@ a:focus-visible {
 }
 .entry-buttons {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
 }
 .entry-buttons .button {
-  font-size: 11px;
-  padding: 8px 10px;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+  transition: all 0.18s ease-in-out;
+}
+.entry-buttons .btn-login {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+}
+.entry-buttons .btn-login:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+.entry-buttons .btn-register {
+  background: #ffffff;
+  border: 1.5px solid #086449;
+  color: #086449;
+}
+.entry-buttons .btn-register:hover {
+  background: #f0fdf4;
+  border-color: #064e38;
+  color: #064e38;
+}
+.entry-buttons .btn-admin {
+  background: #086449;
+  border: 1px solid #086449;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(8, 100, 73, 0.18);
+}
+.entry-buttons .btn-admin:hover {
+  background: #064e38;
+  border-color: #064e38;
+  box-shadow: 0 3px 6px rgba(8, 100, 73, 0.25);
+}
+.btn-logout {
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #dc2626;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.18s ease;
+}
+.btn-logout:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+.mobile-nav-auth {
+  display: none;
 }
 .auth-wrap .login-form > p {
   font-size: 11px;
@@ -2932,53 +3027,147 @@ a:focus-visible {
     gap: 12px;
   }
   .nav {
-    gap: 15px;
+    gap: 16px;
+    font-size: 12.5px;
   }
   .entry-buttons {
-    flex-direction: column;
-    gap: 4px;
+    gap: 6px;
   }
   .entry-buttons .button {
-    width: 100%;
-    font-size: 9px;
-    padding: 4px 10px;
-  }
-  .header-inner {
-    min-height: 114px;
-  }
-  .nav.open {
-    top: 114px;
+    height: 36px;
+    padding: 0 10px;
+    font-size: 12px;
   }
 }
 @media (max-width: 760px) {
-  .entry-buttons {
-    gap: 4px;
-  }
-  .entry-buttons .button {
-    font-size: 9px;
-    padding: 7px 6px;
-  }
   .header-inner {
-    gap: 9px;
+    height: 64px;
+    min-height: 64px;
+    gap: 8px;
+    flex-wrap: nowrap;
   }
   .brand {
-    gap: 8px;
+    gap: 10px;
+    min-width: 0;
   }
   .brand strong {
-    font-size: 22px;
+    font-size: 20px;
+    line-height: 1.1;
   }
   .brand-mark {
-    width: 35px;
-    height: 35px;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
   }
   .brand small {
-    font-size: 8px;
+    font-size: 9px;
+    margin-top: 2px;
+    white-space: nowrap;
   }
   .header-action {
     margin-left: auto;
+    order: 2;
+  }
+  .entry-buttons {
+    gap: 6px;
+  }
+  .entry-buttons .btn-register,
+  .entry-buttons .btn-admin {
+    display: none !important;
+  }
+  .entry-buttons .button.btn-login {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 12.5px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #084b37;
+    font-weight: 600;
+  }
+  .btn-logout {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 12px;
   }
   .mobile-menu {
-    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    order: 3;
+    width: 38px;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1e293b;
+    padding: 0;
+    margin-left: 6px;
+    cursor: pointer;
+  }
+  .mobile-menu:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+  }
+  .nav.open {
+    top: 64px;
+    padding: 16px 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .nav.open a {
+    height: auto;
+    padding: 10px 4px;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .nav.open a.active {
+    color: #086449;
+    font-weight: 700;
+    border-bottom-color: #086449;
+  }
+  .mobile-nav-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .mobile-nav-auth .mobile-auth-btn {
+    width: 100%;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .mobile-nav-auth .mobile-auth-btn.outline {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+  }
+  .mobile-nav-auth .mobile-auth-btn.outline:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+  .mobile-nav-auth .mobile-auth-btn.primary {
+    background: #086449;
+    border: 1px solid #086449;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(8, 100, 73, 0.18);
+  }
+  .mobile-nav-auth .mobile-auth-btn.primary:hover {
+    background: #064e38;
   }
   .auth-wrap {
     margin-top: 18px;
@@ -2989,23 +3178,6 @@ a:focus-visible {
   }
   .auth-role-links {
     margin-top: 25px !important;
-  }
-}
-@media (max-width: 400px) {
-  .entry-buttons {
-    flex-direction: column;
-    gap: 3px;
-  }
-  .entry-buttons .button {
-    padding: 3px 9px;
-    min-width: 83px;
-    font-size: 9px;
-  }
-  .header-inner {
-    height: 96px;
-  }
-  .nav.open {
-    top: 96px;
   }
 }
 .language-switch {
@@ -3061,9 +3233,6 @@ html[lang="en"] .nav {
 html[lang="en"] .brand strong {
   font-family: Arial, sans-serif;
 }
-html[lang="en"] .entry-buttons .button {
-  font-size: 10px;
-}
 @media (max-width: 760px) {
   .language-switch button {
     font-size: 9px;
@@ -3077,10 +3246,6 @@ html[lang="en"] .entry-buttons .button {
   }
   html[lang="en"] .brand strong {
     font-size: 20px;
-  }
-  html[lang="en"] .entry-buttons .button {
-    font-size: 8px;
-    padding: 4px 6px;
   }
 }
 @media print {
