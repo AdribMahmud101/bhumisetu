@@ -806,8 +806,7 @@ export default function Portal({
               }}
             >
               <div className="panel" style={{ padding: 18, borderTop: "4px solid #059669" }}>
-                <span className="kicker">{t("option_1")}</span>
-                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("search_land_records_15dd5")}</h3>
+                <h3 style={{ fontSize: 16, margin: "0 0 8px" }}>{t("search_land_records_15dd5")}</h3>
                 <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
                   {t("find_related_documents_together_using_a_unique_317c2")}
                 </p>
@@ -817,8 +816,7 @@ export default function Portal({
               </div>
 
               <div className="panel" style={{ padding: 18, borderTop: "4px solid #2563eb" }}>
-                <span className="kicker">{t("option_2")}</span>
-                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("check_document_details_6f08f")}</h3>
+                <h3 style={{ fontSize: 16, margin: "0 0 8px" }}>{t("check_document_details_6f08f")}</h3>
                 <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
                   {t("compare_a_copy_and_its_fields_against_19fe9")}
                 </p>
@@ -828,8 +826,7 @@ export default function Portal({
               </div>
 
               <div className="panel" style={{ padding: 18, borderTop: "4px solid #dc2626" }}>
-                <span className="kicker">{t("option_3")}</span>
-                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("detect_conflicting_sales_a95f0")}</h3>
+                <h3 style={{ fontSize: 16, margin: "0 0 8px" }}>{t("detect_conflicting_sales_a95f0")}</h3>
                 <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
                   {t("review_potential_conflicts_with_reasons_and_evidence_d1cea")}
                 </p>
@@ -839,8 +836,7 @@ export default function Portal({
               </div>
 
               <div className="panel" style={{ padding: 18, borderTop: "4px solid #7c3aed", backgroundColor: "#faf5ff" }}>
-                <span className="kicker" style={{ color: "#7c3aed" }}>{t("option_4")}</span>
-                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("run_pre_purchase_verification")}</h3>
+                <h3 style={{ fontSize: 16, margin: "0 0 8px" }}>{t("run_pre_purchase_verification")}</h3>
                 <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
                   {t("explore_the_sample_analysis_3ff5f")}
                 </p>
