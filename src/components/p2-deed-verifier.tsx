@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useI18n } from "@/i18n/provider";
 import {
   AlertTriangle,
@@ -20,6 +21,7 @@ import {
   ArrowRight,
   ArrowLeft,
   FileSpreadsheet,
+  Home,
 } from "lucide-react";
 import { DeedVerificationResult, ExtractedDeedFields } from "@/lib/deed-comparison-engine";
 import { prepareDocument } from "@/lib/pdf-client";
@@ -397,6 +399,56 @@ export function P2DeedVerifier({
 
   return (
     <div className="p2-verifier-container" data-testid="p2-deed-verifier">
+      {/* Top Navigation & Back to Home */}
+      <div
+        style={{
+          maxWidth: stage === "result" ? 840 : 680,
+          margin: "0 auto 16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Link
+          href="/"
+          className="button outline small"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            color: "#047857",
+            borderColor: "#cbd5e1",
+            backgroundColor: "#ffffff",
+            padding: "8px 14px",
+            borderRadius: 6,
+            fontSize: 13.5,
+            fontWeight: 600,
+            textDecoration: "none",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+          }}
+          data-testid="p2-back-home-btn"
+        >
+          <ArrowLeft size={16} />
+          <span>{locale === "bn" ? "মূল পাতায় ফিরে যান" : "Back to Home"}</span>
+        </Link>
+
+        <Link
+          href="/"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            textDecoration: "none",
+            color: "#334155",
+            fontSize: 13,
+            fontWeight: 600,
+          }}
+        >
+          <Home size={15} color="#059669" />
+          <span>{locale === "bn" ? "ভূমিসেতু পোর্টাল" : "BhumiSetu Portal"}</span>
+        </Link>
+      </div>
+
       {/* Step 1: Upload or QR Input Panel */}
       {stage === "input" && (
         <section className="panel" style={{ maxWidth: 680, margin: "30px auto" }}>
