@@ -98,6 +98,19 @@ export async function GET(
       }
       return json(intake);
     }
+    if (action === "stats") {
+      await requireOfficer();
+      const [{ count: docCount, error: docErr }, { count: landCount, error: landErr }] = await Promise.all([
+        db().from("land_documents").select("*", { count: "exact", head: true }),
+        db().from("master_lands").select("*", { count: "exact", head: true }).eq("is_deleted", false),
+      ]);
+      check(docErr);
+      check(landErr);
+      return json({
+        totalDocuments: docCount || 0,
+        totalLands: landCount || 0,
+      });
+    }
     if (action === "lands") {
       await requireOfficer();
       const { data, error } = await db()

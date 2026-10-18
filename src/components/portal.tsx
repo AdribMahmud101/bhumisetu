@@ -164,6 +164,7 @@ export default function Portal({
   const [authenticated, setAuthenticated] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [lands, setLands] = useState<Land[]>([]);
+  const [totalDocuments, setTotalDocuments] = useState(0);
   const [bundle, setBundle] = useState<Bundle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -209,12 +210,18 @@ export default function Portal({
         setBundle(await api("land/" + id));
       else if (view === "mutations") setCases(await api("mutations"));
       else if (view === "admin") {
-        const [active, trash] = await Promise.all([
+        const [active, trash, statsData] = await Promise.all([
           api("lands"),
           session.officer ? api("trash") : Promise.resolve([]),
+          session.officer
+            ? api("stats").catch(() => null)
+            : Promise.resolve(null),
         ]);
         setLands(active);
         setTrashLands(trash);
+        if (statsData?.totalDocuments !== undefined) {
+          setTotalDocuments(statsData.totalDocuments);
+        }
       }
     } catch (e) {
       setError((e as Error).message);
@@ -894,6 +901,11 @@ export default function Portal({
                 label={t("master_land_records_d4a7d")}
                 value={lands.length}
                 icon={<Layers3 />}
+              />
+              <Stat
+                label={t("total_documents_stored")}
+                value={totalDocuments}
+                icon={<Files />}
               />
               <Stat
                 label={t("published_records_324dc")}

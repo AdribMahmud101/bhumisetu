@@ -74,7 +74,7 @@
   "land_record_management_20904": "Land record management",
   "one_parcel_four_document_categories_store_review_13da8": "One parcel, four document categories—store, review and publish.",
   "create_land_record_8f76d": "Create land record",
-  "master_land_records_d4a7d": "Master land records",
+  "master_land_records_d4a7d": "Total land records",
   "published_records_324dc": "Published records",
   "draft_records_17866": "Draft records",
   "mutation_review_1a212": "Mutation review",
@@ -567,6 +567,7 @@
   "buyer_checklist_halt_payment_title": "Halt Advance / Earnest Payments:",
   "buyer_checklist_halt_payment_desc": "Do not execute earnest agreements or release payments until parcel share conflicts are fully resolved.",
   "buyer_checklist_physical_inspection_title": "Physical Boundary & Possession Inspection:",
-  "buyer_checklist_physical_inspection_desc": "Verify physical seller possession and plot demarcation on-site in the presence of neighboring landholders."
+  "buyer_checklist_physical_inspection_desc": "Verify physical seller possession and plot demarcation on-site in the presence of neighboring landholders.",
+  "total_documents_stored": "Total documents stored in system"
 }
 

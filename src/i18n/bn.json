@@ -74,7 +74,7 @@
   "land_record_management_20904": "ভূমি রেকর্ড ব্যবস্থাপনা",
   "one_parcel_four_document_categories_store_review_13da8": "একটি জমি, চার ধরনের নথি—সংরক্ষণ, পর্যালোচনা ও প্রকাশ করুন।",
   "create_land_record_8f76d": "নতুন জমির রেকর্ড",
-  "master_land_records_d4a7d": "মাস্টার ল্যান্ড রেকর্ড",
+  "master_land_records_d4a7d": "মোট ভূমি রেকর্ড",
   "published_records_324dc": "প্রকাশিত রেকর্ড",
   "draft_records_17866": "খসড়া রেকর্ড",
   "mutation_review_1a212": "নামজারি পর্যালোচনা",
@@ -567,6 +567,7 @@
   "buyer_checklist_halt_payment_title": "বায়না অর্থ প্রদান স্থগিত রাখুন:",
   "buyer_checklist_halt_payment_desc": "দলিলের অংশ ও হিস্যার সংঘাত নিষ্পত্তি না হওয়া পর্যন্ত কোনো বায়না চুক্তি বা অর্থ প্রদান করবেন না।",
   "buyer_checklist_physical_inspection_title": "সরেজমিন সীমানা যাচাই:",
-  "buyer_checklist_physical_inspection_desc": "জমিতে বিক্রেতার প্রত্যক্ষ দখল ও চতুঃসীমা স্থানীয় গণ্যমান্য ব্যক্তি ও প্রতিবেশীদের উপস্থিতিতে নিশ্চিত করুন।"
+  "buyer_checklist_physical_inspection_desc": "জমিতে বিক্রেতার প্রত্যক্ষ দখল ও চতুঃসীমা স্থানীয় গণ্যমান্য ব্যক্তি ও প্রতিবেশীদের উপস্থিতিতে নিশ্চিত করুন।",
+  "total_documents_stored": "সিস্টেমে সংরক্ষিত মোট নথি"
 }
 
