@@ -472,6 +472,8 @@
   "document_updated_success": "নথির তথ্য সফলভাবে আপডেট করা হয়েছে",
   "add_document_btn": "নতুন নথি যোগ করুন",
   "document_category": "নথির ধরন",
-  "document_subtype": "উপ-ধরন"
+  "document_subtype": "উপ-ধরন",
+  "show_more_documents": "আরও দেখুন ({count}টি বাকি)",
+  "show_fewer_documents": "কম দেখুন"
 }
 

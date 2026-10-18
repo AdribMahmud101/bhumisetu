@@ -22,7 +22,9 @@ import {
   ArrowUpRight,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   CircleHelp,
   ClipboardCheck,
   Clock3,
@@ -150,6 +152,7 @@ export default function Portal({
   const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<LandDocument | null>(null);
   const [deletingDoc, setDeletingDoc] = useState<LandDocument | null>(null);
+  const [showAllDocuments, setShowAllDocuments] = useState(false);
   const [cases, setCases] = useState<any[]>([]);
   const [origin, setOrigin] = useState("");
   const router = useRouter();
@@ -185,6 +188,9 @@ export default function Portal({
     refresh();
     setOrigin(window.location.origin);
   }, [refresh]);
+  useEffect(() => {
+    setShowAllDocuments(false);
+  }, [id, bundle?.documents.length]);
   const run = async (action: () => Promise<void>) => {
     setError("");
     setNotice("");
@@ -204,6 +210,17 @@ export default function Portal({
       .toUpperCase();
     if (q) router.push("/verify/" + encodeURIComponent(q));
   };
+  const orderedDocuments = [...(bundle?.documents || [])].sort((a, b) => {
+    if (view === "land") {
+      const aPending = a.verification_status !== "VERIFIED" ? 1 : 0;
+      const bPending = b.verification_status !== "VERIFIED" ? 1 : 0;
+      if (aPending !== bPending) return bPending - aPending;
+    }
+    return b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id);
+  });
+  const visibleDocuments = showAllDocuments
+    ? orderedDocuments
+    : orderedDocuments.slice(0, 2);
   return (
     <>
       <div className="utility">
@@ -1327,115 +1344,143 @@ export default function Portal({
                     <section className="panel document-list">
                       <h3>{t("stored_documents_edc82")}</h3>
                       {bundle.documents.length ? (
-                        bundle.documents.map((d) => (
-                          <div className="document-row" key={d.id}>
-                            <span className="file-icon">
-                              <Files />
-                            </span>
-                            <div className="document-detail">
-                              <strong>
-                                {d.official_number || d.file_name}
-                              </strong>
-                              <span>
-                                {tt(categories[d.category].bn)} ·{" "}
-                                {tt(d.sub_type)} ·{" "}
-                                {d.document_date
-                                  ? formatDate(d.document_date)
-                                  : t("date_awaiting_review_2c598")}
+                        <div id="stored-document-rows">
+                          {visibleDocuments.map((d) => (
+                            <div className="document-row" key={d.id}>
+                              <span className="file-icon">
+                                <Files />
                               </span>
-                              {d.extraction_status === "FAILED" && (
-                                <small className="text-red">
-                                  {t("extraction_failed_d6554")}
-                                  {tt(d.extraction_error)}
-                                </small>
+                              <div className="document-detail">
+                                <strong>
+                                  {d.official_number || d.file_name}
+                                </strong>
+                                <span>
+                                  {tt(categories[d.category].bn)} ·{" "}
+                                  {tt(d.sub_type)} ·{" "}
+                                  {d.document_date
+                                    ? formatDate(d.document_date)
+                                    : t("date_awaiting_review_2c598")}
+                                </span>
+                                {d.extraction_status === "FAILED" && (
+                                  <small className="text-red">
+                                    {t("extraction_failed_d6554")}
+                                    {tt(d.extraction_error)}
+                                  </small>
+                                )}
+                              </div>
+                              <Badge
+                                tone={
+                                  d.verification_status === "VERIFIED"
+                                    ? "green"
+                                    : "amber"
+                                }
+                              >
+                                {d.verification_status === "VERIFIED"
+                                  ? t("reviewed_03a01")
+                                  : t("review_pending_97137")}
+                              </Badge>
+                              {view === "land" ? (
+                                <div className="review-actions">
+                                  <button
+                                    className="button outline small"
+                                    data-testid={"preview-doc-" + d.id}
+                                    onClick={() => setPreviewDoc(d)}
+                                    title={t("preview_document")}
+                                  >
+                                    <Eye size={14} />
+                                    {t("preview_action")}
+                                  </button>
+                                  {d.extraction_status === "FAILED" && (
+                                    <button
+                                      disabled={busy}
+                                      className="button outline small"
+                                      onClick={() =>
+                                        run(async () => {
+                                          const response = await fetch(
+                                            "/api/service/document/" + d.id,
+                                          );
+                                          if (!response.ok)
+                                            throw new Error(
+                                              "Source download failed",
+                                            );
+                                          const file = new File(
+                                            [await response.blob()],
+                                            d.file_name,
+                                            { type: d.mime_type },
+                                          );
+                                          await api(
+                                            "extract/" + d.id,
+                                            await prepareDocument(file),
+                                          );
+                                          await refresh();
+                                        })
+                                      }
+                                    >
+                                      {t("retry_extraction_6b5ce")}
+                                    </button>
+                                  )}
+                                  <button
+                                    className="button outline small"
+                                    data-testid={"review-doc-" + d.doc_code}
+                                    onClick={() => setReview(d)}
+                                  >
+                                    {t("review_5885b")}
+                                    <ArrowRight size={14} />
+                                  </button>
+                                  <button
+                                    className="button danger small"
+                                    data-testid={"delete-doc-" + d.id}
+                                    disabled={busy}
+                                    onClick={() => setDeletingDoc(d)}
+                                    title={t("delete_action")}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <a
+                                  className="button outline small"
+                                  href={"/api/service/document/" + d.id}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {t("source_document_c24cf")}
+                                  <ArrowUpRight size={14} />
+                                </a>
                               )}
                             </div>
-                            <Badge
-                              tone={
-                                d.verification_status === "VERIFIED"
-                                  ? "green"
-                                  : "amber"
-                              }
-                            >
-                              {d.verification_status === "VERIFIED"
-                                ? t("reviewed_03a01")
-                                : t("review_pending_97137")}
-                            </Badge>
-                            {view === "land" ? (
-                              <div className="review-actions">
-                                <button
-                                  className="button outline small"
-                                  data-testid={"preview-doc-" + d.id}
-                                  onClick={() => setPreviewDoc(d)}
-                                  title={t("preview_document")}
-                                >
-                                  <Eye size={14} />
-                                  {t("preview_action")}
-                                </button>
-                                {d.extraction_status === "FAILED" && (
-                                  <button
-                                    disabled={busy}
-                                    className="button outline small"
-                                    onClick={() =>
-                                      run(async () => {
-                                        const response = await fetch(
-                                          "/api/service/document/" + d.id,
-                                        );
-                                        if (!response.ok)
-                                          throw new Error(
-                                            "Source download failed",
-                                          );
-                                        const file = new File(
-                                          [await response.blob()],
-                                          d.file_name,
-                                          { type: d.mime_type },
-                                        );
-                                        await api(
-                                          "extract/" + d.id,
-                                          await prepareDocument(file),
-                                        );
-                                        await refresh();
-                                      })
-                                    }
-                                  >
-                                    {t("retry_extraction_6b5ce")}
-                                  </button>
-                                )}
-                                <button
-                                  className="button outline small"
-                                  data-testid={"review-doc-" + d.doc_code}
-                                  onClick={() => setReview(d)}
-                                >
-                                  {t("review_5885b")}
-                                  <ArrowRight size={14} />
-                                </button>
-                                <button
-                                  className="button danger small"
-                                  data-testid={"delete-doc-" + d.id}
-                                  disabled={busy}
-                                  onClick={() => setDeletingDoc(d)}
-                                  title={t("delete_action")}
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            ) : (
-                              <a
-                                className="button outline small"
-                                href={"/api/service/document/" + d.id}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {t("source_document_c24cf")}
-                                <ArrowUpRight size={14} />
-                              </a>
-                            )}
-                          </div>
-                        ))
+                          ))}
+                        </div>
                       ) : (
                         <Empty
                           text={t("no_documents_have_been_added_yet_9d822")}
                         />
+                      )}
+                      {orderedDocuments.length > 2 && (
+                        <div className="document-list-footer">
+                          <button
+                            type="button"
+                            className="button outline small"
+                            data-testid="toggle-documents"
+                            aria-expanded={showAllDocuments}
+                            aria-controls="stored-document-rows"
+                            onClick={() => setShowAllDocuments((open) => !open)}
+                          >
+                            {showAllDocuments ? (
+                              <>
+                                {t("show_fewer_documents")}
+                                <ChevronUp size={15} />
+                              </>
+                            ) : (
+                              <>
+                                {t("show_more_documents", {
+                                  count: orderedDocuments.length - 2,
+                                })}
+                                <ChevronDown size={15} />
+                              </>
+                            )}
+                          </button>
+                        </div>
                       )}
                     </section>
                   </>

@@ -1515,6 +1515,16 @@ button {
   border: 0;
   padding-bottom: 0;
 }
+.document-list-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 14px;
+  border-top: 1px solid #e9eee2;
+}
+.document-list-footer .button {
+  min-width: 160px;
+  justify-content: center;
+}
 .document-detail {
   flex: 1;
   min-width: 0;

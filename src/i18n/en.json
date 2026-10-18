@@ -472,6 +472,8 @@
   "document_updated_success": "Document details updated successfully",
   "add_document_btn": "Add document",
   "document_category": "Document category",
-  "document_subtype": "Sub-type"
+  "document_subtype": "Sub-type",
+  "show_more_documents": "See more ({count} remaining)",
+  "show_fewer_documents": "Show less"
 }
 
