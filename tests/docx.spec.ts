@@ -44,9 +44,7 @@ test("DOCX intake extracts real text, confirms privately and previews the origin
   ).toHaveValue("RS-118");
   for (const [key, value] of Object.entries(parcel))
     await page.locator(`input[name=${key}]`).fill(String(value));
-  await page
-    .locator("textarea[name=reason]")
-    .fill("Confirmed against synthetic DOCX source");
+  await expect(page.locator("textarea[name=reason]")).toHaveCount(0);
   const responsePromise = page.waitForResponse(
     (r) =>
       r.url().includes("/intake-confirm/") && r.request().method() === "POST",

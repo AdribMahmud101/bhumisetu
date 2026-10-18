@@ -63,8 +63,8 @@ for (const [category, subtype] of [
       total_area_decimals: "20",
     }))
       await page.locator(`input[name=${key}]`).fill(value);
-    const reason = "Source correction " + category + " " + Date.now();
-    await page.locator("textarea[name=reason]").fill(reason);
+    const reason = "Officer confirmed land and document fields during source intake";
+    await expect(page.locator("textarea[name=reason]")).toHaveCount(0);
     const confirmedPromise = page.waitForResponse(
       (r) =>
         r.url().includes("/intake-confirm/") && r.request().method() === "POST",

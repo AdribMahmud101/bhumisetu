@@ -61,6 +61,7 @@ Then show one officer correction against a real stored source, the persisted old
 - Intake confirmation creates a draft/private land record and pending document atomically and idempotently. Document verification and public publication are separate explicit steps. Changing reviewed source data invalidates the reviewed/published state where applicable.
 - Mutation queue supports review and decisions. Verification cannot create duplicate cases; unresolved conflicts and stale parcel revisions block unsafe approval server-side.
 - Officer workspace now includes land search and status filters, parcel metadata editing, soft delete to Trash, restore, and permanent purge/empty Trash controls. The source/document area now includes interactive category previews, category/subtype editing, and document deletion with a confirmation dialog. These newer flows are present in code; their live deployment and end-to-end behavior have not been rechecked here.
+- New-record intake no longer asks an officer to type a separate source/reason. The original is linked to the intake and the server supplies a standard reason for confirmation audits; later review and decisions still have their own reason controls where required.
 - Land area displays can show the document's original unit (decimal/শতাংশ, acre, bigha, katha or chhatak) beside a normalized decimal amount. The rule engine still uses decimals for comparisons.
 
 ### OCR and extraction

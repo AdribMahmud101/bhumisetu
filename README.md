@@ -104,7 +104,7 @@ Round 1 requires the public repository, a concept PDF of at most three pages, an
 
 ### Upload-first digitization
 
-In the officer workspace, choose **Create land record → category/type → original PDF/DOCX/image → Upload and extract**. The original is saved privately before any parcel metadata is required. AI fills visible parcel fields; missing details stay blank. Confirm the details and record a source/reason, then review the attached pending document in the Documents tab. Verification and publication remain explicit subsequent actions. Manual parcel entry is still available.
+In the officer workspace, choose **Create land record → category/type → original PDF/DOCX/image → Upload and extract**. The original is saved privately before any parcel metadata is required. AI fills visible parcel fields; missing details stay blank. Confirm the details, then review the attached pending document in the Documents tab. Confirmation records the officer, linked source and a standard intake reason in the audit history. Verification and publication remain explicit subsequent actions. Manual parcel entry is still available.
 
 Interrupted intakes resume in the same browser session when reopening the dialog. Failed extraction retains the original, with retry or manual continuation. Confirmation is transactional and idempotent. Sold/transferred deed areas never automatically establish the parcel's total recorded entitlement. Upload limits: 5 MB; PDFs up to 3 pages; DOCX up to 40,000 extracted characters and 3 embedded PNG/JPEG images.
 

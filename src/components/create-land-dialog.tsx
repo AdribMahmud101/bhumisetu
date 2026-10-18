@@ -36,7 +36,6 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<string[]>([]);
   const [documentFields, setDocumentFields] = useState<Fields>({
     ...emptyFields,
@@ -192,7 +191,6 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
     setIntake(null);
     setValues({});
     setManual(false);
-    setReason("");
     setError("");
   }
 
@@ -406,7 +404,6 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                     const result = intake
                       ? await request("intake-confirm/" + intake.id, {
                           land,
-                          reason,
                           fields: documentFields,
                         })
                       : await request("create", land);
@@ -498,19 +495,6 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                     </label>
                   ))}
                 </div>
-                {intake && (
-                  <label>
-                    {t("intake_reason")}
-                    <textarea
-                      name="reason"
-                      required
-                      minLength={3}
-                      maxLength={1000}
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                    />
-                  </label>
-                )}
                 <p className="muted">{t("intake_pending")}</p>
                 <button
                   className="button primary"

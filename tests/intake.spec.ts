@@ -58,8 +58,8 @@ test("upload first extracts a real PDF, confirms a private draft once and opens 
   await page
     .getByTestId("intake-edit-field-share_identity")
     .fill("Synthetic reviewed share");
-  const reason = "E2E confirmed against synthetic source " + Date.now();
-  await page.locator("textarea[name=reason]").fill(reason);
+  const reason = "Officer confirmed land and document fields during source intake";
+  await expect(page.locator("textarea[name=reason]")).toHaveCount(0);
   await page.getByTestId("dialog-locale-bn").click();
   await expect(page.locator("input[name=district]")).toHaveValue(land.district);
   await page.getByTestId("dialog-locale-en").click();

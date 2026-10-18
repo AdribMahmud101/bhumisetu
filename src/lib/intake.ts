@@ -172,10 +172,14 @@ export async function extractIntake(
 export async function confirmIntake(
   id: string,
   actor: string,
-  body: { land: unknown; reason: unknown; fields?: unknown },
+  body: { land: unknown; reason?: unknown; fields?: unknown },
 ) {
   const land = landSchema.parse(body.land);
-  const reason = String(body.reason || "").trim();
+  // The uploaded original is already linked to this intake. Keep an audit
+  // explanation without asking officers to type the same provenance again.
+  const reason = String(
+    body.reason ?? "Officer confirmed land and document fields during source intake",
+  ).trim();
   if (reason.length < 3 || reason.length > 1000)
     throw new Error("Confirmation reason required");
   const { data, error } = await db().rpc("confirm_document_intake_review", {
