@@ -1,6 +1,43 @@
 "use client";
 import { useI18n } from "@/i18n/provider";
 import { Category, categoryFields, Fields, fieldLabels } from "@/lib/domain";
+import { dateFromDisplay, dateToDisplay } from "@/lib/date-input";
+import { useEffect, useState } from "react";
+
+function ReviewDateInput({
+  value,
+  onChange,
+  name,
+  disabled,
+  placeholder,
+}: {
+  value: string | null;
+  onChange: (value: string | null) => void;
+  name: string;
+  disabled: boolean;
+  placeholder: string;
+}) {
+  const [display, setDisplay] = useState(() => dateToDisplay(value));
+  useEffect(() => setDisplay(dateToDisplay(value)), [value]);
+  return (
+    <input
+      name={name}
+      data-testid={name}
+      disabled={disabled}
+      type="text"
+      inputMode="numeric"
+      maxLength={10}
+      placeholder={placeholder}
+      value={display}
+      onChange={(event) => {
+        const next = event.target.value;
+        setDisplay(next);
+        onChange(next === "" ? null : dateFromDisplay(next) || next);
+      }}
+    />
+  );
+}
+
 export default function DocumentFieldsEditor({
   fields,
   onChange,
@@ -70,19 +107,22 @@ export default function DocumentFieldsEditor({
                 <option value="chhatak">{t("unit_chhatak")}</option>
               </select>
             </div>
+          ) : key === "document_date" || key === "execution_date" ? (
+            <ReviewDateInput
+              name={prefix + key}
+              disabled={disabled}
+              placeholder={t("ocr_date_placeholder")}
+              value={fields[key]}
+              onChange={(value) => onChange({ ...fields, [key]: value }, key)}
+            />
           ) : (
             <input
               name={prefix + key}
               data-testid={prefix + key}
               disabled={disabled}
               type="text"
-              maxLength={key.includes("date") ? 10 : 500}
-              pattern={key.includes("date") ? "\\d{4}-\\d{2}-\\d{2}" : undefined}
-              placeholder={
-                key.includes("date")
-                  ? t("ocr_date_placeholder")
-                  : t("ocr_empty_placeholder")
-              }
+              maxLength={500}
+              placeholder={t("ocr_empty_placeholder")}
               value={fields[key as keyof Fields] ?? ""}
               onChange={(e) =>
                 onChange(
