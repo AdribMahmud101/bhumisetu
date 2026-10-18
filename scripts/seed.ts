@@ -270,10 +270,11 @@ for (let i = 0; i < lands.length; i++) {
           .upload(path, bytes, { contentType: "application/pdf", upsert: true })
       ).error,
     );
+    const { area_unit, ...fieldsToInsert } = f.fields;
     const { data: doc, error: e } = await db
       .from("land_documents")
       .insert({
-        ...f.fields,
+        ...fieldsToInsert,
         master_land_id: land.id,
         category: f.category,
         sub_type: f.sub_type,

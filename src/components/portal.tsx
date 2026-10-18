@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 const DocxPreview = dynamic(() => import("./docx-preview"), { ssr: false });
 import CreateLandDialog from "./create-land-dialog";
 import EditLandDialog from "./edit-land-dialog";
+import UserDocumentModal from "./user-document-modal";
 import { explainSignal } from "@/i18n/evidence";
 import {
   useCallback,
@@ -171,6 +172,7 @@ export default function Portal({
   const [purgingLand, setPurgingLand] = useState<Land | null>(null);
   const [emptyTrashConfirm, setEmptyTrashConfirm] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<LandDocument | null>(null);
+  const [userDoc, setUserDoc] = useState<LandDocument | null>(null);
   const [deletingDoc, setDeletingDoc] = useState<LandDocument | null>(null);
   const [showAllDocuments, setShowAllDocuments] = useState(false);
   const [printAll, setPrintAll] = useState(false);
@@ -339,9 +341,12 @@ export default function Portal({
     }
     return b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id);
   });
-  const visibleDocuments = showAllDocuments || printAll
-    ? orderedDocuments
-    : orderedDocuments.slice(0, 2);
+  const visibleDocuments =
+    showAllDocuments || printAll || view === "land"
+      ? orderedDocuments
+      : orderedDocuments.length > 5
+        ? orderedDocuments.slice(0, 5)
+        : orderedDocuments;
   return (
     <>
       <div className="utility">
@@ -1339,15 +1344,33 @@ export default function Portal({
                                     )}
                                   </td>
                                   <td>
-                                    <a
-                                      className="text-link"
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      href={"/api/service/document/" + d.id}
-                                    >
-                                      {t("view_document_fa168")}
-                                      <ArrowUpRight size={13} />
-                                    </a>
+                                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                      <button
+                                        type="button"
+                                        className="text-link"
+                                        onClick={() => setUserDoc(d)}
+                                        style={{
+                                          background: "none",
+                                          border: 0,
+                                          padding: 0,
+                                          cursor: "pointer",
+                                          color: "var(--green)",
+                                          fontWeight: 600,
+                                        }}
+                                        title={t("view_details")}
+                                      >
+                                        {t("view_details")}
+                                      </button>
+                                      <a
+                                        className="text-link"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        href={"/api/service/document/" + d.id}
+                                        title={t("view_document_fa168")}
+                                      >
+                                        <ArrowUpRight size={13} />
+                                      </a>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
@@ -1469,22 +1492,67 @@ export default function Portal({
                           );
                         }
                         return (
-                          <div
+                          <button
+                            type="button"
                             className="category-card"
                             data-testid={"category-" + key.toLowerCase()}
                             key={key}
+                            onClick={() => {
+                              if (hasDocs) {
+                                setUserDoc(matching[0]);
+                              } else {
+                                setNotice(t("no_documents_in_category"));
+                              }
+                            }}
+                            style={{
+                              cursor: "pointer",
+                              textAlign: "left",
+                              background: "white",
+                              width: "100%",
+                              border: hasDocs
+                                ? "1px solid var(--line)"
+                                : "1px dashed var(--line)",
+                              transition: "all 0.15s ease",
+                            }}
+                            title={
+                              hasDocs
+                                ? t("view_details")
+                                : t("no_documents_in_category")
+                            }
                           >
                             <span className="service-icon green">
                               <Files size={22} />
                             </span>
-                            <div>
-                              <h3>{tt(c.bn)}</h3>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <h3 style={{ margin: 0 }}>{tt(c.bn)}</h3>
+                                {hasDocs && (
+                                  <span
+                                    className="badge green"
+                                    style={{
+                                      fontSize: "9px",
+                                      padding: "2px 6px",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                    }}
+                                  >
+                                    <Eye size={11} /> {t("view_details")}
+                                  </span>
+                                )}
+                              </div>
                               <span>
                                 {tt(c.en)} · {matching.length}{" "}
                                 {t("documents_bffb8")}
                               </span>
                             </div>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -1620,15 +1688,27 @@ export default function Portal({
                                   </button>
                                 </div>
                               ) : (
-                                <a
-                                  className="button outline small"
-                                  href={"/api/service/document/" + d.id}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                >
-                                  {t("source_document_c24cf")}
-                                  <ArrowUpRight size={14} />
-                                </a>
+                                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                  <button
+                                    type="button"
+                                    className="button outline small"
+                                    data-testid={"view-user-doc-" + d.id}
+                                    onClick={() => setUserDoc(d)}
+                                    title={t("view_details")}
+                                  >
+                                    <Eye size={14} />
+                                    {t("view_details")}
+                                  </button>
+                                  <a
+                                    className="button outline small"
+                                    href={"/api/service/document/" + d.id}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    title={t("source_document_c24cf")}
+                                  >
+                                    <ArrowUpRight size={14} />
+                                  </a>
+                                </div>
                               )}
                             </div>
                           ))}
@@ -1638,7 +1718,7 @@ export default function Portal({
                           text={t("no_documents_have_been_added_yet_9d822")}
                         />
                       )}
-                      {orderedDocuments.length > 2 && (
+                      {view !== "land" && orderedDocuments.length > 5 && (
                         <div className="document-list-footer">
                           <button
                             type="button"
@@ -1656,7 +1736,7 @@ export default function Portal({
                             ) : (
                               <>
                                 {t("show_more_documents", {
-                                  count: orderedDocuments.length - 2,
+                                  count: orderedDocuments.length - 5,
                                 })}
                                 <ChevronDown size={15} />
                               </>
@@ -2239,6 +2319,7 @@ export default function Portal({
       {previewDoc && (
         <DocumentPreviewModal
           doc={previewDoc}
+          view={view}
           categoryDocs={
             bundle?.documents.filter(
               (d) => d.category === previewDoc.category,
@@ -2249,6 +2330,25 @@ export default function Portal({
           onReview={(d) => {
             setPreviewDoc(null);
             setReview(d);
+          }}
+          onViewDetails={(d) => {
+            setPreviewDoc(null);
+            setUserDoc(d);
+          }}
+        />
+      )}
+      {userDoc && bundle && (
+        <UserDocumentModal
+          document={userDoc}
+          land={bundle.land}
+          categoryDocs={
+            bundle.documents.filter((d) => d.category === userDoc.category)
+          }
+          onSelectDoc={(d) => setUserDoc(d)}
+          onClose={() => setUserDoc(null)}
+          onViewSource={(d) => {
+            setUserDoc(null);
+            setPreviewDoc(d);
           }}
         />
       )}
@@ -2880,12 +2980,16 @@ function DocumentPreviewModal({
   onSelectDoc,
   onClose,
   onReview,
+  onViewDetails,
+  view,
 }: {
   doc: LandDocument;
   categoryDocs: LandDocument[];
   onSelectDoc: (doc: LandDocument) => void;
   onClose: () => void;
-  onReview: (doc: LandDocument) => void;
+  onReview?: (doc: LandDocument) => void;
+  onViewDetails?: (doc: LandDocument) => void;
+  view?: View;
 }) {
   const { t, tt, formatDate } = useI18n();
 
@@ -2916,17 +3020,31 @@ function DocumentPreviewModal({
             >
               {t("open_separately_c807b")} <ArrowUpRight size={13} />
             </a>
-            <button
-              type="button"
-              className="button primary small"
-              onClick={() => {
-                onClose();
-                onReview(doc);
-              }}
-              data-testid="preview-review-btn"
-            >
-              {t("review_5885b")} <ArrowRight size={13} />
-            </button>
+            {view === "record" ? (
+              <button
+                type="button"
+                className="button primary small"
+                onClick={() => {
+                  onClose();
+                  onViewDetails?.(doc);
+                }}
+                data-testid="preview-details-btn"
+              >
+                {t("view_details")} <ArrowRight size={13} />
+              </button>
+            ) : onReview ? (
+              <button
+                type="button"
+                className="button primary small"
+                onClick={() => {
+                  onClose();
+                  onReview(doc);
+                }}
+                data-testid="preview-review-btn"
+              >
+                {t("review_5885b")} <ArrowRight size={13} />
+              </button>
+            ) : null}
             <button
               className="icon-button"
               aria-label={t("cancel_action")}
