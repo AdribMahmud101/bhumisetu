@@ -12,6 +12,7 @@ import UserDocumentModal from "./user-document-modal";
 import P3ReportView from "./p3-report";
 import P5CitizenReport from "./p5-citizen-report";
 import P3SearchCard from "./p3-search-card";
+import { AuditTrail, AuditLogEntry } from "./audit-trail";
 import { explainSignal } from "@/i18n/evidence";
 import {
   useCallback,
@@ -62,6 +63,7 @@ import {
   ShieldAlert,
   Trash2,
   Upload,
+  UserCheck,
   X,
 } from "lucide-react";
 import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
@@ -85,6 +87,7 @@ type View =
   | "admin"
   | "land"
   | "mutations"
+  | "audit"
   | "login"
   | "register"
   | "p3-search"
@@ -188,6 +191,8 @@ export default function Portal({
   const [qrBusy, setQrBusy] = useState(false);
   const [qrError, setQrError] = useState("");
   const [cases, setCases] = useState<any[]>([]);
+  const [landAuditLogs, setLandAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [loadingLandAudit, setLoadingLandAudit] = useState(false);
   const [origin, setOrigin] = useState("");
   const router = useRouter();
   const refresh = useCallback(async () => {
@@ -197,7 +202,7 @@ export default function Portal({
       const session = await api("session");
       setOfficer(session.officer);
       setAuthenticated(session.authenticated);
-      if (["admin", "land", "mutations"].includes(view) && !session.officer) {
+      if (["admin", "land", "mutations", "audit"].includes(view) && !session.officer) {
         router.replace("/admin/login");
         return;
       }
@@ -206,10 +211,25 @@ export default function Portal({
         view === "land" ||
         view === "p3-land" ||
         view === "p3-report"
-      )
-        setBundle(await api("land/" + id));
-      else if (view === "mutations") setCases(await api("mutations"));
-      else if (view === "admin") {
+      ) {
+        const b = await api("land/" + id);
+        setBundle(b);
+        if (session.officer && b?.land?.id) {
+          setLoadingLandAudit(true);
+          api("audit/" + (b.land.unique_land_id || b.land.id))
+            .then((logs) => {
+              if (Array.isArray(logs)) setLandAuditLogs(logs);
+            })
+            .catch(() => setLandAuditLogs([]))
+            .finally(() => setLoadingLandAudit(false));
+        }
+      } else if (view === "mutations") setCases(await api("mutations"));
+      else if (view === "audit") {
+        setLoadingLandAudit(true);
+        const logs = await api("audit/all").catch(() => []);
+        if (Array.isArray(logs)) setLandAuditLogs(logs);
+        setLoadingLandAudit(false);
+      } else if (view === "admin") {
         const [active, trash, statsData] = await Promise.all([
           api("lands"),
           session.officer ? api("trash") : Promise.resolve([]),
@@ -414,7 +434,7 @@ export default function Portal({
             </Link>
             <Link
               className={
-                ["admin", "land", "mutations"].includes(view) ? "active" : ""
+                ["admin", "land", "mutations", "audit"].includes(view) ? "active" : ""
               }
               href="/admin"
             >
@@ -462,12 +482,12 @@ export default function Portal({
           <ChevronRight size={13} />
           <Link
             href={
-              ["admin", "land", "mutations"].includes(view)
+              ["admin", "land", "mutations", "audit"].includes(view)
                 ? "/admin"
                 : "/verify"
             }
           >
-            {["admin", "land", "mutations"].includes(view)
+            {["admin", "land", "mutations", "audit"].includes(view)
               ? t("officer_workspace_e4eee")
               : t("citizen_services_e895b")}
           </Link>
@@ -670,7 +690,7 @@ export default function Portal({
                     description: t(
                       "compare_a_copy_and_its_fields_against_19fe9",
                     ),
-                    href: "/verify?tab=compare",
+                    href: "/verify/deed",
                     color: "purple",
                   },
                   {
@@ -928,6 +948,16 @@ export default function Portal({
                   {t("mutation_review_1a212")}
                   <small>
                     {t("mutation_workspace_14066")}
+                    <ArrowRight size={14} />
+                  </small>
+                </span>
+              </Link>
+              <Link href="/admin/audit" className="stat-link" style={{ background: "#1e3a8a" }} data-testid="officer-audit-link">
+                <UserCheck />
+                <span>
+                  {t("transparency_and_audit_log")}
+                  <small>
+                    {t("officer_activity_audit_trail_title")}
                     <ArrowRight size={14} />
                   </small>
                 </span>
@@ -1208,8 +1238,8 @@ export default function Portal({
                       : []),
                     ["documents", t("documents_58873"), Files],
                     ["history", t("land_history_741f6"), History],
-                    ...(view === "record"
-                      ? [["compare", t("verify_document_465e4"), Fingerprint]]
+                    ...(view === "land" || view === "p3-land"
+                      ? [["audit", t("officer_activity_audit_trail_title"), UserCheck]]
                       : []),
                   ].map(([key, title, Icon]) => (
                     <button
@@ -2106,7 +2136,32 @@ export default function Portal({
                     </div>
                   </section>
                 )}
-                {tab === "compare" && <div className="record-print-hidden"><ComparePanel id={id!} /></div>}
+                {tab === "audit" && (
+                  <section className="panel" data-testid="parcel-audit-tab-panel" style={{ marginTop: 20 }}>
+                    <div className="section-heading">
+                      <div>
+                        <span className="kicker">{t("transparency_and_audit_log")}</span>
+                        <h2>{t("officer_activity_audit_trail_title")}</h2>
+                        <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 13 }}>
+                          {t("officer_activity_audit_trail_desc")}
+                        </p>
+                      </div>
+                      <UserCheck size={24} color="#059669" />
+                    </div>
+                    <div style={{ marginTop: 18 }}>
+                      {loadingLandAudit ? (
+                        <div style={{ padding: 24, textAlign: "center", color: "#64748b" }}>
+                          {t("loading_records_f15e0")}...
+                        </div>
+                      ) : (
+                        <AuditTrail
+                          logs={landAuditLogs}
+                          emptyMessage={t("no_audit_events_recorded")}
+                        />
+                      )}
+                    </div>
+                  </section>
+                )}
                   </>
                 )}
                 <div className="report-disclaimer">
@@ -2154,6 +2209,30 @@ export default function Portal({
             )}
           </>
         )}
+        {view === "audit" && (
+          <>
+            <PageHeading
+              kicker={t("officer_workspace_e662e")}
+              title={t("officer_activity_audit_trail_title")}
+              description={t("officer_activity_audit_trail_desc")}
+              action={
+                <Link href="/admin" className="button outline small">
+                  {t("land_record_management_20904")}
+                </Link>
+              }
+            />
+            {loading || loadingLandAudit ? (
+              <Busy />
+            ) : (
+              <section className="panel" style={{ marginTop: 20 }}>
+                <AuditTrail
+                  logs={landAuditLogs}
+                  emptyMessage={t("no_audit_events_recorded")}
+                />
+              </section>
+            )}
+          </>
+        )}
       </main>
       <footer className="footer">
         <div className="container footer-main">
@@ -2195,7 +2274,6 @@ export default function Portal({
         </div>
         <div className="container footer-bottom">
           <span>© 2026 BhumiSetu · LandArchive BD</span>
-          <span>{t("hackathon_prototype_built_with_ai_assistance_c6c18")}</span>
         </div>
       </footer>
       {create && <CreateLandDialog onClose={() => setCreate(false)} />}
@@ -3686,33 +3764,14 @@ function ReviewDialog({
                 {t("return_for_correction_bf012")}
               </button>
             </div>
-            <section className="audit-section">
-              <h3>{t("correction_audit_history_8369d")}</h3>
-              <div className="audit-log" data-testid="audit-log-table">
-                {logs.length ? (
-                  logs.map((l) => (
-                    <div key={l.id}>
-                      <strong>
-                        {tt(
-                          fieldLabels[l.field_name as keyof Fields] ||
-                            l.field_name,
-                        )}
-                      </strong>
-                      <p>
-                        <del>{l.previous_value ?? t("empty_1aa25")}</del> →{" "}
-                        <ins>{l.new_value ?? t("empty_1aa25")}</ins>
-                      </p>
-                      <span>{l.reason}</span>
-                      <small>
-                        {formatDate(l.created_at, true)} ·{" "}
-                        {l.admin_id.slice(0, 8)}
-                      </small>
-                    </div>
-                  ))
-                ) : (
-                  <p>{t("no_corrections_yet_64ac0")}</p>
-                )}
-              </div>
+            <section className="audit-section" data-testid="audit-log-table">
+              <AuditTrail
+                logs={logs}
+                title={t("correction_audit_history_8369d")}
+                subtitle={t("officer_activity_audit_trail_desc")}
+                emptyMessage={t("no_corrections_yet_64ac0")}
+                compact
+              />
             </section>
           </div>
         </div>

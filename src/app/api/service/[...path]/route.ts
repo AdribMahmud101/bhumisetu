@@ -158,13 +158,97 @@ export async function GET(
     }
     if (action === "audit") {
       await requireOfficer();
+      if (!id || id === "all") {
+        const { data: logs, error } = await db()
+          .from("audit_logs")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(100);
+        check(error);
+
+        const docIds = Array.from(new Set((logs || []).map((l) => l.document_id).filter(Boolean)));
+        let docMap = new Map<string, any>();
+        let landMap = new Map<string, any>();
+
+        if (docIds.length) {
+          const { data: docs } = await db()
+            .from("land_documents")
+            .select("id, official_number, category, sub_type, doc_code, master_land_id")
+            .in("id", docIds);
+          docMap = new Map((docs || []).map((d) => [d.id, d]));
+
+          const landIds = Array.from(new Set((docs || []).map((d) => d.master_land_id).filter(Boolean)));
+          if (landIds.length) {
+            const { data: lands } = await db()
+              .from("master_lands")
+              .select("id, unique_land_id, mouza, upazila, district")
+              .in("id", landIds);
+            landMap = new Map((lands || []).map((l) => [l.id, l]));
+          }
+        }
+
+        const enriched = (logs || []).map((l) => {
+          const doc = docMap.get(l.document_id) || null;
+          const land = doc?.master_land_id ? landMap.get(doc.master_land_id) || null : null;
+          return {
+            ...l,
+            document: doc,
+            land: land,
+          };
+        });
+        return json(enriched);
+      }
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      // 1. First check if it matches a master_land by UUID or unique_land_id
+      let masterLandQuery = db().from("master_lands").select("id, unique_land_id");
+      masterLandQuery = isUuid ? masterLandQuery.or(`id.eq.${id},unique_land_id.eq.${id}`) : masterLandQuery.eq("unique_land_id", id);
+      const { data: landRecord } = await masterLandQuery.maybeSingle();
+
+      if (landRecord) {
+        // Fetch all documents for this land
+        const { data: docs } = await db()
+          .from("land_documents")
+          .select("id, official_number, category, sub_type, doc_code")
+          .eq("master_land_id", landRecord.id);
+        const docIds = (docs || []).map((d) => d.id);
+        if (!docIds.length) return json([]);
+        
+        const docMap = new Map((docs || []).map((d) => [d.id, d]));
+        const { data: logs, error } = await db()
+          .from("audit_logs")
+          .select("*")
+          .in("document_id", docIds)
+          .order("created_at", { ascending: false });
+        check(error);
+
+        const enrichedLogs = (logs || []).map((l) => ({
+          ...l,
+          document: docMap.get(l.document_id) || null,
+        }));
+        return json(enrichedLogs);
+      }
+
+      // 2. Otherwise query directly by document_id
+      const { data: docData } = await db()
+        .from("land_documents")
+        .select("id, official_number, category, sub_type, doc_code")
+        .eq("id", id)
+        .maybeSingle();
+
       const { data, error } = await db()
         .from("audit_logs")
         .select("*")
         .eq("document_id", id)
         .order("created_at", { ascending: false });
       check(error);
-      return json(data);
+
+      const enriched = (data || []).map((l) => ({
+        ...l,
+        document: docData || null,
+      }));
+      return json(enriched);
     }
     if (action === "document") {
       const { data: d, error } = await db()

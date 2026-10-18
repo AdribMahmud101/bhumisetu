@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/i18n/provider";
 import {
   Check,
@@ -8,8 +8,10 @@ import {
   Layers3,
   ShieldAlert,
   ShieldCheck,
+  History,
 } from "lucide-react";
 import { Land, LandDocument, VerificationResult } from "@/lib/domain";
+import { AuditTrail, AuditLogEntry } from "./audit-trail";
 
 interface P3ReportProps {
   land: Land;
@@ -27,6 +29,27 @@ export default function P3ReportView({
   const { t, formatNumber, formatDate } = useI18n();
   const [reviewed, setReviewed] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+
+  const fetchAuditLogs = useCallback(async () => {
+    try {
+      setLoadingAudit(true);
+      const res = await fetch(`/api/service/audit/${land.unique_land_id || land.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setAuditLogs(data);
+      }
+    } catch (e) {
+      console.error("Failed to load audit logs:", e);
+    } finally {
+      setLoadingAudit(false);
+    }
+  }, [land.unique_land_id, land.id]);
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   const handleMarkReviewed = async () => {
     setReviewing(true);
@@ -378,6 +401,31 @@ export default function P3ReportView({
                 </button>
               )}
             </div>
+          </div>
+        </section>
+
+        {/* Section 6: Audit Trail & Officer Activity Log ("Who Did What") */}
+        <section className="panel" data-testid="p3-audit-trail-section">
+          <div className="section-heading">
+            <div>
+              <span className="kicker">{t("transparency_and_audit_log")}</span>
+              <h3>{t("officer_activity_audit_trail_title")}</h3>
+            </div>
+            <History size={20} color="#059669" />
+          </div>
+
+          <div style={{ marginTop: 14 }}>
+            {loadingAudit ? (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "#64748b", fontSize: 13 }}>
+                {t("loading_records_f15e0")}...
+              </div>
+            ) : (
+              <AuditTrail
+                logs={auditLogs}
+                subtitle={t("officer_activity_audit_trail_desc")}
+                emptyMessage={t("no_audit_events_recorded")}
+              />
+            )}
           </div>
         </section>
       </div>
