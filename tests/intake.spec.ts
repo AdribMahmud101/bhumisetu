@@ -127,6 +127,35 @@ test("upload first extracts a real PDF, confirms a private draft once and opens 
     "/api/service/document/" + result.document_id,
   );
   expect(source.headers()["content-type"]).toContain("application/pdf");
+  const removed = await page.request.post(
+    "/api/service/delete-document/" + result.document_id,
+    { data: {} },
+  );
+  expect(removed.ok(), await removed.text()).toBeTruthy();
+  const afterRemoval = await (
+    await page.request.get("/api/service/land/" + result.unique_land_id)
+  ).json();
+  expect(afterRemoval.documents).toHaveLength(0);
+  expect(afterRemoval.land.is_finalized).toBe(false);
+  expect(
+    (await page.request.get("/api/service/document/" + result.document_id))
+      .status(),
+  ).toBe(404);
+  const retainedAudit = await (
+    await page.request.get("/api/service/audit/" + result.document_id)
+  ).json();
+  expect(retainedAudit.length).toBeGreaterThan(logs.length);
+  expect(
+    retainedAudit.some((entry: any) => entry.field_name === "document_removed"),
+  ).toBe(true);
+  expect(
+    (
+      await page.request.post(
+        "/api/service/delete-document/" + result.document_id,
+        { data: {} },
+      )
+    ).ok(),
+  ).toBeTruthy();
   expect(
     (
       await request.post("/api/service/demo-login", {

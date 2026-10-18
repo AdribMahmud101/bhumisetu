@@ -40,6 +40,7 @@ export async function loadLand(id: string, admin = false) {
     .from("land_documents")
     .select("*")
     .eq("master_land_id", land.id)
+    .is("deleted_at", null)
     .order("document_date", { ascending: true });
   if (!admin) d = d.eq("verification_status", "VERIFIED");
   const { data: documents, error: de } = await d;

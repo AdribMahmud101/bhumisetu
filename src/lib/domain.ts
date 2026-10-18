@@ -60,6 +60,7 @@ export interface Fields {
 }
 export interface LandDocument extends Fields {
   id: string;
+  deleted_at?: string | null;
   doc_code: string;
   master_land_id: string;
   category: Category;

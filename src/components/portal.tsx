@@ -1776,6 +1776,11 @@ export default function Portal({
             <p style={{ marginTop: "1rem", color: "var(--muted)" }}>
               {t("delete_doc_confirm_desc")}
             </p>
+            {error && (
+              <div className="alert error" role="alert">
+                {tt(error)}
+              </div>
+            )}
             <div
               style={{
                 marginTop: "0.75rem",
@@ -1823,6 +1828,9 @@ export default function Portal({
                   run(async () => {
                     await api("delete-document/" + deletingDoc.id, {});
                     setNotice(t("document_deleted_success"));
+                    setPreviewDoc((current) =>
+                      current?.id === deletingDoc.id ? null : current,
+                    );
                     setDeletingDoc(null);
                     await refresh();
                   })

@@ -70,33 +70,6 @@ async function purgeLandRecord(landId: string) {
     .eq("id", landId);
   check(delErr);
 }
-async function deleteDocumentRecord(docId: string) {
-  const { data: doc, error: de } = await db()
-    .from("land_documents")
-    .select("id, master_land_id, file_path")
-    .eq("id", docId)
-    .maybeSingle();
-  check(de);
-  if (!doc) throw new Error("Document not found");
-
-  await db().from("mutation_cases").delete().eq("source_deed_id", doc.id);
-  await db().from("audit_logs").delete().eq("document_id", doc.id);
-  try {
-    await db().from("document_intakes").update({ document_id: null }).eq("document_id", doc.id);
-  } catch (err) {
-    console.warn("Intake unbind note:", err);
-  }
-  if (doc.file_path) {
-    try {
-      await db().storage.from("land-documents").remove([doc.file_path]);
-    } catch (storageErr) {
-      console.warn("Storage cleanup note:", storageErr);
-    }
-  }
-  const { error: delErr } = await db().from("land_documents").delete().eq("id", doc.id);
-  check(delErr);
-  return doc;
-}
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
@@ -175,8 +148,10 @@ export async function GET(
         .from("land_documents")
         .select("*")
         .eq("id", id)
-        .single();
+        .is("deleted_at", null)
+        .maybeSingle();
       check(error);
+      if (!d) throw new Error("NOT_FOUND");
       const { land } = await loadLand(
         (
           await db()
@@ -505,8 +480,12 @@ export async function POST(
       return json({ ok: true, purged_count: trashed?.length || 0 });
     }
     if (action === "delete-document") {
-      const deletedDoc = await deleteDocumentRecord(id);
-      return json({ ok: true, deleted: deletedDoc.id });
+      const { data, error } = await db().rpc("archive_land_document", {
+        p_id: id,
+        p_actor: user.id,
+      });
+      check(error);
+      return json(data);
     }
     if (action === "update-document") {
       const b = await req.json();
@@ -526,6 +505,7 @@ export async function POST(
         .from("land_documents")
         .update(updateData)
         .eq("id", id)
+        .is("deleted_at", null)
         .select()
         .single();
       check(error);
@@ -553,6 +533,7 @@ export async function POST(
         .select("id")
         .eq("master_land_id", land.id)
         .eq("sha256", hash)
+        .is("deleted_at", null)
         .maybeSingle();
       if (duplicate)
         throw new Error("This exact document is already stored for the parcel");
@@ -586,8 +567,10 @@ export async function POST(
         .from("land_documents")
         .select("*")
         .eq("id", id)
-        .single();
+        .is("deleted_at", null)
+        .maybeSingle();
       check(error);
+      if (!doc) throw new Error("NOT_FOUND");
       if (doc.verification_status === "VERIFIED")
         throw new Error("Reviewed documents cannot be re-extracted");
       const body = await req.json();
@@ -638,6 +621,14 @@ export async function POST(
       }
     }
     if (action === "review") {
+      const { data: activeDocument, error: activeError } = await db()
+        .from("land_documents")
+        .select("id")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .maybeSingle();
+      check(activeError);
+      if (!activeDocument) throw new Error("NOT_FOUND");
       const b = await req.json();
       const fields = parseReviewedFields(b.fields);
       if (!["PENDING", "VERIFIED", "NEEDS_CORRECTION"].includes(b.status))
