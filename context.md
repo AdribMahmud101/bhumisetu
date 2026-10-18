@@ -34,7 +34,7 @@ Then show one officer correction against a real stored source, the persisted old
 
 - Live prototype: https://bhumisetu.adribmahmud.workers.dev
 - Public repository: https://github.com/AdribMahmud101/bhumisetu
-- Current main commit: `f96460f` — `Enhance OCR inputs and audit editable extraction fields`.
+- Current main commit before this handoff update: `4e8666d` — `Optimize document extraction speed (40s -> ~4s) and implement CRUD for internal documents`. It follows `1ac722d` (OCR/category fields) and `d7917b9` (land management/trash). The live Worker URL is known; deployment of these three newer commits has not been verified in this handoff.
 - Stack: Next.js 15.5.28 App Router, React 18, TypeScript, Tailwind, Bun; Cloudflare Workers through OpenNext; Supabase Auth, Postgres and private Storage; DeepInfra vision through the OpenAI SDK; PDF.js for PDF text/rendering; `fflate` and `fast-xml-parser` for DOCX; Zod validation; Playwright Firefox and Bun tests.
 - Supabase project is linked locally as `bhumishetu` (ref `xbjlzsmkhyayogjigpaq`). The spelling difference between the product name BhumiSetu and project slug is intentional.
 - Preserve the current Workers address and account subdomain. The user explicitly chose to keep it simple and accepted the available address; do not rename or add a custom domain without a new request.
@@ -57,15 +57,18 @@ Then show one officer correction against a real stored source, the persisted old
 - Create a record by uploading first, or choose manual parcel entry. Intake stores the source privately before parcel metadata is complete; supports retry, manual continuation, session resume, abort and returning from manual entry to upload.
 - Upload PDF, DOCX, JPG or PNG under bounded limits. DOCX text/tables/headers and embedded PNG/JPEG scans are handled; the original package is validated and retained. Unsupported DOC/DOCM, active content, malformed packages and oversized input are rejected.
 - Run actual DeepInfra multimodal extraction. AI output and missing values are shown for officer confirmation, not silently accepted as official fact.
-- All ten structured document fields (including empty fields) are editable on intake and source-review screens for Khatian, Porcha, Deed and Mutation. Corrections preserve original extraction and record previous/new values, actor and reason transactionally.
+- Relevant structured document fields (including missing values) are editable on intake and source-review screens for Khatian, Porcha, Deed and Mutation. The editor now shows a fixed set per category and a unit selector beside area. Normal review corrections preserve original extraction and record previous/new values, actor and reason transactionally.
 - Intake confirmation creates a draft/private land record and pending document atomically and idempotently. Document verification and public publication are separate explicit steps. Changing reviewed source data invalidates the reviewed/published state where applicable.
 - Mutation queue supports review and decisions. Verification cannot create duplicate cases; unresolved conflicts and stale parcel revisions block unsafe approval server-side.
+- Officer workspace now includes land search and status filters, parcel metadata editing, soft delete to Trash, restore, and permanent purge/empty Trash controls. The source/document area now includes interactive category previews, category/subtype editing, and document deletion with a confirmation dialog. These newer flows are present in code; their live deployment and end-to-end behavior have not been rechecked here.
+- Land area displays can show the document's original unit (decimal/শতাংশ, acre, bigha, katha or chhatak) beside a normalized decimal amount. The rule engine still uses decimals for comparisons.
 
 ### OCR and extraction
 
-- Images, PDF page renders and embedded DOCX images use a common browser preprocessing path: orientation-aware decoding, bounded resolution, restrained contrast/brightness, mild luminance sharpening, and small-angle deskew only when projection alignment improves.
-- Enhancement can be toggled. Intake supports re-extraction and shows a preview of the images sent to the model. Original source bytes and hashes remain intact.
-- Native PDF/DOCX text is retained and preferred over AI transcription as extraction evidence. Prompting requests a literal transcription before field mapping. Conservative rules map current khatian separately from form/previous numbers, normalize one explicit area quantity for Khatian/Porcha, suppress dates unsupported by the available source year, and avoid applying deed transfer area as parcel entitlement.
+- Images, PDF page renders and embedded DOCX images use a common browser preprocessing path: orientation-aware decoding, bounded resolution (currently targeting a maximum long edge of about 1800 pixels), restrained contrast/brightness, mild luminance sharpening, and small-angle deskew only when projection alignment improves. Enhancement is automatically enabled for new-record intake; the earlier intake checkbox was removed. Intake can re-extract and preview the model input. Original source bytes and hashes remain intact.
+- The visible extraction editor now uses a fixed set of relevant fields for each document category, informed by [docs/Fixed_field_for_extract.pdf](docs/Fixed_field_for_extract.pdf). Area has a unit selector. Irrelevant category fields are hidden and constrained during extraction. Earlier wording about showing all ten fields in every category is obsolete.
+- Native PDF/DOCX text is retained and preferred over AI transcription as extraction evidence. The newer prompt skips transcription when native text is present; for scanned images it asks for a short supporting excerpt (up to 300 characters). Its response budget is 800 tokens with native text or 1500 for scans, down from 3500. A recent commit describes a 40-second to roughly 4-second extraction improvement, but this handoff has no independently reproduced timing or distribution.
+- Conservative checks separate current khatian from form/previous numbers, prefer a labelled deed number to an internal file ID, normalize dates against visible source evidence, strip father/address suffixes from personal names, distinguish share from land area, and derive decimal equivalents for a single explicit unit quantity. Parcel baseline is inferred only from Khatian/Porcha, never a deed or mutation transfer. When evidence is ambiguous, officers still need to review it.
 - Model JSON parsing repairs literal control characters inside valid quoted strings but does not complete truncated/incomplete model output. Invalid output remains an extraction failure, not a fabricated success.
 - The configured production model remains `Qwen/Qwen3-VL-30B-A3B-Instruct`. DeepSeek V4.1 Flash 1017 and GLM 5.3 Flash are available as multimodal candidates through DeepInfra, but they have not yet been compared against our Bangla land-record examples. General vision benchmarks do not establish which is more accurate on these records.
 
@@ -84,14 +87,14 @@ Stored reviewed evidence ─ deterministic TypeScript rules ─ evidence report
 
 - The server owns privileged Supabase and DeepInfra calls. Service-role/API secrets are held in ignored local environment files and Cloudflare Worker secrets; never expose, echo, document, or commit them.
 - Supabase RLS is enabled; private documents and intakes are accessed through authorized server paths. Public views expose published data only. Officer identity/role is checked server-side, not inferred from UI state.
-- Postgres transactions/RPCs handle intake confirmation, correction audit and mutation consistency. `confirm_document_intake_review` retains original AI extraction, applies officer edits through audited review, and is idempotent. Separate verification and publication prevent AI output from becoming public automatically.
+- Postgres transactions/RPCs handle intake confirmation, correction audit and mutation consistency. `confirm_document_intake_review` retains original AI extraction, applies officer edits through audited review, and is idempotent. Separate verification and publication are the designed review path; the newer direct land-edit endpoint can also set `is_finalized`, so publication safeguards on that path need review before making a stronger blanket claim.
 - The risk/evidence engine is deterministic TypeScript. AI extracts candidate fields; it does not calculate the conflict score or make legal decisions.
-- Audits are append-only for application roles. This is not a claim that a privileged database administrator cannot alter the database.
+- Normal field corrections retain old/new values and reasons in audit records. The newly added permanent land purge and document delete paths explicitly delete related audit rows, so the earlier unqualified claim that audits are append-only for all application actions no longer holds. This is a material integrity gap to resolve before describing the system as preserving an immutable audit trail.
 - Original files stay in private storage. An authorized officer may view source through a short-lived signed URL. QR links lead to the published report and cannot grant access to private sources.
 
 ## Data and rule behavior
 
-Four document categories: KHATIAN, PORCHA, DEED and MUTATION. Multiple documents per subtype are allowed. Extracted values are nullable; unknown values stay unknown. Preserve source identity, dates, parties, area/share, parcel context, extraction evidence, original storage path/hash, review state and correction history.
+Four document categories: KHATIAN, PORCHA, DEED and MUTATION. Multiple documents per subtype are allowed. Extracted values are nullable; unknown values stay unknown. Each category has an explicit visible field set. The extraction payload now includes an area unit and normalized decimal amount, while the parcel's comparison baseline remains in decimals. Preserve source identity, dates, parties, area/share, parcel context, extraction evidence, original storage path/hash, review state and correction history during normal review. Permanent delete is an exception to that retention expectation.
 
 The core indicator is built from versioned, deduplicated signals. The canonical fixture is **40 excess/overlapping sale + 20 deed–mutation conflict = 60/100**. Ownership-history and timeline rules can add their documented signals when evidence supports them. The score is capped at 100. Missing checks reduce coverage and require further verification; they do not add a false clearance. Same-parcel linkage requires context, not a dag number alone. Khatian/Porcha baseline entitlement is not added twice. Deed transfer amounts are not treated as total parcel entitlement.
 
@@ -99,18 +102,20 @@ Mutation and publication decisions remain human actions. The most recent named p
 
 ## Validation actually completed
 
-- Latest production Worker deployed at the URL above; code is pushed to GitHub main at `f96460f`.
+- The 27-workflow/40-test evidence below belongs to the implementation through `f96460f`; `f6db0ee` later updated documentation. Three additional feature commits now exist on GitHub main through `4e8666d`. This handoff did not establish whether those commits were deployed or rerun the full checks.
 - 40 Bun unit tests passed after the final JSON parser change.
 - Typecheck, lint, OpenNext production build and 421-message localization catalog check passed for the final implementation.
 - 27 live Firefox workflows passed after the extraction/grounding, OCR preprocessing and editable-field changes. The final control-character parser patch was followed by build/unit checks and the real supplied Porcha retest; the whole 27-workflow suite was not rerun after that parser-only change.
 - On `demo assets/khotian.jpg`, the updated pipeline matched all seven manually checked fields both with and without preprocessing: current khatian 105, dag 207, area 15 decimals from 0.15 acre, district নরসিংদী, upazila নমুনা উপজেলা, mouza নমুনা মৌজা and JL 25. Dates remained null. Preprocessing by itself, before field-mapping changes, matched only 3/7 in both modes. This is one sample and does not prove general OCR accuracy or an enhancement-only gain.
 - The supplied `demo assets/০২_পর্চা_নমুনা.docx` (37,541 bytes; 32 text nodes) passed real live extraction after the final parser fix: official number নথি-পর্চা-০০১, owner আবদুল করিম, dag 207, khatian আরএস-১১৮, area 20 decimals, expected district/upazila/mouza/JL, issue date 2020-02-12 and absent execution date null. The exact original remained a private unconfirmed intake; no publication occurred.
-- These source assets and validation artifacts are local ignored/untracked data. Do not add `demo assets/` or `.local/` to Git.
+- The newer `d7917b9` commit added seven files from `demo assets/` and `docs/Fixed_field_for_extract.pdf` to the repository. These are sample/reference files, not credentials. `.local/`, environment files and validation artifacts remain private/ignored; do not add secrets to Git.
 
 ## Known limitations and honest claims
 
 - Synthetic records only. No real landowner dataset, government API, portal scraping, NID or phone records are used.
 - No guarantee of OCR accuracy. Bangla handwriting, blur, skew/perspective, faint marks, multi-column layouts, missing pages and ambiguous historical formats still require officer comparison with the original. Source transcription can also be wrong.
+- The latest OCR speed claim and new field/unit behavior need a measured regression on representative scans and native-text files; earlier 7/7 Khatian and Porcha results predate these optimizations.
+- The new permanent delete operations remove source files and audit rows and use several separate database/storage calls. Confirm intended retention policy and transaction/error behavior before relying on permanent deletion. Direct editing of a land's published status should be reviewed against the normal verification/publication workflow.
 - No comprehensive cadastral map, authoritative title adjudication, inheritance/partition resolution, or verified court/khas/acquisition data. Such checks remain unavailable in the report.
 - The indicator is not a fraud probability, title certificate, legal advice, government decision or automatic rejection. Hash equality proves byte identity with an enrolled source only.
 - Limits: 5 MB per original, PDF up to 3 pages; DOCX up to 40,000 extracted text characters, 3 embedded PNG/JPEG image sources, with package expansion and entry limits. Re-save `.doc`/`.docm` and encrypted files as supported formats.
@@ -118,7 +123,7 @@ Mutation and publication decisions remain human actions. The most recent named p
 
 ## Competition submission goal and remaining work
 
-The application/repository/live deployment are ready. The remaining external competition deliverables are:
+The earlier application build is live and the newer feature code is pushed. First confirm the current Worker contains the three newer commits, apply/check the `20261018000300_land_trash.sql` migration if needed, and verify the new officer flows and OCR changes. The remaining external competition deliverables are:
 
 1. Record and review a truthful demo video of at most 90 seconds.
 2. Prepare a concept PDF of at most three pages.
@@ -136,7 +141,7 @@ Potential next technical improvement, only if time allows: make a small, control
 - [architecture_&_ui_ux.pdf](architecture_%26_ui_ux.pdf): supplied product/architecture reference.
 - [master_instructions.md](master_instructions.md): supplied master brief. A file named `master_prompt.md` was not present.
 - [Hackathon_Overview.md](Hackathon_Overview.md) and `landtech_hackathon_rulebook.pdf`: competition overview and rules reviewed during planning.
-- `.env.local`, `.local/`, `demo assets/`, `test-results/`: private/local material; do not commit.
+- `.env.local`, `.local/`, `test-results/`: private/local material; do not commit. `demo assets/` is now tracked in Git as sample material; inspect any future addition before committing it.
 
 ```bash
 bun run dev
