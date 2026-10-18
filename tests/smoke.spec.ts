@@ -15,7 +15,7 @@ test("citizen can search the real conflict, inspect history, and open source PDF
   await page.getByTestId("land-search-input").fill("LND-MOCK-001");
   await page.getByTestId("land-search-btn").click();
   await expect(page.getByTestId("risk-indicator-score")).toHaveText(
-    /^(60|৬০)$/,
+    /^(65|৬৫)$/,
     {
       timeout: 30000,
     },

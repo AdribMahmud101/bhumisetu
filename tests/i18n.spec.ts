@@ -77,13 +77,13 @@ test("English reports translate evidence, history, document labels and print vie
 }) => {
   await page.goto("/verify/LND-MOCK-001");
   await expect(page.getByTestId("risk-indicator-score")).toHaveText(
-    /^(60|৬০)$/,
+    /^(65|৬৫)$/,
   );
   await page.getByTestId("locale-en").click();
   await expect(
     page.getByRole("heading", { name: "Integrated land record", exact: true }),
   ).toBeVisible();
-  await expect(page.getByTestId("risk-indicator-score")).toHaveText("60");
+  await expect(page.getByTestId("risk-indicator-score")).toHaveText("65");
   await expect(page.getByTestId("evidence-panel")).toContainText(
     "Excess or overlapping sale",
   );

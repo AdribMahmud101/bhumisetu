@@ -84,6 +84,48 @@ export interface Signal {
   detail: string;
   evidence: string[];
 }
+export type SeverityLevel = "low" | "moderate" | "elevated" | "critical";
+
+export interface VerificationAlert {
+  ruleId:
+    | "RULE_DOUBLE_SALE"
+    | "RULE_OWNERSHIP_CONFLICT"
+    | "RULE_RECORD_MISMATCH"
+    | "RULE_SUSPICIOUS_TIMELINE";
+  shortTitle: string;
+  weight: number;
+  shortReason: string;
+  evidenceDocs: string[];
+}
+
+export interface VerificationResult {
+  masterLandId: string;
+  parcelSummary: {
+    district: string;
+    upazila: string;
+    mouza: string;
+    khatianAndDag: string;
+    totalRecordedArea: string;
+    recordedOwner: string;
+  };
+  riskScore: number;
+  maxScore: number;
+  severityLevel: SeverityLevel;
+  riskLabel: string;
+  overallStatus: string;
+  buyerVerdict: string;
+  reasonsShort: string[];
+  triggeredAlerts: VerificationAlert[];
+  coverage: {
+    checkedRecords: string[];
+    missingOrExternalSources: Array<{
+      name: string;
+      status: "Not checked / Data unavailable";
+    }>;
+  };
+  verificationStatus: string;
+}
+
 export interface Analysis {
   score: number;
   signals: Signal[];
@@ -95,6 +137,7 @@ export interface Analysis {
   status: string;
   missing: string[];
   version: string;
+  verificationResult?: VerificationResult;
 }
 export const fieldLabels: Record<keyof Fields, string> = {
   official_number: "নথি নম্বর / Document number",

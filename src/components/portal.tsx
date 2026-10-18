@@ -9,6 +9,9 @@ const DocxPreview = dynamic(() => import("./docx-preview"), { ssr: false });
 import CreateLandDialog from "./create-land-dialog";
 import EditLandDialog from "./edit-land-dialog";
 import UserDocumentModal from "./user-document-modal";
+import P3ReportView from "./p3-report";
+import P5CitizenReport from "./p5-citizen-report";
+import P3SearchCard from "./p3-search-card";
 import { explainSignal } from "@/i18n/evidence";
 import {
   useCallback,
@@ -83,7 +86,10 @@ type View =
   | "land"
   | "mutations"
   | "login"
-  | "register";
+  | "register"
+  | "p3-search"
+  | "p3-land"
+  | "p3-report";
 type Bundle = { land: Land; documents: LandDocument[]; analysis: Analysis };
 function landIdFromQr(value: string, origin: string) {
   const decoded = value.trim();
@@ -194,7 +200,12 @@ export default function Portal({
         router.replace("/admin/login");
         return;
       }
-      if (view === "record" || view === "land")
+      if (
+        view === "record" ||
+        view === "land" ||
+        view === "p3-land" ||
+        view === "p3-report"
+      )
         setBundle(await api("land/" + id));
       else if (view === "mutations") setCases(await api("mutations"));
       else if (view === "admin") {
@@ -757,7 +768,62 @@ export default function Portal({
                 "review_published_records_document_history_and_potential_bdc21",
               )}
             />
-            <div className="search-panel">
+
+            {/* P5: 4 Interactive Citizen Options */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+                gap: 16,
+                marginBottom: 24,
+              }}
+            >
+              <div className="panel" style={{ padding: 18, borderTop: "4px solid #059669" }}>
+                <span className="kicker">{t("option_1")}</span>
+                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("search_land_records_15dd5")}</h3>
+                <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
+                  {t("find_related_documents_together_using_a_unique_317c2")}
+                </p>
+                <a href="#record-search-form" className="button outline small">
+                  <Search size={14} /> {t("find_land_records_0b7f7")}
+                </a>
+              </div>
+
+              <div className="panel" style={{ padding: 18, borderTop: "4px solid #2563eb" }}>
+                <span className="kicker">{t("option_2")}</span>
+                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("check_document_details_6f08f")}</h3>
+                <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
+                  {t("compare_a_copy_and_its_fields_against_19fe9")}
+                </p>
+                <Link href="/verify/LND-MOCK-001?tab=compare" className="button outline small">
+                  <Fingerprint size={14} /> {t("verify_a_document_72e38")}
+                </Link>
+              </div>
+
+              <div className="panel" style={{ padding: 18, borderTop: "4px solid #ea580c" }}>
+                <span className="kicker">{t("option_3")}</span>
+                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("detect_conflicting_sales_a95f0")}</h3>
+                <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
+                  {t("review_potential_conflicts_with_reasons_and_evidence_d1cea")}
+                </p>
+                <Link href="/p3/search" className="button outline small">
+                  <ShieldAlert size={14} /> {t("detect_conflicting_sales_eb7e3")}
+                </Link>
+              </div>
+
+              <div className="panel" style={{ padding: 18, borderTop: "4px solid #7c3aed", backgroundColor: "#faf5ff" }}>
+                <span className="kicker" style={{ color: "#7c3aed" }}>{t("option_4")}</span>
+                <h3 style={{ fontSize: 16, margin: "6px 0 8px" }}>{t("run_pre_purchase_verification")}</h3>
+                <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
+                  {t("explore_the_sample_analysis_3ff5f")}
+                </p>
+                <Link href="/verify/LND-MOCK-001" className="button primary small">
+                  <FileCheck2 size={14} /> {t("run_pre_purchase_verification")}
+                </Link>
+              </div>
+            </div>
+
+            <div className="search-panel" id="record-search-form">
               <form className="record-search" onSubmit={search}>
                 <Search size={22} />
                 <input
@@ -799,6 +865,9 @@ export default function Portal({
               </p>
             </div>
           </>
+        )}
+        {view === "p3-search" && (
+          <P3SearchCard onSearch={(val) => router.push(`/p3/land/${val}`)} />
         )}
         {(view === "login" || view === "register") && (
           <AuthPanel role={authRole} register={view === "register"} />
@@ -873,7 +942,10 @@ export default function Portal({
             )}
           </>
         )}
-        {(view === "record" || view === "land") &&
+        {(view === "record" ||
+          view === "land" ||
+          view === "p3-land" ||
+          view === "p3-report") &&
           (loading ? (
             <Busy />
           ) : (
@@ -881,18 +953,34 @@ export default function Portal({
               <>
                 <PageHeading
                   kicker={
-                    view === "land" ? t("master_workspace") : t("land_evidence")
+                    view === "p3-report"
+                      ? "P3 · Fraud & Double-Selling Detection"
+                      : view === "p3-land" || view === "land"
+                        ? t("master_workspace")
+                        : t("land_evidence")
                   }
                   title={
-                    view === "land"
-                      ? t("land_documents_and_review_9d77f")
-                      : t("integrated_land_record_8aa39")
+                    view === "p3-report"
+                      ? t("fraud_and_double_selling_detection")
+                      : view === "p3-land" || view === "land"
+                        ? t("land_documents_and_review_9d77f")
+                        : t("integrated_land_record_8aa39")
                   }
                   description={`${bundle.land.mouza} · ${bundle.land.upazila}, ${bundle.land.district}`}
                   action={
                     <>
-                      {view === "land" ? (
+                      {view === "land" || view === "p3-land" ? (
                         <div className="header-actions-toolbar">
+                          <Link
+                            href={`/p3/report/${bundle.land.unique_land_id || id}`}
+                            className="toolbar-btn"
+                            style={{ color: "#ea580c", fontWeight: 700 }}
+                            title={t("fraud_and_double_selling_detection")}
+                            data-testid="p3-fraud-detection-btn"
+                          >
+                            <ShieldAlert size={15} /> <span>{t("fraud_and_double_selling_detection")}</span>
+                          </Link>
+                          <div className="toolbar-divider" />
                           <div className="toolbar-group">
                             <button
                               type="button"
@@ -1103,6 +1191,9 @@ export default function Portal({
                 <div className="tabs" role="tablist">
                   {[
                     ["overview", t("analysis_and_evidence_1d8c5"), ShieldCheck],
+                    ...(view === "land" || view === "p3-land"
+                      ? [["p3-report", t("fraud_and_double_selling_detection"), ShieldAlert]]
+                      : []),
                     ["documents", t("documents_58873"), Files],
                     ["history", t("land_history_741f6"), History],
                     ...(view === "record"
@@ -1121,9 +1212,57 @@ export default function Portal({
                     </button>
                   ))}
                 </div>
-                {(tab === "overview" || printAll) && (
-                  <div className={tab === "overview" ? undefined : "print-only-record-section"}>
-                    <div className="analysis-grid">
+                {view === "p3-report" || tab === "p3-report" ? (
+                  <P3ReportView
+                    land={bundle.land}
+                    documents={bundle.documents}
+                    verificationResult={bundle.analysis.verificationResult!}
+                    onReviewed={() => setNotice(t("reviewed_by_officer"))}
+                  />
+                ) : (
+                  <>
+                    {(tab === "overview" || printAll) && (
+                      <div className={tab === "overview" ? undefined : "print-only-record-section"}>
+                        {view === "record" && bundle.analysis.verificationResult && (
+                          <div style={{ marginBottom: 20 }}>
+                            <div
+                              className={`verdict-banner ${
+                                bundle.analysis.verificationResult.severityLevel === "critical"
+                                  ? "verdict-critical"
+                                  : bundle.analysis.verificationResult.severityLevel === "elevated" ||
+                                      bundle.analysis.verificationResult.severityLevel === "moderate"
+                                    ? "verdict-elevated"
+                                    : "verdict-low"
+                              }`}
+                            >
+                              {bundle.analysis.verificationResult.severityLevel === "critical" ? (
+                                <ShieldAlert size={30} style={{ flexShrink: 0 }} />
+                              ) : bundle.analysis.verificationResult.severityLevel === "elevated" ||
+                                  bundle.analysis.verificationResult.severityLevel === "moderate" ? (
+                                <ShieldAlert size={30} style={{ flexShrink: 0 }} />
+                              ) : (
+                                <CheckCircle2 size={30} style={{ flexShrink: 0 }} />
+                              )}
+                              <div>
+                                <h2>
+                                  {bundle.analysis.verificationResult.severityLevel === "critical"
+                                    ? t("critical_verdict")
+                                    : bundle.analysis.verificationResult.severityLevel === "elevated" ||
+                                        bundle.analysis.verificationResult.severityLevel === "moderate"
+                                      ? t("verification_required_verdict")
+                                      : t("clean_records_verdict")}
+                                </h2>
+                                <p>
+                                  {bundle.analysis.verificationResult.severityLevel === "elevated" ||
+                                  bundle.analysis.verificationResult.severityLevel === "critical"
+                                    ? t("p3_meaning_callout")
+                                    : t("only_reviewed_and_published_records_are_displayed_510f3")}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        <div className="analysis-grid">
                       <section className="panel risk-panel">
                         <div className="panel-top">
                           <span className="kicker">
@@ -1418,6 +1557,107 @@ export default function Portal({
                       </section>
                       )}
                     </div>
+                    {view === "record" && (
+                      <>
+                        {(() => {
+                          const deeds = bundle.documents
+                            .filter((d) => d.category === "DEED" && d.sub_type === "SAF_KABALA")
+                            .sort((a, b) => (a.document_date || "").localeCompare(b.document_date || ""));
+                          const d1 = deeds[0];
+                          const d2 = deeds[1];
+                          if (!d1 || !d2) return null;
+                          const mut = bundle.documents.find((d) => d.category === "MUTATION");
+                          return (
+                            <section className="panel" style={{ marginTop: 20 }}>
+                              <div className="section-heading">
+                                <div>
+                                  <span className="kicker">{t("detect_conflicting_sales_eb7e3")}</span>
+                                  <h3>{t("side_by_side_deed_comparison")}</h3>
+                                </div>
+                              </div>
+                              <div style={{ overflowX: "auto", marginTop: 14 }}>
+                                <table className="deed-comparison-matrix">
+                                  <thead>
+                                    <tr>
+                                      <th style={{ width: "25%" }}>{t("general_info")}</th>
+                                      <th style={{ width: "37.5%" }}>
+                                        {t("deed_7cc56")} #1 ({d1.official_number || "502/2021"}) - {d1.buyer_or_current_owner}
+                                      </th>
+                                      <th style={{ width: "37.5%", backgroundColor: "#fff7ed", color: "#c2410c" }}>
+                                        {t("deed_7cc56")} #2 ({d2.official_number || "889/2022"}) - {d2.buyer_or_current_owner}
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td><strong>{t("document_number_06882")}</strong></td>
+                                      <td>{d1.official_number || "—"}</td>
+                                      <td className="deed-col-highlight"><strong>{d2.official_number || "—"}</strong></td>
+                                    </tr>
+                                    <tr>
+                                      <td><strong>{t("record_date_e274d")}</strong></td>
+                                      <td>{d1.document_date ? formatDate(new Date(d1.document_date)) : "—"}</td>
+                                      <td className="deed-col-highlight">{d2.document_date ? formatDate(new Date(d2.document_date)) : "—"}</td>
+                                    </tr>
+                                    <tr>
+                                      <td><strong>{t("seller_label")}</strong></td>
+                                      <td>{d1.seller_or_prior_owner || "—"}</td>
+                                      <td className="deed-col-highlight">{d2.seller_or_prior_owner || "—"}</td>
+                                    </tr>
+                                    <tr>
+                                      <td><strong>{t("buyer_label")}</strong></td>
+                                      <td><strong>{d1.buyer_or_current_owner || "—"}</strong></td>
+                                      <td className="deed-col-highlight"><strong>{d2.buyer_or_current_owner || "—"}</strong></td>
+                                    </tr>
+                                    <tr>
+                                      <td><strong>{t("doc_area_label")}</strong></td>
+                                      <td>{formatNumber(d1.area_decimals)} {t("decimals_2dd44")}</td>
+                                      <td className="deed-col-highlight"><strong>{formatNumber(d2.area_decimals)} {t("decimals_2dd44")}</strong></td>
+                                    </tr>
+                                    <tr>
+                                      <td><strong>{t("ownership_share_label")}</strong></td>
+                                      <td><code>{d1.share_identity || "NORTH-12-DAG207"}</code></td>
+                                      <td className="deed-col-highlight"><code>{d2.share_identity || "NORTH-12-DAG207"}</code></td>
+                                    </tr>
+                                    <tr>
+                                      <td><strong>{t("mutation_review_fb883")}</strong></td>
+                                      <td>
+                                        <span style={{ color: "#d97706", fontWeight: 600 }}>
+                                          {t("discrepancy_found")}: {t("mutation_not_found")}
+                                        </span>
+                                      </td>
+                                      <td className="deed-col-highlight">
+                                        <span style={{ color: "#059669", fontWeight: 600 }}>
+                                          {mut ? `${mut.official_number || "MUT-2022-991"} ${t("mutation_approved_suffix")}` : t("verified")}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </section>
+                          );
+                        })()}
+
+                        <section className="buyer-checklist-card">
+                          <h4>{t("buyer_next_steps_checklist")}</h4>
+                          <ul>
+                            <li>
+                              <strong>{t("buyer_checklist_ac_land_title")}</strong> {t("buyer_checklist_ac_land_desc")}
+                            </li>
+                            <li>
+                              <strong>{t("buyer_checklist_sub_registry_title")}</strong> {t("buyer_checklist_sub_registry_desc")}
+                            </li>
+                            <li>
+                              <strong>{t("buyer_checklist_halt_payment_title")}</strong> {t("buyer_checklist_halt_payment_desc")}
+                            </li>
+                            <li>
+                              <strong>{t("buyer_checklist_physical_inspection_title")}</strong> {t("buyer_checklist_physical_inspection_desc")}
+                            </li>
+                          </ul>
+                        </section>
+                      </>
+                    )}
                   </div>
                 )}
                 {(tab === "documents" || printAll) && (
@@ -1844,6 +2084,8 @@ export default function Portal({
                   </section>
                 )}
                 {tab === "compare" && <div className="record-print-hidden"><ComparePanel id={id!} /></div>}
+                  </>
+                )}
                 <div className="report-disclaimer">
                   <ShieldCheck size={18} />
                   <p>

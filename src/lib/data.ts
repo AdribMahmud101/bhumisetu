@@ -31,7 +31,9 @@ export function publicAuth() {
   );
 }
 export async function loadLand(id: string, admin = false) {
-  let q = db().from("master_lands").select("*").eq("unique_land_id", id);
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  let q = db().from("master_lands").select("*");
+  q = isUuid ? q.eq("id", id) : q.eq("unique_land_id", id);
   if (!admin) q = q.eq("is_finalized", true).eq("is_deleted", false);
   const { data: land, error } = await q.maybeSingle();
   check(error);

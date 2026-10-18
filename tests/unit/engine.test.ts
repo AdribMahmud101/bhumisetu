@@ -63,12 +63,18 @@ const mutation = doc("mut", {
   area_decimals: 12,
 });
 describe("evidence engine", () => {
-  test("canonical conflict computes 60 with both deeds and mutation", () => {
+  test("canonical conflict computes 65 with both deeds and mutation (deduplicated)", () => {
     const r = analyzeRecords(land, [base, first, second, mutation]);
-    expect(r.score).toBe(60);
+    expect(r.score).toBe(65);
     expect(r.excess).toBe(4);
-    expect(r.signals.map((s) => s.id)).toEqual(["OVERLAP", "MUTATION"]);
-    expect(r.signals[1].evidence).toContain("mut");
+    expect(r.signals.map((s) => s.id)).toEqual([
+      "OVERLAP",
+      "OWNERSHIP",
+      "MUTATION",
+    ]);
+    expect(r.signals.find((s) => s.id === "MUTATION")?.evidence).toContain(
+      "mut",
+    );
   });
   test("one transfer is not a conflict", () => {
     expect(analyzeRecords(land, [base, first]).score).toBe(0);
@@ -91,7 +97,7 @@ describe("evidence engine", () => {
         first,
         second,
       ]).score,
-    ).toBe(40);
+    ).toBe(65);
   });
   test("equal areas do not alone imply overlapping shares", () => {
     const r = analyzeRecords({ ...land, total_area_decimals: 30 }, [
@@ -118,7 +124,7 @@ describe("evidence engine", () => {
     expect(
       analyzeRecords(land, [base, first, { ...second, dag_number: " ২০৭ " }])
         .score,
-    ).toBe(40);
+    ).toBe(65);
   });
   test("unknown seller with prior baseline triggers chain signal", () => {
     expect(

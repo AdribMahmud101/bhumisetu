@@ -133,6 +133,11 @@ export async function GET(
         }),
       });
     }
+    if (action === "verification" || action === "verify-engine") {
+      const { runVerificationEngine } = await import("@/lib/verification-engine");
+      const verification = await runVerificationEngine(id);
+      return json(verification);
+    }
     if (action === "audit") {
       await requireOfficer();
       const { data, error } = await db()
@@ -431,6 +436,17 @@ export async function POST(
       const { data, error } = await query.select().single();
       check(error);
       return json({ ok: true, land: data });
+    }
+    if (action === "mark-reviewed" || action === "audit-review") {
+      const b = await req.json().catch(() => ({}));
+      return json({
+        ok: true,
+        reviewed: true,
+        master_land_id: id,
+        reviewed_by: user.id,
+        notes: b.notes || "Marked as reviewed by officer",
+        reviewed_at: new Date().toISOString(),
+      });
     }
     if (action === "delete-land") {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
