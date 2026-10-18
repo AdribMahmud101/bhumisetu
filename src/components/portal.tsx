@@ -2136,6 +2136,16 @@ function LandList({
   const { t, tt, locale, setLocale, formatDate } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"ALL" | "PUBLISHED" | "DRAFT" | "TRASH">("ALL");
+  const [showAllLands, setShowAllLands] = useState(false);
+  const [mobileLandGrid, setMobileLandGrid] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 760px)");
+    const update = () => setMobileLandGrid(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   if (!admin) {
     return lands.length ? (
@@ -2201,6 +2211,8 @@ function LandList({
     }
     return true;
   });
+  const visibleLandCount = mobileLandGrid ? 2 : 6;
+  const visibleLands = showAllLands ? filtered : filtered.slice(0, visibleLandCount);
 
   return (
     <>
@@ -2230,7 +2242,10 @@ function LandList({
             <input
               type="search"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowAllLands(false);
+              }}
               placeholder={t("search_lands_placeholder")}
               aria-label={t("search_lands_placeholder")}
               data-testid="officer-land-search"
@@ -2247,7 +2262,10 @@ function LandList({
               type="button"
               className={"button " + (filter === "ALL" ? "primary" : "outline")}
               style={{ padding: "6px 14px", fontSize: "12px", height: "36px" }}
-              onClick={() => setFilter("ALL")}
+              onClick={() => {
+                setFilter("ALL");
+                setShowAllLands(false);
+              }}
               data-testid="filter-all-btn"
             >
               {t("filter_all")} ({lands.length})
@@ -2258,7 +2276,10 @@ function LandList({
                 "button " + (filter === "PUBLISHED" ? "primary" : "outline")
               }
               style={{ padding: "6px 14px", fontSize: "12px", height: "36px" }}
-              onClick={() => setFilter("PUBLISHED")}
+              onClick={() => {
+                setFilter("PUBLISHED");
+                setShowAllLands(false);
+              }}
               data-testid="filter-published-btn"
             >
               {t("filter_published")} (
@@ -2270,7 +2291,10 @@ function LandList({
                 "button " + (filter === "DRAFT" ? "primary" : "outline")
               }
               style={{ padding: "6px 14px", fontSize: "12px", height: "36px" }}
-              onClick={() => setFilter("DRAFT")}
+              onClick={() => {
+                setFilter("DRAFT");
+                setShowAllLands(false);
+              }}
               data-testid="filter-draft-btn"
             >
               {t("filter_draft")} ({lands.filter((l) => !l.is_finalized).length})
@@ -2287,7 +2311,10 @@ function LandList({
                 borderColor: filter === "TRASH" ? undefined : "#fca5a5",
                 color: filter === "TRASH" ? undefined : "#dc2626",
               }}
-              onClick={() => setFilter("TRASH")}
+              onClick={() => {
+                setFilter("TRASH");
+                setShowAllLands(false);
+              }}
               data-testid="filter-trash-btn"
             >
               <Trash2 size={13} /> {t("filter_trash")} ({trashLands.length})
@@ -2326,8 +2353,9 @@ function LandList({
       )}
 
       {filtered.length ? (
-        <div className="land-grid">
-          {filtered.map((l) => (
+        <>
+        <div className="land-grid" id="officer-land-grid">
+          {visibleLands.map((l) => (
             <div
               className="land-card"
               key={l.id}
@@ -2478,6 +2506,30 @@ function LandList({
             </div>
           ))}
         </div>
+        {filtered.length > visibleLandCount && (
+          <div className="document-list-footer" style={{ marginTop: "20px" }}>
+            <button
+              type="button"
+              className="button outline small"
+              data-testid="toggle-lands"
+              aria-expanded={showAllLands}
+              aria-controls="officer-land-grid"
+              onClick={() => setShowAllLands((open) => !open)}
+            >
+              {showAllLands ? (
+                <>
+                  {t("show_fewer_lands")} <ChevronUp size={15} />
+                </>
+              ) : (
+                <>
+                  {t("show_more_lands", { count: filtered.length - visibleLandCount })}{" "}
+                  <ChevronDown size={15} />
+                </>
+              )}
+            </button>
+          </div>
+        )}
+        </>
       ) : (
         <Empty
           text={

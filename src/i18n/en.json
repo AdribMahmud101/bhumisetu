@@ -474,6 +474,8 @@
   "document_category": "Document category",
   "document_subtype": "Sub-type",
   "show_more_documents": "See more ({count} remaining)",
-  "show_fewer_documents": "Show less"
+  "show_fewer_documents": "Show less",
+  "show_more_lands": "See more land records ({count} remaining)",
+  "show_fewer_lands": "Show fewer land records"
 }
 
