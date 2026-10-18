@@ -204,19 +204,24 @@ export function P2DeedVerifier({
       const data = await res.json();
       const extracted: ExtractedDeedFields = data.extracted || {};
 
+      const formatFieldVal = (val?: string | null) => {
+        if (!val) return "";
+        return locale === "bn" ? toBengaliDigits(val) : val;
+      };
+
       setExtractedFields({
-        deedNumber: extracted.deedNumber || "",
-        deedDate: extracted.deedDate || "",
+        deedNumber: formatFieldVal(extracted.deedNumber),
+        deedDate: formatFieldVal(extracted.deedDate),
         sellerName: extracted.sellerName || "",
         buyerName: extracted.buyerName || "",
-        dagNumber: extracted.dagNumber || "",
+        dagNumber: formatFieldVal(extracted.dagNumber),
         landAreaDecimals:
           extracted.landAreaDecimals != null
             ? locale === "bn"
               ? toBengaliDigits(extracted.landAreaDecimals)
               : String(extracted.landAreaDecimals)
             : "",
-        khatianNumber: extracted.khatianNumber || "",
+        khatianNumber: formatFieldVal(extracted.khatianNumber),
         mouza: extracted.mouza || "",
       });
 
@@ -356,7 +361,7 @@ export function P2DeedVerifier({
           <div className="section-heading" style={{ marginBottom: 18 }}>
             <div>
               <span className="kicker" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <FileCheck2 size={14} color="#059669" /> P2 · {t("p2_deed_verification_title")}
+                <FileCheck2 size={14} color="#059669" /> {t("p2_deed_verification_title")}
               </span>
               <h2 style={{ fontSize: 22, margin: "6px 0 4px" }}>{t("p2_deed_verification_title")}</h2>
               <p style={{ margin: 0, color: "#64748b", fontSize: 13.5 }}>{t("p2_deed_verification_sub")}</p>
@@ -438,8 +443,10 @@ export function P2DeedVerifier({
                 </strong>
                 <span style={{ fontSize: 12.5, color: "#64748b" }}>
                   {selectedFile
-                    ? `${(selectedFile.size / 1024).toFixed(1)} KB`
-                    : "PDF, ছবি (PNG, JPG), DOCX · সর্বোচ্চ ৫ MB, ৩ পৃষ্ঠা"}
+                    ? `${formatNumber(Number((selectedFile.size / 1024).toFixed(1)))} ${locale === "bn" ? "কেবি" : "KB"}`
+                    : locale === "bn"
+                      ? "পিডিএফ, ছবি (PNG, JPG), DOCX · সর্বোচ্চ ৫ মেগাবাইট, ৩ পৃষ্ঠা"
+                      : "PDF, Image (PNG, JPG), DOCX · Max 5 MB, 3 pages"}
                 </span>
 
                 <input
@@ -665,7 +672,7 @@ export function P2DeedVerifier({
                   onChange={(e) =>
                     setExtractedFields({ ...extractedFields, deedNumber: e.target.value })
                   }
-                  placeholder="যেমন: ৫০২/২০২১"
+                  placeholder={locale === "bn" ? "যেমন: ৫০২/২০২১" : "e.g. 502/2021"}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -688,7 +695,7 @@ export function P2DeedVerifier({
                   onChange={(e) =>
                     setExtractedFields({ ...extractedFields, deedDate: e.target.value })
                   }
-                  placeholder="YYYY-MM-DD বা DD/MM/YYYY"
+                  placeholder={locale === "bn" ? "যেমন: ২০২০-০৩-২৬ বা ২৬/০৩/২০২০" : "YYYY-MM-DD or DD/MM/YYYY"}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -711,7 +718,7 @@ export function P2DeedVerifier({
                   onChange={(e) =>
                     setExtractedFields({ ...extractedFields, sellerName: e.target.value })
                   }
-                  placeholder="বিক্রেতার নাম লিখুন"
+                  placeholder={locale === "bn" ? "বিক্রেতার নাম লিখুন" : "Enter seller name"}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -734,7 +741,7 @@ export function P2DeedVerifier({
                   onChange={(e) =>
                     setExtractedFields({ ...extractedFields, buyerName: e.target.value })
                   }
-                  placeholder="ক্রেতার নাম লিখুন"
+                  placeholder={locale === "bn" ? "ক্রেতার নাম লিখুন" : "Enter buyer name"}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -757,7 +764,7 @@ export function P2DeedVerifier({
                   onChange={(e) =>
                     setExtractedFields({ ...extractedFields, dagNumber: e.target.value })
                   }
-                  placeholder="যেমন: ২০৭"
+                  placeholder={locale === "bn" ? "যেমন: ২০৭" : "e.g. 207"}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -782,7 +789,7 @@ export function P2DeedVerifier({
                     onChange={(e) =>
                       setExtractedFields({ ...extractedFields, landAreaDecimals: e.target.value })
                     }
-                    placeholder="যেমন: ১২.০০"
+                    placeholder={locale === "bn" ? "যেমন: ১২.০০" : "e.g. 12.00"}
                     style={{
                       flex: 1,
                       padding: "9px 12px",
@@ -825,7 +832,7 @@ export function P2DeedVerifier({
                   onChange={(e) =>
                     setExtractedFields({ ...extractedFields, khatianNumber: e.target.value })
                   }
-                  placeholder="যেমন: RS-১১৮"
+                  placeholder={locale === "bn" ? "যেমন: আরএস-১১৮" : "e.g. RS-118"}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -848,7 +855,7 @@ export function P2DeedVerifier({
                   onChange={(e) =>
                     setExtractedFields({ ...extractedFields, mouza: e.target.value })
                   }
-                  placeholder="মৌজার নাম লিখুন"
+                  placeholder={locale === "bn" ? "মৌজার নাম লিখুন" : "Enter mouza name"}
                   style={{
                     width: "100%",
                     padding: "9px 12px",
@@ -997,10 +1004,16 @@ export function P2DeedVerifier({
                   }}
                 >
                   {result.outcome === "matched"
-                    ? `${t("status_matched")} (Verified Match)`
+                    ? locale === "bn"
+                      ? t("status_matched")
+                      : `${t("status_matched")} (Verified Match)`
                     : result.outcome === "mismatch"
-                      ? `${t("status_mismatch")} (Mismatch Detected)`
-                      : `${t("status_unverified")} (Inconclusive)`}
+                      ? locale === "bn"
+                        ? t("status_mismatch")
+                        : `${t("status_mismatch")} (Mismatch Detected)`
+                      : locale === "bn"
+                        ? t("status_unverified")
+                        : `${t("status_unverified")} (Inconclusive)`}
                 </span>
               </div>
               <h2 style={{ margin: "4px 0 6px", fontSize: 19 }}>
@@ -1074,7 +1087,9 @@ export function P2DeedVerifier({
                             {field.storedValue != null
                               ? typeof field.storedValue === "number"
                                 ? `${formatNumber(field.storedValue)} ${t("decimals_2dd44")}`
-                                : String(field.storedValue)
+                                : locale === "bn"
+                                  ? toBengaliDigits(field.storedValue)
+                                  : String(field.storedValue)
                               : "—"}
                           </span>
                         </td>
@@ -1088,7 +1103,9 @@ export function P2DeedVerifier({
                             {field.uploadedValue != null
                               ? typeof field.uploadedValue === "number"
                                 ? `${formatNumber(field.uploadedValue)} ${t("decimals_2dd44")}`
-                                : String(field.uploadedValue)
+                                : locale === "bn"
+                                  ? toBengaliDigits(field.uploadedValue)
+                                  : String(field.uploadedValue)
                               : "—"}
                           </span>
                         </td>
@@ -1149,7 +1166,7 @@ export function P2DeedVerifier({
                   <strong style={{ fontSize: 14, display: "block", color: "#1e293b" }}>
                     {t("khatian_check_title")}
                   </strong>
-                  <small style={{ color: "#64748b" }}>RS Khatian</small>
+                  <small style={{ color: "#64748b" }}>{locale === "bn" ? "আর.এস খতিয়ান" : "RS Khatian"}</small>
                 </div>
                 <span
                   style={{
@@ -1195,7 +1212,7 @@ export function P2DeedVerifier({
                   <strong style={{ fontSize: 14, display: "block", color: "#1e293b" }}>
                     {t("porcha_check_title")}
                   </strong>
-                  <small style={{ color: "#64748b" }}>Certified Porcha</small>
+                  <small style={{ color: "#64748b" }}>{locale === "bn" ? "সার্টিফাইড পর্চা" : "Certified Porcha"}</small>
                 </div>
                 <span
                   style={{
@@ -1241,7 +1258,7 @@ export function P2DeedVerifier({
                   <strong style={{ fontSize: 14, display: "block", color: "#1e293b" }}>
                     {t("namjari_check_title")}
                   </strong>
-                  <small style={{ color: "#64748b" }}>Mutation Record</small>
+                  <small style={{ color: "#64748b" }}>{locale === "bn" ? "নামজারি রেকর্ড" : "Mutation Record"}</small>
                 </div>
                 <span
                   style={{
