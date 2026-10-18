@@ -34,7 +34,7 @@ Then show one officer correction against a real stored source, the persisted old
 
 - Live prototype: https://bhumisetu.adribmahmud.workers.dev
 - Public repository: https://github.com/AdribMahmud101/bhumisetu
-- Current main commit before this handoff update: `4e8666d` — `Optimize document extraction speed (40s -> ~4s) and implement CRUD for internal documents`. It follows `1ac722d` (OCR/category fields) and `d7917b9` (land management/trash). The live Worker URL is known; deployment of these three newer commits has not been verified in this handoff.
+- Recent feature commits: `1ac722d` (OCR/category fields), `d7917b9` (land management/trash), and `4e8666d` (extraction speed/document management). They and the intake-form change `2ccd21c` are included in the Worker deployment below.
 - Stack: Next.js 15.5.28 App Router, React 18, TypeScript, Tailwind, Bun; Cloudflare Workers through OpenNext; Supabase Auth, Postgres and private Storage; DeepInfra vision through the OpenAI SDK; PDF.js for PDF text/rendering; `fflate` and `fast-xml-parser` for DOCX; Zod validation; Playwright Firefox and Bun tests.
 - Supabase project is linked locally as `bhumishetu` (ref `xbjlzsmkhyayogjigpaq`). The spelling difference between the product name BhumiSetu and project slug is intentional.
 - Preserve the current Workers address and account subdomain. The user explicitly chose to keep it simple and accepted the available address; do not rename or add a custom domain without a new request.
@@ -60,7 +60,7 @@ Then show one officer correction against a real stored source, the persisted old
 - Relevant structured document fields (including missing values) are editable on intake and source-review screens for Khatian, Porcha, Deed and Mutation. The editor now shows a fixed set per category and a unit selector beside area. Normal review corrections preserve original extraction and record previous/new values, actor and reason transactionally.
 - Intake confirmation creates a draft/private land record and pending document atomically and idempotently. Document verification and public publication are separate explicit steps. Changing reviewed source data invalidates the reviewed/published state where applicable.
 - Mutation queue supports review and decisions. Verification cannot create duplicate cases; unresolved conflicts and stale parcel revisions block unsafe approval server-side.
-- Officer workspace now includes land search and status filters, parcel metadata editing, soft delete to Trash, restore, and permanent purge/empty Trash controls. The source/document area now includes interactive category previews, category/subtype editing, and document deletion with a confirmation dialog. These newer flows are present in code; their live deployment and end-to-end behavior have not been rechecked here.
+- Officer workspace now includes land search and status filters, parcel metadata editing, soft delete to Trash, restore, and permanent purge/empty Trash controls. The source/document area now includes interactive category previews, category/subtype editing, and document deletion with a confirmation dialog. These newer flows are deployed, but their full live end-to-end behavior has not been rechecked here.
 - New-record intake no longer asks an officer to type a separate source/reason. The original is linked to the intake and the server supplies a standard reason for confirmation audits; later review and decisions still have their own reason controls where required.
 - Land area displays can show the document's original unit (decimal/শতাংশ, acre, bigha, katha or chhatak) beside a normalized decimal amount. The rule engine still uses decimals for comparisons.
 
@@ -103,7 +103,7 @@ Mutation and publication decisions remain human actions. The most recent named p
 
 ## Validation actually completed
 
-- The 27-workflow/40-test evidence below belongs to the implementation through `f96460f`; `f6db0ee` later updated documentation. Three additional feature commits now exist on GitHub main through `4e8666d`. This handoff did not establish whether those commits were deployed or rerun the full checks.
+- The 27-workflow/40-test evidence below belongs to the implementation through `f96460f`; the complete suite was not rerun after the three newer feature commits. The intake textarea removal passed TypeScript and a focused Firefox browser flow that confirmed a record and checked its audit without the textarea. A production OpenNext build passed, and Worker version `152d2eae-c9d9-45eb-b497-563fbd21c8d4` deployed the code through `2ccd21c` to the existing URL.
 - 40 Bun unit tests passed after the final JSON parser change.
 - Typecheck, lint, OpenNext production build and 421-message localization catalog check passed for the final implementation.
 - 27 live Firefox workflows passed after the extraction/grounding, OCR preprocessing and editable-field changes. The final control-character parser patch was followed by build/unit checks and the real supplied Porcha retest; the whole 27-workflow suite was not rerun after that parser-only change.
@@ -124,7 +124,7 @@ Mutation and publication decisions remain human actions. The most recent named p
 
 ## Competition submission goal and remaining work
 
-The earlier application build is live and the newer feature code is pushed. First confirm the current Worker contains the three newer commits, apply/check the `20261018000300_land_trash.sql` migration if needed, and verify the new officer flows and OCR changes. The remaining external competition deliverables are:
+The current feature code is pushed and deployed. Verify the new officer land/document flows and OCR changes end to end before claiming full regression coverage; check the `20261018000300_land_trash.sql` migration before using Trash on a newly provisioned database. The remaining external competition deliverables are:
 
 1. Record and review a truthful demo video of at most 90 seconds.
 2. Prepare a concept PDF of at most three pages.
