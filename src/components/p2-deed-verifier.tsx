@@ -69,7 +69,9 @@ export function P2DeedVerifier({
   const [error, setError] = useState<string | null>(null);
 
   const [scanning, setScanning] = useState(false);
+  const [qrImageScanning, setQrImageScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const qrFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleQrVerify = useCallback(
     async (textToVerify?: string) => {
@@ -118,6 +120,46 @@ export function P2DeedVerifier({
     },
     [qrText, locale, landId, onVerified],
   );
+
+  const handleQrImageUpload = async (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError(
+        locale === "bn"
+          ? "অনুগ্রহ করে একটি ছবি ফাইল বেছে নিন (PNG, JPG, WebP)"
+          : "Please select an image file (PNG, JPG, WebP)",
+      );
+      return;
+    }
+    setError(null);
+    setQrImageScanning(true);
+    let scanner: import("html5-qrcode").Html5Qrcode | undefined;
+    try {
+      const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import(
+        "html5-qrcode"
+      );
+      scanner = new Html5Qrcode("p2-qr-file-scanner", {
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        verbose: false,
+      });
+      const decoded = await scanner.scanFile(file, false);
+      if (decoded) {
+        setQrText(decoded);
+        await handleQrVerify(decoded);
+      } else {
+        setError(t("qr_scan_failed"));
+      }
+    } catch (err) {
+      console.error("QR image scan error:", err);
+      setError(t("qr_scan_failed"));
+    } finally {
+      try {
+        scanner?.clear();
+      } catch {}
+      setQrImageScanning(false);
+      if (qrFileInputRef.current) qrFileInputRef.current.value = "";
+    }
+  };
 
   // Stop scanner when tab changes or unmounts
   useEffect(() => {
@@ -490,7 +532,14 @@ export function P2DeedVerifier({
           {/* Tab 2: QR Code Scan */}
           {tab === "qr" && (
             <div>
-              <div style={{ marginBottom: 16 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: 12,
+                  marginBottom: 16,
+                }}
+              >
                 {!scanning ? (
                   <button
                     type="button"
@@ -502,19 +551,57 @@ export function P2DeedVerifier({
                     <span>{t("camera_scan_label")}</span>
                   </button>
                 ) : (
-                  <div>
-                    <div id="p2-qr-reader" style={{ width: "100%", borderRadius: 8, overflow: "hidden" }} />
-                    <button
-                      type="button"
-                      className="button outline small"
-                      style={{ marginTop: 8 }}
-                      onClick={() => setScanning(false)}
-                    >
-                      {locale === "bn" ? "ক্যামেরা বন্ধ করুন" : "Close Camera"}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className="button outline"
+                    style={{ width: "100%", justifyContent: "center", padding: "12px 16px" }}
+                    onClick={() => setScanning(false)}
+                  >
+                    <span>{locale === "bn" ? "ক্যামেরা বন্ধ করুন" : "Close Camera"}</span>
+                  </button>
                 )}
+
+                <button
+                  type="button"
+                  className="button outline"
+                  style={{ width: "100%", justifyContent: "center", padding: "12px 16px" }}
+                  disabled={qrImageScanning}
+                  onClick={() => qrFileInputRef.current?.click()}
+                  data-testid="p2-upload-qr-btn"
+                >
+                  <Upload size={18} />
+                  <span>
+                    {qrImageScanning
+                      ? locale === "bn"
+                        ? "ছবি থেকে কিউআর স্ক্যান করা হচ্ছে..."
+                        : t("reading_qr")
+                      : locale === "bn"
+                        ? "কিউআর ছবির ফাইল আপলোড"
+                        : t("upload_qr_image")}
+                  </span>
+                </button>
+
+                <input
+                  type="file"
+                  ref={qrFileInputRef}
+                  style={{ display: "none" }}
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      handleQrImageUpload(e.target.files[0]);
+                    }
+                  }}
+                />
               </div>
+
+              {/* Hidden element for file scanning */}
+              <div id="p2-qr-file-scanner" style={{ display: "none" }} />
+
+              {scanning && (
+                <div style={{ marginBottom: 16 }}>
+                  <div id="p2-qr-reader" style={{ width: "100%", borderRadius: 8, overflow: "hidden" }} />
+                </div>
+              )}
 
               <div style={{ margin: "16px 0 8px" }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#475569", marginBottom: 6 }}>
