@@ -529,10 +529,10 @@ button {
   margin-top: 6px;
 }
 .kicker {
-  font-family: Arial, "Noto Sans Bengali", sans-serif;
-  font-size: 10px;
-  color: #56806b;
-  letter-spacing: 1.4px;
+  font-family: inherit;
+  font-size: 12px;
+  color: #236544;
+  letter-spacing: 0.5px;
   font-weight: 700;
   display: block;
   margin-bottom: 7px;
@@ -712,25 +712,25 @@ button {
   flex-direction: row !important;
   gap: 12px !important;
   align-items: center;
-  color: #b1c6b7 !important;
-  font-size: 10px !important;
+  color: #c4d7ca !important;
+  font-size: 12px !important;
 }
 .footer-bottom {
   display: flex;
   justify-content: space-between;
   padding-top: 14px;
   padding-bottom: 15px;
-  font-size: 9px;
-  color: #85a28f;
+  font-size: 12px;
+  color: #a4c4af;
   border-top: 1px solid #ffffff12;
 }
 .badge {
   display: inline-flex;
   align-items: center;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.5;
-  padding: 5px 9px;
+  padding: 4px 10px;
   border-radius: 5px;
   white-space: nowrap;
 }
@@ -897,13 +897,14 @@ button {
   justify-content: space-between;
   gap: 10px;
   margin-top: 22px;
-  font-size: 11px;
-  color: #8b9689;
+  font-size: 13px;
+  color: #4b5563;
 }
 .land-card-meta strong {
-  font-family: Arial;
-  font-size: 14px;
-  color: #435e47;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e5e3a;
 }
 .land-card-link {
   display: flex;
@@ -1160,13 +1161,15 @@ button {
   text-align: left;
 }
 .risk-panel .kicker {
-  font-size: 9px;
-  letter-spacing: 1px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e5e3a;
+  letter-spacing: 0.2px;
 }
 .risk-circle {
   width: 155px;
   height: 155px;
-  margin: 23px auto 17px;
+  margin: 20px auto 16px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -1188,53 +1191,69 @@ button {
 }
 .risk-circle strong {
   display: block;
-  font-family: Arial;
-  font-size: 43px;
+  font-size: 44px;
   line-height: 1.1;
   color: #a65c3b;
+  font-weight: 700;
 }
 .risk-low strong {
   color: var(--green);
 }
 .risk-circle span {
-  font-size: 12px;
-  color: #9b9e8e;
-  font-family: Arial;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
 }
 .risk-panel h3 {
-  font-family: Arial;
-  font-size: 14px;
-  color: #a46543;
+  font-size: 16px;
+  font-weight: 700;
+  color: #8b3c1b;
+}
+.risk-low ~ h3,
+.risk-panel .risk-low + h3 {
+  color: #14532d;
 }
 .risk-panel p {
-  font-family: Arial;
-  font-size: 9px;
-  color: #8d9385;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+  line-height: 1.5;
   margin: 8px 0 6px;
 }
 .risk-panel > small {
-  font-size: 9px;
-  color: #9b9f90;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4b5563;
+  display: block;
 }
 .risk-foot {
-  margin: 23px -25px 0;
-  background: #fafaf5;
+  margin: 22px -25px 0;
+  background: #f4f6f1;
   display: flex;
   justify-content: space-between;
   gap: 10px;
   padding: 13px 22px;
-  border-top: 1px solid #eeeee3;
-  font-size: 10px;
-  color: #858d78;
+  border-top: 1px solid #dce4d5;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+.quota-panel .kicker {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e5e3a;
+  letter-spacing: 0.2px;
 }
 .quota-panel h3 {
   font-size: 18px;
+  font-weight: 700;
+  color: #111827;
 }
 .quota-numbers {
   display: flex;
-  gap: 36px;
+  gap: 32px;
   align-items: center;
-  margin: 26px 0 30px;
+  margin: 24px 0 28px;
 }
 .quota-numbers > div {
   display: flex;
@@ -1242,17 +1261,22 @@ button {
   gap: 9px;
 }
 .quota-numbers strong {
-  font-family: Arial;
-  font-size: 37px;
+  font-size: 38px;
   line-height: 1;
+  font-weight: 700;
 }
 .quota-numbers span {
-  font-size: 11px;
-  color: #88917e;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
 }
 .quota-numbers .versus {
-  font-size: 10px;
-  color: #a3ab98;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+  background: #eef2ea;
+  padding: 3px 10px;
+  border-radius: 5px;
 }
 .quota-track {
   height: 25px;
@@ -1290,49 +1314,54 @@ button {
 .quota-legend {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
-  color: #87927a;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
   gap: 12px;
-  margin: 12px 0 26px;
+  margin: 12px 0 24px;
 }
 .quota-legend i {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 9px;
+  height: 9px;
   background: #438565;
   border-radius: 2px;
-  margin-right: 5px;
+  margin-right: 6px;
 }
 .quota-message {
   display: flex;
+  align-items: center;
   gap: 11px;
-  padding: 13px 14px;
-  border-radius: 7px;
-  font-size: 11px;
-  line-height: 1.9;
+  padding: 13px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 500;
 }
 .quota-message.warning {
-  background: #fbf4e5;
-  color: #957540;
-  border: 1px solid #f0e4c6;
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
 }
 .quota-message.clear {
-  background: #f0f6ed;
-  color: #5b7b52;
-  border: 1px solid #dfebd9;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
 }
 .mini-process {
   display: flex;
-  gap: 9px;
+  gap: 10px;
   align-items: center;
-  font-size: 9px;
-  color: #82937a;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
   margin-top: 24px;
 }
 .mini-process > span {
   display: flex;
-  gap: 5px;
+  gap: 6px;
   align-items: center;
+  color: #1e5e3a;
 }
 .evidence h2 {
   font-size: 20px;
@@ -1351,7 +1380,9 @@ button {
 }
 .signal-heading h3 {
   flex: 1;
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
 }
 .signal-mark {
   display: grid;
@@ -1363,10 +1394,10 @@ button {
   border-radius: 5px;
 }
 .signal > p {
-  font-family: Arial, sans-serif;
-  font-size: 12px;
-  color: #8a826e;
-  line-height: 1.8;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: #374151;
+  line-height: 1.6;
   margin: 10px 0 13px;
 }
 .evidence-links {
@@ -1378,13 +1409,14 @@ button {
   display: inline-flex;
   gap: 5px;
   align-items: center;
-  font-family: Arial;
-  font-size: 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
   background: white;
   border: 1px solid #e9e5d9;
-  padding: 5px 8px;
-  border-radius: 4px;
-  color: #69836c;
+  padding: 6px 10px;
+  border-radius: 5px;
+  color: #1e5e3a;
 }
 .evidence-links a:hover {
   border-color: #9ab89a;
@@ -1397,32 +1429,33 @@ button {
 .comparison-table table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11px;
+  font-size: 13px;
   text-align: left;
 }
 .comparison-table th {
   background: #f4f6ef;
-  color: #849077;
-  font-size: 10px;
-  font-weight: 500;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
   padding: 12px 14px;
   white-space: nowrap;
 }
 .comparison-table td {
   padding: 14px;
   border-bottom: 1px solid #e9eee2;
-  color: #6d7b64;
+  color: #374151;
 }
 .comparison-table td strong {
-  color: #3c5a40;
-  font-family: Arial;
-  font-size: 12px;
+  color: #111827;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
 }
 .comparison-table td small {
   display: block;
-  font-family: Arial;
-  color: #9ca58f;
-  font-size: 9px;
+  font-family: inherit;
+  color: #4b5563;
+  font-size: 12px;
   margin-top: 3px;
 }
 .text-link {
@@ -1430,7 +1463,8 @@ button {
   gap: 4px;
   align-items: center;
   color: var(--green);
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 600;
 }
 .text-link:hover {
   text-decoration: underline;
@@ -1448,16 +1482,17 @@ button {
   align-items: center;
   gap: 8px;
   margin-top: 14px;
-  font-size: 10px;
-  font-family: Arial;
-  color: #85907c;
+  font-size: 13px;
+  font-family: inherit;
+  color: #374151;
 }
 .coverage-row > span:nth-child(2) {
   flex: 1;
 }
 .coverage-row .badge {
-  font-family: "Noto Sans Bengali";
-  font-size: 8px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
 }
 .qr-panel {
   display: flex;
@@ -1471,26 +1506,27 @@ button {
   border-radius: 7px;
 }
 .qr-panel h3 {
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 700;
 }
 .qr-panel p {
-  font-size: 10px;
-  color: #8c9781;
-  line-height: 1.9;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.6;
   margin: 8px 0;
 }
 .qr-panel small {
-  font-family: Arial;
-  font-size: 9px;
-  color: #9ba58e;
+  font-family: inherit;
+  font-size: 12px;
+  color: #4b5563;
 }
 .report-disclaimer {
   display: flex;
   gap: 9px;
   padding: 18px 0;
-  font-size: 10px;
-  color: #8b9680;
-  line-height: 1.9;
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.7;
 }
 .report-disclaimer > svg {
   color: #799874;
@@ -1498,10 +1534,10 @@ button {
 }
 .report-disclaimer p > span {
   display: block;
-  font-family: Arial;
-  font-size: 9px;
+  font-family: inherit;
+  font-size: 12px;
   margin-top: 4px;
-  color: #a0a88f;
+  color: #4b5563;
 }
 .category-grid {
   display: grid;
@@ -1527,12 +1563,12 @@ button {
   font-size: 15px;
 }
 .category-card div > span {
-  font-size: 10px;
-  color: #8d9882;
+  font-size: 13px;
+  color: #4b5563;
 }
 .upload-panel > div > p {
-  font-size: 11px;
-  color: #8c9882;
+  font-size: 13px;
+  color: #4b5563;
   margin-top: 6px;
 }
 .upload-controls {
@@ -1560,8 +1596,8 @@ button {
   height: 100%;
 }
 .upload-panel > small {
-  font-size: 9px;
-  color: #929d87;
+  font-size: 12px;
+  color: #4b5563;
 }
 .document-row {
   display: flex;
@@ -1591,18 +1627,20 @@ button {
 .document-detail strong {
   display: block;
   overflow-wrap: anywhere;
-  font-family: Arial, "Noto Sans Bengali", sans-serif;
-  font-size: 13px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
 }
 .document-detail span {
   display: block;
-  font-size: 10px;
-  color: #87957d;
+  font-size: 13px;
+  color: #4b5563;
   margin-top: 4px;
 }
 .document-detail small {
   display: block;
-  font-size: 9px;
+  font-size: 12px;
+  color: #6b7280;
   margin-top: 5px;
 }
 .timeline {
@@ -1627,9 +1665,9 @@ button {
   outline: 3px solid #e7f0df;
 }
 .timeline-date {
-  font-family: Arial;
-  font-size: 12px;
-  color: #74906e;
+  font-family: inherit;
+  font-size: 13px;
+  color: #1e5e3a;
   font-weight: 600;
   margin-bottom: 9px;
 }
@@ -2914,7 +2952,12 @@ html[lang="en"] .brand-en {
   display: none;
 }
 html[lang="bn"] .kicker {
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+  font-size: 13px;
+  font-weight: 700;
+}
+html[lang="bn"] small {
+  font-size: 12px;
 }
 html[lang="en"] .hero h1 {
   line-height: 1.3;

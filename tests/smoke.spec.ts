@@ -14,9 +14,12 @@ test("citizen can search the real conflict, inspect history, and open source PDF
   await page.goto("/verify");
   await page.getByTestId("land-search-input").fill("LND-MOCK-001");
   await page.getByTestId("land-search-btn").click();
-  await expect(page.getByTestId("risk-indicator-score")).toHaveText("60", {
-    timeout: 30000,
-  });
+  await expect(page.getByTestId("risk-indicator-score")).toHaveText(
+    /^(60|৬০)$/,
+    {
+      timeout: 30000,
+    },
+  );
   await expect(page.getByTestId("evidence-panel")).toContainText("502/2021");
   await expect(page.getByTestId("evidence-panel")).toContainText("889/2022");
   await expect(page.getByTestId("external-checks-panel")).toContainText(
@@ -50,7 +53,9 @@ test("clean record computes zero without claiming legal clearance", async ({
   page,
 }) => {
   await page.goto("/verify/LND-CLEAN-002");
-  await expect(page.getByTestId("risk-indicator-score")).toHaveText("0");
+  await expect(page.getByTestId("risk-indicator-score")).toHaveText(
+    /^(0|০)$/,
+  );
   await expect(page.getByTestId("external-checks-panel")).toContainText(
     "তথ্য অনুপস্থিত",
   );

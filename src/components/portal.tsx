@@ -152,7 +152,7 @@ export default function Portal({
   id?: string;
   authRole?: "citizen" | "officer";
 }) {
-  const { t, tt, locale, setLocale, formatDate } = useI18n();
+  const { t, tt, locale, setLocale, formatDate, formatNumber } = useI18n();
 
   const [isOfficer, setOfficer] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -1142,9 +1142,9 @@ export default function Portal({
                         >
                           <div>
                             <strong data-testid="risk-indicator-score">
-                              {bundle.analysis.score}
+                              {formatNumber(bundle.analysis.score)}
                             </strong>
-                            <span>/ 100</span>
+                            <span>/ {formatNumber(100)}</span>
                           </div>
                         </div>
                         <h3>{tt(bundle.analysis.status)}</h3>
@@ -1156,11 +1156,11 @@ export default function Portal({
                         </small>
                         <div className="risk-foot">
                           <span>
-                            {bundle.analysis.coverage}{" "}
+                            {formatNumber(bundle.analysis.coverage)}{" "}
                             {t("reviewed_documents_307e7")}
                           </span>
                           <span>
-                            {bundle.analysis.signals.length}{" "}
+                            {formatNumber(bundle.analysis.signals.length)}{" "}
                             {t("signals_cf65c")}
                           </span>
                         </div>
@@ -1177,7 +1177,7 @@ export default function Portal({
                         </div>
                         <div className="quota-numbers">
                           <div>
-                            <strong>{bundle.analysis.recorded}</strong>
+                            <strong>{formatNumber(bundle.analysis.recorded)}</strong>
                             <span>{t("decimals_recorded_d8f3f")}</span>
                           </div>
                           <span className="versus">{t("versus_393d3")}</span>
@@ -1188,7 +1188,7 @@ export default function Portal({
                                 : ""
                             }
                           >
-                            <strong>{bundle.analysis.sold}</strong>
+                            <strong>{formatNumber(bundle.analysis.sold)}</strong>
                             <span>{t("decimals_in_sale_deeds_61290")}</span>
                           </div>
                         </div>
@@ -1208,13 +1208,13 @@ export default function Portal({
                         </div>
                         <div className="quota-legend">
                           <span>
-                            <i /> {t("recorded_limit_ff206")}
-                            {bundle.analysis.recorded}
+                            <i /> {t("recorded_limit_ff206")}{" "}
+                            {formatNumber(bundle.analysis.recorded)}
                           </span>
-                          <span className="text-red">
+                          <span className={bundle.analysis.excess > 0 ? "text-red" : undefined}>
                             {bundle.analysis.excess > 0
                               ? t("excess_area", {
-                                  area: bundle.analysis.excess,
+                                  area: formatNumber(bundle.analysis.excess),
                                 })
                               : t("based_on_available_records_7a562")}
                           </span>
@@ -1239,14 +1239,14 @@ export default function Portal({
                         <div className="mini-process">
                           <span>
                             {t("collect_records_33146")}
-                            <Check size={13} />
+                            <Check size={14} />
                           </span>
-                          <ChevronRight size={14} />
+                          <ChevronRight size={15} />
                           <span>
                             {t("rule_based_analysis_35f49")}
-                            <Check size={13} />
+                            <Check size={14} />
                           </span>
-                          <ChevronRight size={14} />
+                          <ChevronRight size={15} />
                           <span>{t("human_review_20a6a")}</span>
                         </div>
                       </section>
@@ -1263,7 +1263,7 @@ export default function Portal({
                           <h2>{t("conflict_reasons_and_evidence_686fc")}</h2>
                         </div>
                         <Badge tone={bundle.analysis.score ? "red" : "green"}>
-                          {bundle.analysis.signals.length} {t("signals_c1d2c")}
+                          {formatNumber(bundle.analysis.signals.length)} {t("signals_c1d2c")}
                         </Badge>
                       </div>
                       {bundle.analysis.signals.length ? (
@@ -1274,7 +1274,7 @@ export default function Portal({
                                 <ShieldAlert size={18} />
                               </span>
                               <h3>{tt(s.title)}</h3>
-                              <Badge tone="red">+{s.points}</Badge>
+                              <Badge tone="red">+{formatNumber(s.points)}</Badge>
                             </div>
                             <p>{explainSignal(s, bundle.documents, t)}</p>
                             <div className="evidence-links">
@@ -1472,19 +1472,19 @@ export default function Portal({
                                     <span
                                       className="badge green"
                                       style={{
-                                        fontSize: "9px",
-                                        padding: "2px 6px",
+                                        fontSize: "11px",
+                                        padding: "3px 8px",
                                         display: "inline-flex",
                                         alignItems: "center",
                                         gap: "4px",
                                       }}
                                     >
-                                      <Eye size={11} /> {t("preview_action")}
+                                      <Eye size={12} /> {t("preview_action")}
                                     </span>
                                   )}
                                 </div>
                                 <span>
-                                  {tt(c.en)} · {matching.length}{" "}
+                                  {tt(c.en)} · {formatNumber(matching.length)}{" "}
                                   {t("documents_bffb8")}
                                 </span>
                               </div>
@@ -1536,19 +1536,19 @@ export default function Portal({
                                   <span
                                     className="badge green"
                                     style={{
-                                      fontSize: "9px",
-                                      padding: "2px 6px",
+                                      fontSize: "11px",
+                                      padding: "3px 8px",
                                       display: "inline-flex",
                                       alignItems: "center",
                                       gap: "4px",
                                     }}
                                   >
-                                    <Eye size={11} /> {t("view_details")}
+                                    <Eye size={12} /> {t("view_details")}
                                   </span>
                                 )}
                               </div>
                               <span>
-                                {tt(c.en)} · {matching.length}{" "}
+                                {tt(c.en)} · {formatNumber(matching.length)}{" "}
                                 {t("documents_bffb8")}
                               </span>
                             </div>
@@ -1736,7 +1736,7 @@ export default function Portal({
                             ) : (
                               <>
                                 {t("show_more_documents", {
-                                  count: orderedDocuments.length - 5,
+                                  count: formatNumber(orderedDocuments.length - 5),
                                 })}
                                 <ChevronDown size={15} />
                               </>
@@ -1807,7 +1807,7 @@ export default function Portal({
                                       (d.extracted_json as any)?.area_unit,
                                     locale,
                                   )}{" "}
-                                  {t("decimals_dag_635c2")} {d.dag_number}
+                                  {t("decimals_dag_635c2")} {formatNumber(d.dag_number)}
                                 </span>
                                 <a
                                   href={"/api/service/document/" + d.id}
@@ -2386,11 +2386,12 @@ function Stat({
   value: number;
   icon: ReactNode;
 }) {
+  const { formatNumber } = useI18n();
   return (
     <div className="stat">
       <span className="stat-icon">{icon}</span>
       <div>
-        <strong>{value}</strong>
+        <strong>{formatNumber(value)}</strong>
         <span>{label}</span>
       </div>
     </div>
@@ -2413,7 +2414,7 @@ function LandList({
   onPurge?: (land: Land) => void;
   onEmptyTrash?: () => void;
 }) {
-  const { t, tt, locale, setLocale, formatDate } = useI18n();
+  const { t, tt, locale, setLocale, formatDate, formatNumber } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"ALL" | "PUBLISHED" | "DRAFT" | "TRASH">("ALL");
   const [showAllLands, setShowAllLands] = useState(false);
@@ -2501,7 +2502,7 @@ function LandList({
               }}
               data-testid="filter-all-btn"
             >
-              {t("filter_all")} ({lands.length})
+              {t("filter_all")} ({formatNumber(lands.length)})
             </button>
             <button
               type="button"
@@ -2516,7 +2517,7 @@ function LandList({
               data-testid="filter-published-btn"
             >
               {t("filter_published")} (
-              {lands.filter((l) => l.is_finalized).length})
+              {formatNumber(lands.filter((l) => l.is_finalized).length)})
             </button>
             <button
               type="button"
@@ -2530,7 +2531,7 @@ function LandList({
               }}
               data-testid="filter-draft-btn"
             >
-              {t("filter_draft")} ({lands.filter((l) => !l.is_finalized).length})
+              {t("filter_draft")} ({formatNumber(lands.filter((l) => !l.is_finalized).length)})
             </button>
             <button
               type="button"
@@ -2550,7 +2551,7 @@ function LandList({
               }}
               data-testid="filter-trash-btn"
             >
-              <Trash2 size={13} /> {t("filter_trash")} ({trashLands.length})
+              <Trash2 size={13} /> {t("filter_trash")} ({formatNumber(trashLands.length)})
             </button>
           </div>
         </div>
@@ -2716,7 +2717,7 @@ function LandList({
                   <div className="land-card-meta">
                     <span>
                       {t("dag_ba3ed")}
-                      <strong>{l.dag_number}</strong>
+                      <strong>{formatNumber(l.dag_number)}</strong>
                     </span>
                     <span>
                       <strong>
@@ -2755,7 +2756,7 @@ function LandList({
                 </>
               ) : (
                 <>
-                  {t("show_more_lands", { count: filtered.length - visibleLandCount })}{" "}
+                  {t("show_more_lands", { count: formatNumber(filtered.length - visibleLandCount) })}{" "}
                   <ChevronDown size={15} />
                 </>
               )}

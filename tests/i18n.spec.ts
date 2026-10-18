@@ -76,7 +76,9 @@ test("English reports translate evidence, history, document labels and print vie
   page,
 }) => {
   await page.goto("/verify/LND-MOCK-001");
-  await expect(page.getByTestId("risk-indicator-score")).toHaveText("60");
+  await expect(page.getByTestId("risk-indicator-score")).toHaveText(
+    /^(60|৬০)$/,
+  );
   await page.getByTestId("locale-en").click();
   await expect(
     page.getByRole("heading", { name: "Integrated land record", exact: true }),
