@@ -802,7 +802,7 @@ export default function Portal({
                 <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 14px", lineHeight: 1.5 }}>
                   {t("compare_a_copy_and_its_fields_against_19fe9")}
                 </p>
-                <Link href="/verify/LND-MOCK-001?tab=compare" className="button outline small">
+                <Link href="/verify/deed" className="button outline small">
                   <Fingerprint size={14} /> {t("verify_a_document_72e38")}
                 </Link>
               </div>

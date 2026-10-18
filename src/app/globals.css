@@ -3290,6 +3290,11 @@ html[lang="bn"] .mutation-evidence small {
   border-color: #fca5a5;
   color: #991b1b;
 }
+.verdict-banner.verdict-inconclusive {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
 .verdict-banner h2 {
   margin: 0 0 4px;
   font-size: 18px;

@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash, randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
-import { categories, emptyFields, LandDocument, normalize } from "@/lib/domain";
+import { categories, emptyFields, Land, LandDocument, normalize } from "@/lib/domain";
+import {
+  compareDeedWithRecord,
+  parseQrDeedPayload,
+  ExtractedDeedFields,
+} from "@/lib/deed-comparison-engine";
 import {
   check,
   db,
@@ -330,6 +335,98 @@ export async function POST(
     if (action === "logout") {
       (await cookies()).delete("bs-session");
       return json({ ok: true });
+    }
+    if (action === "verify-deed") {
+      const contentType = req.headers.get("content-type") || "";
+      let targetLandId: string | undefined = id;
+      let qrPayload: string | undefined;
+      let extracted: ExtractedDeedFields = {};
+
+      if (contentType.includes("application/json")) {
+        const body = await req.json();
+        qrPayload = body.qrPayload;
+        targetLandId = targetLandId || body.landId || body.masterLandId;
+        extracted = body.extractedFields || {};
+        if (qrPayload) {
+          extracted.qrPayload = qrPayload;
+        }
+      } else {
+        const form = await req.formData();
+        qrPayload = form.get("qrPayload") ? String(form.get("qrPayload")) : undefined;
+        targetLandId = targetLandId || (form.get("landId") ? String(form.get("landId")) : undefined);
+        const file = form.get("file");
+        if (file && typeof file === "object" && "size" in file && file.size > 0) {
+          const pages = JSON.parse(String(form.get("pages") || "[]"));
+          const text = String(form.get("text") || "");
+          validateContent(pages, text);
+          const { fields } = await extractPages(pages, text, "DEED", "SAF_KABALA");
+          extracted = {
+            deedNumber: fields.official_number,
+            deedDate: fields.document_date,
+            sellerName: fields.seller_or_prior_owner,
+            buyerName: fields.buyer_or_current_owner,
+            dagNumber: fields.dag_number,
+            landAreaDecimals: fields.area_decimals != null ? Number(fields.area_decimals) : null,
+            khatianNumber: fields.khatian_ref,
+            qrPayload,
+          };
+        } else if (qrPayload) {
+          extracted = { qrPayload };
+        }
+      }
+
+      // If we don't have targetLandId yet, attempt to resolve via QR or deed number
+      if (!targetLandId && qrPayload) {
+        const parsed = parseQrDeedPayload(qrPayload);
+        if (parsed.masterLandId) {
+          targetLandId = parsed.masterLandId;
+        } else if (parsed.deedNumber) {
+          const { data: matchedDocs } = await db()
+            .from("land_documents")
+            .select("master_land_id")
+            .eq("category", "DEED")
+            .ilike("official_number", `%${parsed.deedNumber}%`)
+            .limit(1);
+          if (matchedDocs && matchedDocs.length > 0) {
+            targetLandId = matchedDocs[0].master_land_id;
+          }
+        }
+      }
+
+      if (!targetLandId && extracted.deedNumber) {
+        const { data: matchedDocs } = await db()
+          .from("land_documents")
+          .select("master_land_id")
+          .eq("category", "DEED")
+          .ilike("official_number", `%${extracted.deedNumber}%`)
+          .limit(1);
+        if (matchedDocs && matchedDocs.length > 0) {
+          targetLandId = matchedDocs[0].master_land_id;
+        }
+      }
+
+      let storedDocuments: LandDocument[] = [];
+      let masterLand: Land | null = null;
+
+      if (targetLandId) {
+        try {
+          const bundle = await loadLand(targetLandId, true);
+          storedDocuments = bundle.documents;
+          masterLand = bundle.land;
+        } catch {
+          // not found in DB
+        }
+      } else {
+        const { data: allDocs } = await db()
+          .from("land_documents")
+          .select("*")
+          .eq("verification_status", "VERIFIED")
+          .is("deleted_at", null);
+        storedDocuments = (allDocs || []) as LandDocument[];
+      }
+
+      const result = compareDeedWithRecord(extracted, storedDocuments, masterLand);
+      return json(result);
     }
     if (action === "compare") {
       const form = await req.formData();
