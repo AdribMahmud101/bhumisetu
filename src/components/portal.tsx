@@ -12,12 +12,14 @@ import { explainSignal } from "@/i18n/evidence";
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -29,6 +31,7 @@ import {
   CircleHelp,
   ClipboardCheck,
   Clock3,
+  Copy,
   Download,
   Eye,
   FileCheck2,
@@ -47,6 +50,7 @@ import {
   Menu,
   Pencil,
   Plus,
+  Printer,
   QrCode,
   RotateCcw,
   Search,
@@ -56,7 +60,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 import {
   Analysis,
   categories,
@@ -169,6 +173,9 @@ export default function Portal({
   const [previewDoc, setPreviewDoc] = useState<LandDocument | null>(null);
   const [deletingDoc, setDeletingDoc] = useState<LandDocument | null>(null);
   const [showAllDocuments, setShowAllDocuments] = useState(false);
+  const [printAll, setPrintAll] = useState(false);
+  const [copiedLandId, setCopiedLandId] = useState(false);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const [qrBusy, setQrBusy] = useState(false);
   const [qrError, setQrError] = useState("");
   const [cases, setCases] = useState<any[]>([]);
@@ -209,6 +216,11 @@ export default function Portal({
   useEffect(() => {
     setShowAllDocuments(false);
   }, [id, bundle?.documents.length]);
+  useEffect(() => {
+    if (!copiedLandId) return;
+    const timer = window.setTimeout(() => setCopiedLandId(false), 2500);
+    return () => window.clearTimeout(timer);
+  }, [copiedLandId]);
   const run = async (action: () => Promise<void>) => {
     setError("");
     setNotice("");
@@ -227,6 +239,61 @@ export default function Portal({
       .trim()
       .toUpperCase();
     if (q) router.push("/verify/" + encodeURIComponent(q));
+  };
+  const copyLandId = async () => {
+    if (!bundle) return;
+    try {
+      await navigator.clipboard.writeText(bundle.land.unique_land_id);
+    } catch {
+      const temporary = document.createElement("textarea");
+      temporary.value = bundle.land.unique_land_id;
+      temporary.style.position = "fixed";
+      temporary.style.opacity = "0";
+      document.body.appendChild(temporary);
+      let copied = false;
+      try {
+        temporary.select();
+        copied = document.execCommand("copy");
+      } catch {
+        copied = false;
+      } finally {
+        temporary.remove();
+      }
+      if (!copied) {
+        setError(t("land_id_copy_failed"));
+        return;
+      }
+    }
+    setCopiedLandId(true);
+  };
+  const printRecord = () => {
+    window.addEventListener("afterprint", () => setPrintAll(false), {
+      once: true,
+    });
+    flushSync(() => setPrintAll(true));
+    window.print();
+  };
+  const downloadQr = () => {
+    if (!bundle?.land.is_finalized || bundle.land.is_deleted) return;
+    const canvas = qrCanvasRef.current;
+    if (!canvas) {
+      setError(t("qr_download_failed"));
+      return;
+    }
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        setError(t("qr_download_failed"));
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${bundle.land.unique_land_id}-QR.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, "image/png");
   };
   const uploadQr = async (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.currentTarget;
@@ -272,7 +339,7 @@ export default function Portal({
     }
     return b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id);
   });
-  const visibleDocuments = showAllDocuments
+  const visibleDocuments = showAllDocuments || printAll
     ? orderedDocuments
     : orderedDocuments.slice(0, 2);
   return (
@@ -827,6 +894,28 @@ export default function Portal({
                             flexWrap: "wrap",
                           }}
                         >
+                          <button
+                            type="button"
+                            className="button outline"
+                            onClick={printRecord}
+                            data-testid="print-land-record"
+                          >
+                            <Printer size={16} /> {t("print_full_record")}
+                          </button>
+                          <button
+                            type="button"
+                            className="button outline"
+                            onClick={downloadQr}
+                            disabled={!bundle.land.is_finalized || bundle.land.is_deleted}
+                            title={
+                              bundle.land.is_finalized && !bundle.land.is_deleted
+                                ? t("download_record_qr")
+                                : t("qr_available_after_publish")
+                            }
+                            data-testid="download-land-qr"
+                          >
+                            <Download size={16} /> {t("download_record_qr")}
+                          </button>
                           {bundle.land.is_deleted ? (
                             <>
                               <button
@@ -896,13 +985,22 @@ export default function Portal({
                       ) : (
                         <button
                           className="button outline"
-                          onClick={() => window.print()}
+                          onClick={printRecord}
+                          data-testid="print-land-record"
                         >
-                          <Download size={17} /> {t("report_pdf_49a93")}
+                          <Printer size={17} /> {t("print_full_record")}
                         </button>
                       )}
                     </>
                   }
+                />
+                <QRCodeCanvas
+                  ref={qrCanvasRef}
+                  value={origin + "/verify/" + bundle.land.unique_land_id}
+                  size={512}
+                  marginSize={4}
+                  className="qr-export-canvas"
+                  aria-hidden="true"
                 />
                 {bundle.land.is_deleted && (
                   <div
@@ -941,9 +1039,22 @@ export default function Portal({
                     <span className="muted tiny">
                       {t("unique_land_id_internal_identifier_ec0ee")}
                     </span>
-                    <h2 data-testid="master-land-id">
-                      {bundle.land.unique_land_id}
-                    </h2>
+                    <div className="land-id-copy-row">
+                      <h2 data-testid="master-land-id">
+                        {bundle.land.unique_land_id}
+                      </h2>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        onClick={copyLandId}
+                        data-testid="copy-land-id"
+                        aria-label={copiedLandId ? t("land_id_copied") : t("copy_land_id")}
+                        title={copiedLandId ? t("land_id_copied") : t("copy_land_id")}
+                      >
+                        {copiedLandId ? <Check size={17} /> : <Copy size={17} />}
+                      </button>
+                      {copiedLandId && <span role="status" className="tiny muted">{t("land_id_copied")}</span>}
+                    </div>
                   </div>
                   <div className="identity-status">
                     <Badge tone={bundle.land.is_finalized ? "green" : "amber"}>
@@ -1003,8 +1114,8 @@ export default function Portal({
                     </button>
                   ))}
                 </div>
-                {tab === "overview" && (
-                  <>
+                {(tab === "overview" || printAll) && (
+                  <div className={tab === "overview" ? undefined : "print-only-record-section"}>
                     <div className="analysis-grid">
                       <section className="panel risk-panel">
                         <div className="panel-top">
@@ -1263,10 +1374,12 @@ export default function Portal({
                           </div>
                         ))}
                       </section>
+                      {bundle.land.is_finalized && !bundle.land.is_deleted && (
                       <section className="panel qr-panel">
                         <QRCodeSVG
-                          value={origin + "/verify/" + id}
+                          value={origin + "/verify/" + bundle.land.unique_land_id}
                           size={108}
+                          marginSize={4}
                         />
                         <div>
                           <h3>
@@ -1278,11 +1391,12 @@ export default function Portal({
                           <small>{bundle.analysis.version}</small>
                         </div>
                       </section>
+                      )}
                     </div>
-                  </>
+                  </div>
                 )}
-                {tab === "documents" && (
-                  <>
+                {(tab === "documents" || printAll) && (
+                  <div className={tab === "documents" ? undefined : "print-only-record-section"}>
                     <div className="category-grid">
                       {Object.entries(categories).map(([key, c]) => {
                         const matching = bundle.documents.filter(
@@ -1375,6 +1489,7 @@ export default function Portal({
                       })}
                     </div>
                     {view === "land" && (
+                      <div className="record-print-hidden">
                       <UploadPanel
                         id={id!}
                         busy={busy}
@@ -1406,6 +1521,7 @@ export default function Portal({
                           })
                         }
                       />
+                      </div>
                     )}
                     <section className="panel document-list">
                       <h3>{t("stored_documents_edc82")}</h3>
@@ -1549,10 +1665,10 @@ export default function Portal({
                         </div>
                       )}
                     </section>
-                  </>
+                  </div>
                 )}
-                {tab === "history" && (
-                  <section className="panel">
+                {(tab === "history" || printAll) && (
+                  <section className={"panel" + (tab === "history" ? "" : " print-only-record-section")}>
                     <div className="section-heading">
                       <div>
                         <span className="kicker">
@@ -1645,7 +1761,7 @@ export default function Portal({
                     </div>
                   </section>
                 )}
-                {tab === "compare" && <ComparePanel id={id!} />}
+                {tab === "compare" && <div className="record-print-hidden"><ComparePanel id={id!} /></div>}
                 <div className="report-disclaimer">
                   <ShieldCheck size={18} />
                   <p>

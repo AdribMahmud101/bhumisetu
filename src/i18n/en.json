@@ -483,6 +483,13 @@
   "qr_upload_hint": "PNG, JPG or WebP, up to 5 MB. Your image stays in this browser.",
   "qr_image_invalid": "Choose a PNG, JPG or WebP image under 5 MB.",
   "qr_record_invalid": "This QR code does not point to a BhumiSetu land record.",
-  "qr_scan_failed": "No readable QR code was found in this image. Try a clearer image."
+  "qr_scan_failed": "No readable QR code was found in this image. Try a clearer image.",
+  "copy_land_id": "Copy land ID",
+  "land_id_copied": "Copied",
+  "land_id_copy_failed": "Could not copy the land ID. Please select and copy it manually.",
+  "print_full_record": "Print full record",
+  "download_record_qr": "Download QR code",
+  "qr_available_after_publish": "Publish this record before downloading its QR code",
+  "qr_download_failed": "Could not create the QR image. Please try again."
 }
 

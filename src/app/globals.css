@@ -1057,6 +1057,21 @@ button {
   font-size: 22px;
   margin-top: 3px;
 }
+.land-id-copy-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.land-id-copy-row .icon-button {
+  width: 32px;
+  height: 32px;
+  color: var(--green);
+}
+.qr-export-canvas,
+.print-only-record-section {
+  display: none;
+}
 .identity-status {
   margin-left: auto;
   display: flex;
@@ -2581,6 +2596,20 @@ a:focus-visible {
   }
 }
 @media print {
+  .print-only-record-section {
+    display: block !important;
+  }
+  .record-print-hidden,
+  .qr-export-canvas,
+  .land-id-copy-row .icon-button,
+  .land-id-copy-row [role="status"],
+  .document-list-footer {
+    display: none !important;
+  }
+  .document-row,
+  .timeline-event {
+    break-inside: avoid;
+  }
   .utility,
   .header,
   .prototype-strip,
