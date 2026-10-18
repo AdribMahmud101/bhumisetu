@@ -892,108 +892,110 @@ export default function Portal({
                   action={
                     <>
                       {view === "land" ? (
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "8px",
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <button
-                            type="button"
-                            className="button outline"
-                            onClick={printRecord}
-                            data-testid="print-land-record"
-                          >
-                            <Printer size={16} /> {t("print_full_record")}
-                          </button>
-                          <button
-                            type="button"
-                            className="button outline"
-                            onClick={downloadQr}
-                            disabled={!bundle.land.is_finalized || bundle.land.is_deleted}
-                            title={
-                              bundle.land.is_finalized && !bundle.land.is_deleted
-                                ? t("download_record_qr")
-                                : t("qr_available_after_publish")
-                            }
-                            data-testid="download-land-qr"
-                          >
-                            <Download size={16} /> {t("download_record_qr")}
-                          </button>
-                          {bundle.land.is_deleted ? (
-                            <>
-                              <button
-                                className="button primary"
-                                onClick={() =>
-                                  run(async () => {
-                                    await api("restore-land/" + bundle.land.id, {});
-                                    setNotice(t("land_restored_success"));
-                                    await refresh();
-                                  })
-                                }
-                                data-testid="officer-restore-land-btn"
-                              >
-                                <RotateCcw size={15} /> {t("restore_action")}
-                              </button>
-                              <button
-                                className="button outline"
-                                style={{
-                                  borderColor: "#fca5a5",
-                                  color: "#dc2626",
-                                }}
-                                onClick={() => setPurgingLand(bundle.land)}
-                                data-testid="officer-purge-land-btn"
-                              >
-                                <Trash2 size={15} /> {t("delete_permanently_action")}
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                className="button outline"
-                                onClick={() => setEditingLand(bundle.land)}
-                                data-testid="officer-edit-land-btn"
-                              >
-                                <Pencil size={15} /> {t("edit_action")}
-                              </button>
-                              <button
-                                className="button outline"
-                                style={{
-                                  borderColor: "#fca5a5",
-                                  color: "#dc2626",
-                                }}
-                                onClick={() => setDeletingLand(bundle.land)}
-                                data-testid="officer-delete-land-btn"
-                              >
-                                <Trash2 size={15} /> {t("delete_action")}
-                              </button>
-                              {!bundle.land.is_finalized && (
+                        <div className="header-actions-toolbar">
+                          <div className="toolbar-group">
+                            <button
+                              type="button"
+                              className="toolbar-btn"
+                              onClick={printRecord}
+                              data-testid="print-land-record"
+                              title={t("print_full_record")}
+                            >
+                              <Printer size={15} /> <span>{t("print_full_record")}</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="toolbar-btn"
+                              onClick={downloadQr}
+                              disabled={!bundle.land.is_finalized || bundle.land.is_deleted}
+                              title={
+                                bundle.land.is_finalized && !bundle.land.is_deleted
+                                  ? t("download_record_qr")
+                                  : t("qr_available_after_publish")
+                              }
+                              data-testid="download-land-qr"
+                            >
+                              <Download size={15} /> <span>{t("download_record_qr")}</span>
+                            </button>
+                          </div>
+                          <div className="toolbar-divider" />
+                          <div className="toolbar-group">
+                            {bundle.land.is_deleted ? (
+                              <>
                                 <button
-                                  className="button primary"
-                                  disabled={busy}
+                                  type="button"
+                                  className="toolbar-btn primary"
                                   onClick={() =>
                                     run(async () => {
-                                      await api("publish/" + id, {});
-                                      setNotice(t("record_published_42e08"));
+                                      await api("restore-land/" + bundle.land.id, {});
+                                      setNotice(t("land_restored_success"));
                                       await refresh();
                                     })
                                   }
+                                  data-testid="officer-restore-land-btn"
                                 >
-                                  <CheckCircle2 size={17} />{" "}
-                                  {t("publish_reviewed_record_55e11")}
+                                  <RotateCcw size={14} /> <span>{t("restore_action")}</span>
                                 </button>
-                              )}
+                                <button
+                                  type="button"
+                                  className="toolbar-btn danger"
+                                  onClick={() => setPurgingLand(bundle.land)}
+                                  data-testid="officer-purge-land-btn"
+                                >
+                                  <Trash2 size={14} /> <span>{t("delete_permanently_action")}</span>
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="toolbar-btn"
+                                  onClick={() => setEditingLand(bundle.land)}
+                                  data-testid="officer-edit-land-btn"
+                                >
+                                  <Pencil size={14} /> <span>{t("edit_action")}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="toolbar-btn danger"
+                                  onClick={() => setDeletingLand(bundle.land)}
+                                  data-testid="officer-delete-land-btn"
+                                >
+                                  <Trash2 size={14} /> <span>{t("delete_action")}</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                          {!bundle.land.is_deleted && !bundle.land.is_finalized && (
+                            <>
+                              <div className="toolbar-divider" />
+                              <button
+                                type="button"
+                                className="button primary small"
+                                style={{ height: "36px", padding: "0 14px", fontSize: "13px" }}
+                                disabled={busy}
+                                onClick={() =>
+                                  run(async () => {
+                                    await api("publish/" + id, {});
+                                    setNotice(t("record_published_42e08"));
+                                    await refresh();
+                                  })
+                                }
+                              >
+                                <CheckCircle2 size={15} />{" "}
+                                <span>{t("publish_reviewed_record_55e11")}</span>
+                              </button>
                             </>
                           )}
                         </div>
                       ) : (
                         <button
-                          className="button outline"
+                          type="button"
+                          className="toolbar-btn"
                           onClick={printRecord}
                           data-testid="print-land-record"
                         >
-                          <Printer size={17} /> {t("print_full_record")}
+                          <Printer size={15} /> <span>{t("print_full_record")}</span>
                         </button>
                       )}
                     </>
