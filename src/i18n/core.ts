@@ -1,6 +1,8 @@
 import en from "./en.json";
 import bn from "./bn.json";
 import sourceKeys from "./sources.json";
+import { toBengaliDigits } from "../lib/numbers";
+
 export type Locale = "bn" | "en";
 export type MessageKey = keyof typeof en;
 export const DEFAULT_LOCALE: Locale = "bn";
@@ -11,14 +13,17 @@ export function isLocale(value: unknown): value is Locale {
 }
 export function createTranslator(locale: Locale) {
   const t = (key: MessageKey, values: Record<string, string | number> = {}) =>
-    catalogs[locale][key].replace(/\{(\w+)\}/g, (match, key) =>
-      values[key] === undefined ? match : String(values[key]),
-    );
+    catalogs[locale][key].replace(/\{(\w+)\}/g, (match, key) => {
+      if (values[key] === undefined) return match;
+      const val = values[key];
+      return locale === "bn" ? toBengaliDigits(val) : String(val);
+    });
   const tt = (text: unknown) => {
     if (text == null) return "";
     const raw = String(text);
     const key = (sourceKeys as Record<string, MessageKey>)[raw];
-    return key ? t(key) : raw;
+    if (key) return t(key);
+    return locale === "bn" ? toBengaliDigits(raw) : raw;
   };
   return { t, tt };
 }

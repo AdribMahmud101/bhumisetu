@@ -25,6 +25,7 @@ import {
   extractIntake,
   confirmIntake,
 } from "@/lib/intake";
+import { toAsciiDigits } from "@/lib/numbers";
 export const dynamic = "force-dynamic";
 const json = (data: unknown, status = 200) =>
   NextResponse.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -417,7 +418,7 @@ export async function POST(
       if (b.current_khatian_no !== undefined)
         updateData.current_khatian_no = String(b.current_khatian_no).trim();
       if (b.total_area_decimals !== undefined) {
-        const area = Number(b.total_area_decimals);
+        const area = Number(toAsciiDigits(b.total_area_decimals));
         if (Number.isNaN(area) || area <= 0)
           throw new Error("Land area must be a positive number");
         updateData.total_area_decimals = area;

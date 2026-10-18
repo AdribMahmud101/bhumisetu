@@ -1,3 +1,5 @@
+import { toBengaliDigits } from "./numbers";
+
 export const categories = {
   KHATIAN: {
     bn: "খতিয়ান",
@@ -178,39 +180,40 @@ export function formatLandArea(
   const num = Number(decimals);
   if (!Number.isFinite(num)) return "—";
   const isEn = locale === "en";
+  const fmt = (v: number | string) => (isEn ? String(v) : toBengaliDigits(v));
   const u = (unit || "").trim().toLowerCase();
   if (u === "একর" || u === "acre" || u === "acres") {
     const acres = (num / 100).toFixed(2).replace(/\.00$/, "");
     return isEn
       ? `${acres} acres (${num} decimals)`
-      : `${acres} একর (${num} শতাংশ)`;
+      : `${fmt(acres)} একর (${fmt(num)} শতাংশ)`;
   }
   if (u === "বিঘা" || u === "bigha" || u === "bighas") {
     const bighas = (num / 33).toFixed(2).replace(/\.00$/, "");
     return isEn
       ? `${bighas} bighas (${num} decimals)`
-      : `${bighas} বিঘা (${num} শতাংশ)`;
+      : `${fmt(bighas)} বিঘা (${fmt(num)} শতাংশ)`;
   }
   if (u === "কাঠা" || u === "katha" || u === "kathas") {
     const kathas = (num / 1.65).toFixed(2).replace(/\.00$/, "");
     return isEn
       ? `${kathas} kathas (${num} decimals)`
-      : `${kathas} কাঠা (${num} শতাংশ)`;
+      : `${fmt(kathas)} কাঠা (${fmt(num)} শতাংশ)`;
   }
   if (u === "ছটাক" || u === "chhatak") {
     const chhataks = (num / 0.103125).toFixed(2).replace(/\.00$/, "");
     return isEn
       ? `${chhataks} chhataks (${num} decimals)`
-      : `${chhataks} ছটাক (${num} শতাংশ)`;
+      : `${fmt(chhataks)} ছটাক (${fmt(num)} শতাংশ)`;
   }
   if (u === "একর ও শতাংশ") {
     const acres = Math.floor(num / 100);
     const rem = Math.round((num % 100) * 100) / 100;
     return isEn
       ? `${acres} acres ${rem} decimals`
-      : `${acres} একর ${rem} শতাংশ`;
+      : `${fmt(acres)} একর ${fmt(rem)} শতাংশ`;
   }
-  return isEn ? `${num} decimals` : `${num} শতাংশ`;
+  return isEn ? `${num} decimals` : `${fmt(num)} শতাংশ`;
 }
 
 export function normalize(value: unknown) {

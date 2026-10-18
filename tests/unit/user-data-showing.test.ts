@@ -112,10 +112,10 @@ describe("User data showing specification compliance (User_data_showing.pdf)", (
   });
 
   test("dynamic land units format correctly for document area", () => {
-    expect(formatLandArea(8, "শতাংশ", "bn")).toBe("8 শতাংশ");
+    expect(formatLandArea(8, "শতাংশ", "bn")).toBe("৮ শতাংশ");
     expect(formatLandArea(8, "shotangsho", "en")).toBe("8 decimals");
-    expect(formatLandArea(100, "acre", "bn")).toBe("1 একর (100 শতাংশ)");
-    expect(formatLandArea(33, "bigha", "bn")).toBe("1 বিঘা (33 শতাংশ)");
+    expect(formatLandArea(100, "acre", "bn")).toBe("১ একর (১০০ শতাংশ)");
+    expect(formatLandArea(33, "bigha", "bn")).toBe("১ বিঘা (৩৩ শতাংশ)");
   });
 
   test("all User Data Showing i18n keys are present and non-empty", () => {

@@ -9,6 +9,8 @@ import { categories, Category, emptyFields, Fields } from "@/lib/domain";
 import { prepareDocument } from "@/lib/pdf-client";
 import { DOCUMENT_ACCEPT } from "@/lib/document-types";
 
+import { toBengaliDigits, toAsciiDigits } from "@/lib/numbers";
+
 async function request(path: string, body?: unknown) {
   const response = await fetch("/api/service/" + path, {
     method: body ? "POST" : "GET",
@@ -27,7 +29,7 @@ async function request(path: string, body?: unknown) {
   return data;
 }
 export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
-  const { t, tt } = useI18n();
+  const { t, tt, locale } = useI18n();
   const router = useRouter();
   const [category, setCategory] = useState<Category>("KHATIAN");
   const [subtype, setSubtype] = useState("RS");
@@ -70,9 +72,14 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
     setDocumentFields((previous) => ({
       ...previous,
       ...Object.fromEntries(
-        Object.entries(data.extracted_fields || {}).filter(
-          ([key]) => !documentEdits.current.has(key as keyof Fields),
-        ),
+        Object.entries(data.extracted_fields || {})
+          .filter(([key]) => !documentEdits.current.has(key as keyof Fields))
+          .map(([key, value]) => [
+            key,
+            typeof value === "string" && locale === "bn"
+              ? toBengaliDigits(value)
+              : value,
+          ]),
       ),
     }));
     setValues((previous) => ({
@@ -80,7 +87,14 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
       ...Object.fromEntries(
         Object.entries(data.parcel_fields || {})
           .filter(([key]) => !edited.current.has(key))
-          .map(([key, value]) => [key, value == null ? "" : String(value)]),
+          .map(([key, value]) => [
+            key,
+            value == null
+              ? ""
+              : locale === "bn"
+                ? toBengaliDigits(value)
+                : String(value),
+          ]),
       ),
       total_area_unit:
         data.parcel_fields?.total_area_unit ||
@@ -88,7 +102,7 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
         previous.total_area_unit ||
         "decimal",
     }));
-  }, []);
+  }, [locale]);
   const extract = useCallback(
     async (data: any, file?: File) => {
       if (abandoned.current) return;
@@ -399,7 +413,12 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                   try {
                     setSaving(true);
                     const land = Object.fromEntries(
-                      fields.map(([key]) => [key, values[key] || ""]),
+                      fields.map(([key]) => [
+                        key,
+                        key === "total_area_decimals"
+                          ? toAsciiDigits(values[key] || "")
+                          : values[key] || "",
+                      ]),
                     );
                     const result = intake
                       ? await request("intake-confirm/" + intake.id, {
@@ -444,15 +463,23 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                           <input
                             name={key}
                             placeholder={t("ocr_empty_placeholder")}
-                            value={values[key] || ""}
+                            value={
+                              values[key] != null
+                                ? locale === "bn"
+                                  ? toBengaliDigits(values[key])
+                                  : String(values[key])
+                                : ""
+                            }
                             onChange={(e) => {
                               edited.current.add(key);
-                              setValues({ ...values, [key]: e.target.value });
+                              const raw = e.target.value;
+                              const formatted =
+                                locale === "bn" ? toBengaliDigits(raw) : raw;
+                              setValues({ ...values, [key]: formatted });
                             }}
                             required
-                            type="number"
-                            step="0.01"
-                            min="0.01"
+                            type="text"
+                            inputMode="decimal"
                           />
                           <select
                             name="total_area_unit"
@@ -481,10 +508,19 @@ export default function CreateLandDialog({ onClose }: { onClose: () => void }) {
                         <input
                           name={key}
                           placeholder={t("ocr_empty_placeholder")}
-                          value={values[key] || ""}
+                          value={
+                            values[key] != null
+                              ? locale === "bn"
+                                ? toBengaliDigits(values[key])
+                                : String(values[key])
+                              : ""
+                          }
                           onChange={(e) => {
                             edited.current.add(key);
-                            setValues({ ...values, [key]: e.target.value });
+                            const raw = e.target.value;
+                            const formatted =
+                              locale === "bn" ? toBengaliDigits(raw) : raw;
+                            setValues({ ...values, [key]: formatted });
                           }}
                           required={
                             !["jl_number", "current_khatian_no"].includes(key)

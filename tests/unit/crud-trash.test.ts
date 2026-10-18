@@ -84,16 +84,16 @@ describe("land domain and trash filtering", () => {
 
   test("dynamic land units format correctly in BN and EN", () => {
     // 20 decimals in decimal unit
-    expect(formatLandArea(20, "decimal", "bn")).toBe("20 শতাংশ");
+    expect(formatLandArea(20, "decimal", "bn")).toBe("২০ শতাংশ");
     expect(formatLandArea(20, "decimal", "en")).toBe("20 decimals");
 
     // 33 decimals in bigha unit (factor = 33) -> 1 bigha
     expect(formatLandArea(33, "bigha", "en")).toBe("1 bighas (33 decimals)");
-    expect(formatLandArea(33, "bigha", "bn")).toBe("1 বিঘা (33 শতাংশ)");
+    expect(formatLandArea(33, "bigha", "bn")).toBe("১ বিঘা (৩৩ শতাংশ)");
 
     // 100 decimals in acre unit (factor = 100) -> 1 acre
     expect(formatLandArea(100, "acre", "en")).toBe("1 acres (100 decimals)");
-    expect(formatLandArea(100, "acre", "bn")).toBe("1 একর (100 শতাংশ)");
+    expect(formatLandArea(100, "acre", "bn")).toBe("১ একর (১০০ শতাংশ)");
   });
 
   test("all LAND_UNITS are defined as expected strings", () => {

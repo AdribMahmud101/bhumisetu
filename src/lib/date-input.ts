@@ -1,3 +1,5 @@
+import { toBengaliDigits, toAsciiDigits } from "./numbers";
+
 const MONTH_NAMES: Record<string, string> = {
   jan: "01",
   january: "01",
@@ -86,10 +88,15 @@ function buildValidIso(
   return null;
 }
 
-export function dateToDisplay(value: string | null | undefined): string {
+export function dateToDisplay(
+  value: string | null | undefined,
+  locale: "bn" | "en" = "bn",
+): string {
   if (!value) return "";
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
+  const ascii = toAsciiDigits(String(value));
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ascii);
+  const formatted = match ? `${match[3]}/${match[2]}/${match[1]}` : String(value);
+  return locale === "bn" ? toBengaliDigits(formatted) : toAsciiDigits(formatted);
 }
 
 export function dateFromDisplay(value: unknown): string | null {

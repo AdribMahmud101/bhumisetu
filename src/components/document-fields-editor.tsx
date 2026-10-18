@@ -4,6 +4,8 @@ import { Category, categoryFields, Fields, fieldLabels } from "@/lib/domain";
 import { dateFromDisplay, dateToDisplay } from "@/lib/date-input";
 import { useEffect, useRef, useState } from "react";
 
+import { toBengaliDigits, toAsciiDigits } from "@/lib/numbers";
+
 function ReviewDateInput({
   value,
   onChange,
@@ -17,15 +19,16 @@ function ReviewDateInput({
   disabled: boolean;
   placeholder: string;
 }) {
-  const [display, setDisplay] = useState(() => dateToDisplay(value));
+  const { locale } = useI18n();
+  const [display, setDisplay] = useState(() => dateToDisplay(value, locale));
   const lastSentRef = useRef<string | null>(value);
 
   useEffect(() => {
     if (value !== lastSentRef.current) {
-      setDisplay(dateToDisplay(value));
+      setDisplay(dateToDisplay(value, locale));
       lastSentRef.current = value;
     }
-  }, [value]);
+  }, [value, locale]);
 
   return (
     <input
@@ -36,7 +39,10 @@ function ReviewDateInput({
       placeholder={placeholder}
       value={display}
       onChange={(event) => {
-        const next = event.target.value;
+        let next = event.target.value;
+        if (locale === "bn") {
+          next = toBengaliDigits(next);
+        }
         setDisplay(next);
         if (!next.trim()) {
           lastSentRef.current = null;
@@ -56,7 +62,7 @@ function ReviewDateInput({
         } else {
           const parsed = dateFromDisplay(display);
           if (parsed) {
-            setDisplay(dateToDisplay(parsed));
+            setDisplay(dateToDisplay(parsed, locale));
             lastSentRef.current = parsed;
             onChange(parsed);
           }
@@ -98,22 +104,29 @@ export default function DocumentFieldsEditor({
                 name={prefix + key}
                 data-testid={prefix + key}
                 disabled={disabled}
-                type="number"
+                type="text"
                 inputMode="decimal"
-                step="0.01"
-                min="0.01"
                 placeholder={t("ocr_empty_placeholder")}
-                value={fields[key as keyof Fields] ?? ""}
-                onChange={(e) =>
+                value={
+                  fields.area_decimals != null
+                    ? locale === "bn"
+                      ? toBengaliDigits(fields.area_decimals)
+                      : String(fields.area_decimals)
+                    : ""
+                }
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const ascii = toAsciiDigits(raw).replace(/[^0-9.]/g, "");
+                  const num = ascii === "" ? null : Number(ascii);
                   onChange(
                     {
                       ...fields,
-                      [key]:
-                        e.target.value === "" ? null : Number(e.target.value),
+                      area_decimals:
+                        num != null && !Number.isNaN(num) ? num : null,
                     },
                     key as keyof Fields,
-                  )
-                }
+                  );
+                }}
               />
               <select
                 name={prefix + "area_unit"}
@@ -154,16 +167,25 @@ export default function DocumentFieldsEditor({
               type="text"
               maxLength={500}
               placeholder={t("ocr_empty_placeholder")}
-              value={fields[key as keyof Fields] ?? ""}
-              onChange={(e) =>
+              value={
+                fields[key as keyof Fields] != null
+                  ? locale === "bn"
+                    ? toBengaliDigits(fields[key as keyof Fields])
+                    : String(fields[key as keyof Fields])
+                  : ""
+              }
+              onChange={(e) => {
+                const raw = e.target.value;
+                const formatted =
+                  locale === "bn" ? toBengaliDigits(raw) : raw;
                 onChange(
                   {
                     ...fields,
-                    [key]: e.target.value === "" ? null : e.target.value,
+                    [key]: formatted === "" ? null : formatted,
                   },
                   key as keyof Fields,
-                )
-              }
+                );
+              }}
             />
           )}
         </label>

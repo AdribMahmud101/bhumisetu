@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useI18n, LanguageSwitch } from "@/i18n/provider";
 import { Land } from "@/lib/domain";
 import { Check, Loader2, X } from "lucide-react";
+import { toBengaliDigits, toAsciiDigits } from "@/lib/numbers";
 
 export default function EditLandDialog({
   land,
@@ -13,17 +14,37 @@ export default function EditLandDialog({
   onClose: () => void;
   onSaved: (updatedLand: Land) => void;
 }) {
-  const { t, tt } = useI18n();
+  const { t, tt, locale } = useI18n();
   const [district, setDistrict] = useState(land.district || "");
   const [upazila, setUpazila] = useState(land.upazila || "");
   const [mouza, setMouza] = useState(land.mouza || "");
-  const [jlNumber, setJlNumber] = useState(land.jl_number || "");
-  const [dagNumber, setDagNumber] = useState(land.dag_number || "");
+  const [jlNumber, setJlNumber] = useState(
+    land.jl_number
+      ? locale === "bn"
+        ? toBengaliDigits(land.jl_number)
+        : land.jl_number
+      : "",
+  );
+  const [dagNumber, setDagNumber] = useState(
+    land.dag_number
+      ? locale === "bn"
+        ? toBengaliDigits(land.dag_number)
+        : land.dag_number
+      : "",
+  );
   const [currentKhatianNo, setCurrentKhatianNo] = useState(
-    land.current_khatian_no || "",
+    land.current_khatian_no
+      ? locale === "bn"
+        ? toBengaliDigits(land.current_khatian_no)
+        : land.current_khatian_no
+      : "",
   );
   const [totalAreaDecimals, setTotalAreaDecimals] = useState(
-    land.total_area_decimals ? String(land.total_area_decimals) : "",
+    land.total_area_decimals != null
+      ? locale === "bn"
+        ? toBengaliDigits(land.total_area_decimals)
+        : String(land.total_area_decimals)
+      : "",
   );
   const [isFinalized, setIsFinalized] = useState(Boolean(land.is_finalized));
   const [busy, setBusy] = useState(false);
@@ -34,7 +55,7 @@ export default function EditLandDialog({
     setBusy(true);
     setError("");
     try {
-      const area = Number(totalAreaDecimals);
+      const area = Number(toAsciiDigits(totalAreaDecimals));
       if (Number.isNaN(area) || area <= 0) {
         throw new Error(t("ocr_invalid_fields"));
       }
@@ -132,7 +153,13 @@ export default function EditLandDialog({
                 data-testid="edit-land-jl"
                 value={jlNumber}
                 disabled={busy}
-                onChange={(e) => setJlNumber(e.target.value)}
+                onChange={(e) =>
+                  setJlNumber(
+                    locale === "bn"
+                      ? toBengaliDigits(e.target.value)
+                      : e.target.value,
+                  )
+                }
               />
             </label>
             <label>
@@ -142,7 +169,13 @@ export default function EditLandDialog({
                 data-testid="edit-land-dag"
                 value={dagNumber}
                 disabled={busy}
-                onChange={(e) => setDagNumber(e.target.value)}
+                onChange={(e) =>
+                  setDagNumber(
+                    locale === "bn"
+                      ? toBengaliDigits(e.target.value)
+                      : e.target.value,
+                  )
+                }
               />
             </label>
             <label>
@@ -151,7 +184,13 @@ export default function EditLandDialog({
                 data-testid="edit-land-khatian"
                 value={currentKhatianNo}
                 disabled={busy}
-                onChange={(e) => setCurrentKhatianNo(e.target.value)}
+                onChange={(e) =>
+                  setCurrentKhatianNo(
+                    locale === "bn"
+                      ? toBengaliDigits(e.target.value)
+                      : e.target.value,
+                  )
+                }
               />
             </label>
             <label>
@@ -159,12 +198,17 @@ export default function EditLandDialog({
               <input
                 required
                 data-testid="edit-land-area"
-                type="number"
-                step="0.01"
-                min="0.01"
+                type="text"
+                inputMode="decimal"
                 value={totalAreaDecimals}
                 disabled={busy}
-                onChange={(e) => setTotalAreaDecimals(e.target.value)}
+                onChange={(e) =>
+                  setTotalAreaDecimals(
+                    locale === "bn"
+                      ? toBengaliDigits(e.target.value)
+                      : e.target.value,
+                  )
+                }
               />
             </label>
           </div>

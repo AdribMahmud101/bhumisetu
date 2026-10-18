@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { dateFromDisplay } from "./date-input";
+import { toAsciiDigits } from "./numbers";
 
 const nullableText = z.string().trim().max(500).nullable();
 const date = z
@@ -12,6 +13,7 @@ const date = z
     "Invalid date",
   )
   .nullable();
+
 export const fieldsSchema = z.object({
   official_number: nullableText,
   document_date: date,
@@ -19,7 +21,15 @@ export const fieldsSchema = z.object({
   seller_or_prior_owner: nullableText,
   buyer_or_current_owner: nullableText,
   dag_number: nullableText,
-  area_decimals: z.number().positive().max(10000000).nullable(),
+  area_decimals: z.preprocess(
+    (val) => {
+      if (val == null || val === "") return null;
+      const ascii = toAsciiDigits(String(val)).trim();
+      const num = Number(ascii);
+      return Number.isFinite(num) ? num : val;
+    },
+    z.number().positive().max(10000000).nullable(),
+  ),
   area_unit: nullableText.optional(),
   khatian_ref: nullableText,
   share_identity: nullableText,
@@ -32,7 +42,15 @@ export const landSchema = z.object({
   jl_number: z.string().max(50),
   dag_number: z.string().trim().min(1).max(50),
   current_khatian_no: z.string().max(100),
-  total_area_decimals: z.coerce.number().positive().max(10000000),
+  total_area_decimals: z.preprocess(
+    (val) => {
+      if (val == null || val === "") return val;
+      const ascii = toAsciiDigits(String(val)).trim();
+      const num = Number(ascii);
+      return Number.isFinite(num) ? num : val;
+    },
+    z.coerce.number().positive().max(10000000),
+  ),
 });
 
 export const parcelExtractionSchema = z.object({
@@ -42,7 +60,15 @@ export const parcelExtractionSchema = z.object({
   jl_number: nullableText,
   dag_number: nullableText,
   current_khatian_no: nullableText,
-  total_area_decimals: z.number().positive().max(10000000).nullable(),
+  total_area_decimals: z.preprocess(
+    (val) => {
+      if (val == null || val === "") return null;
+      const ascii = toAsciiDigits(String(val)).trim();
+      const num = Number(ascii);
+      return Number.isFinite(num) ? num : val;
+    },
+    z.number().positive().max(10000000).nullable(),
+  ),
   total_area_unit: nullableText.optional(),
 });
 

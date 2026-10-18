@@ -2,7 +2,9 @@ import { expect, test } from "bun:test";
 import { dateFromDisplay, dateToDisplay } from "../../src/lib/date-input";
 
 test("officer dates display day first and save as ISO", () => {
-  expect(dateToDisplay("2018-06-12")).toBe("12/06/2018");
+  expect(dateToDisplay("2018-06-12", "en")).toBe("12/06/2018");
+  expect(dateToDisplay("2018-06-12", "bn")).toBe("১২/০৬/২০১৮");
+  expect(dateToDisplay("2018-06-12")).toBe("১২/০৬/২০১৮");
   expect(dateFromDisplay("12/06/2018")).toBe("2018-06-12");
   expect(dateFromDisplay("১২/০৬/২০১৮")).toBe("2018-06-12");
 });

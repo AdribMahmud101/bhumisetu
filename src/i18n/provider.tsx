@@ -13,10 +13,15 @@ import {
   LOCALE_COOKIE,
   type Locale,
 } from "./core";
+import { toBengaliDigits, toAsciiDigits, formatDigits } from "@/lib/numbers";
+
 type Context = ReturnType<typeof createTranslator> & {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   formatDate: (date: string | number | Date, includeTime?: boolean) => string;
+  formatNumber: (val: unknown) => string;
+  toBengaliDigits: (val: unknown) => string;
+  toAsciiDigits: (val: unknown) => string;
 };
 const LanguageContext = createContext<Context | null>(null);
 export function LanguageProvider({
@@ -38,6 +43,9 @@ export function LanguageProvider({
         document.cookie = `${LOCALE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
       },
       formatDate: (date, time = false) => dateFormatter(locale, date, time),
+      formatNumber: (val) => formatDigits(val, locale),
+      toBengaliDigits,
+      toAsciiDigits,
     }),
     [locale],
   );

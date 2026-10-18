@@ -25,6 +25,7 @@ import {
   LandDocument,
 } from "@/lib/domain";
 import { DOCX_MIME } from "@/lib/document-types";
+import { toBengaliDigits } from "@/lib/numbers";
 import dynamic from "next/dynamic";
 
 const DocxPreview = dynamic(() => import("./docx-preview"), { ssr: false });
@@ -65,7 +66,9 @@ export default function UserDocumentModal({
         </span>
       );
     }
-    return <strong>{String(val)}</strong>;
+    return (
+      <strong>{locale === "bn" ? toBengaliDigits(val) : String(val)}</strong>
+    );
   };
 
   const getPartyFields = () => {
