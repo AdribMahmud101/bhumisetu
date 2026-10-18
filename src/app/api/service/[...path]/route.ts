@@ -433,13 +433,17 @@ export async function POST(
           const text = body.text || "";
           validateContent(pages, text);
           const { fields } = await extractPages(pages, text, "DEED", "SAF_KABALA");
+          let decimals = fields.area_decimals != null ? Number(fields.area_decimals) : null;
+          if (decimals != null && fields.area_unit && /একর|acre/i.test(fields.area_unit) && decimals < 5) {
+            decimals = Math.round(decimals * 100 * 100) / 100;
+          }
           const extractedDeed: ExtractedDeedFields = {
             deedNumber: fields.official_number,
             deedDate: fields.document_date || fields.execution_date,
             sellerName: fields.seller_or_prior_owner,
             buyerName: fields.buyer_or_current_owner,
             dagNumber: fields.dag_number,
-            landAreaDecimals: fields.area_decimals != null ? Number(fields.area_decimals) : null,
+            landAreaDecimals: decimals,
             khatianNumber: fields.khatian_ref,
             qrPayload: body.qrPayload,
           };
@@ -466,13 +470,17 @@ export async function POST(
           const text = String(form.get("text") || "");
           validateContent(pages, text);
           const { fields } = await extractPages(pages, text, "DEED", "SAF_KABALA");
+          let decimals = fields.area_decimals != null ? Number(fields.area_decimals) : null;
+          if (decimals != null && fields.area_unit && /একর|acre/i.test(fields.area_unit) && decimals < 5) {
+            decimals = Math.round(decimals * 100 * 100) / 100;
+          }
           extracted = {
             deedNumber: fields.official_number,
             deedDate: fields.document_date || fields.execution_date,
             sellerName: fields.seller_or_prior_owner,
             buyerName: fields.buyer_or_current_owner,
             dagNumber: fields.dag_number,
-            landAreaDecimals: fields.area_decimals != null ? Number(fields.area_decimals) : null,
+            landAreaDecimals: decimals,
             khatianNumber: fields.khatian_ref,
             qrPayload,
           };

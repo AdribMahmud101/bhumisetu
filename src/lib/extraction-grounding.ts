@@ -172,11 +172,18 @@ export function groundExtraction(
         const u1 = measured[0][2];
         const u2 = measured[1][2];
         if (/একর|acre/i.test(u1) && /শতাংশ|শতক|decimal/i.test(u2)) {
-          const area = Number(measured[0][1]) * 100 + Number(measured[1][1]);
+          const a1 = Number(measured[0][1]) * 100;
+          const a2 = Number(measured[1][1]);
+          const between = source.slice(
+            (measured[0].index || 0) + measured[0][0].length,
+            measured[1].index || 0,
+          );
+          const isEquivalent = Math.abs(a1 - a2) < 0.05 || between.includes("(");
+          const area = isEquivalent ? a2 : a1 + a2;
           if (area > 0 && area <= 10000000) {
             const rounded = Math.round(area * 10000) / 10000;
             assign("area_decimals", rounded);
-            assign("area_unit", "acre");
+            assign("area_unit", isEquivalent ? "decimal" : "acre");
             if (["KHATIAN", "PORCHA"].includes(category)) {
               assign("total_area_decimals", rounded, true);
               assign("total_area_unit", "acre", true);
