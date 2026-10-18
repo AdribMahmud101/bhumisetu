@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>BhumiSetu · LandTech 2026 Concept Note</title>
+<style>
+  @page{size:A4;margin:14mm 15mm 17mm}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;color:#1c342b;background:#fff;font-family:Arial,"Noto Sans Bengali",sans-serif}
+  body{font-size:9.8pt;line-height:1.38}
+  article{max-width:100%}
+  h1{font-size:28pt;line-height:1.07;letter-spacing:-.035em;margin:0 0 3mm;color:#084b37}
+  h3{font-size:10.4pt;font-weight:700;color:#086447;margin:0 0 7mm;padding-bottom:3mm;border-bottom:2px solid #086447}
+  h2{font-size:13.2pt;line-height:1.15;color:#084b37;margin:6mm 0 2.5mm;padding-bottom:1.5mm;border-bottom:1px solid #d6e4d9;break-after:avoid}
+  p{margin:0 0 3.5mm;orphans:3;widows:3}
+  strong{color:#123d2c}
+  ol,ul{margin:0 0 3.5mm;padding-left:5.4mm}
+  li{padding-left:.5mm;margin:0 0 2.3mm;break-inside:avoid}
+  li::marker{color:#086447;font-weight:700}
+  table{border-collapse:collapse;width:100%;margin:2.5mm 0 4mm;font-size:8.9pt;line-height:1.32}
+  th{text-align:left;background:#e8f2eb;color:#084b37;font-weight:700}
+  td,th{border-bottom:1px solid #d7e2d9;padding:2mm 2.5mm;vertical-align:top}
+  td:first-child,th:first-child{width:30%}
+  a{color:#086447;text-decoration:none;overflow-wrap:anywhere}
+  code{font-family:Arial,"Noto Sans Bengali",sans-serif;color:#086447}
+  em{font-size:8.1pt;color:#5c6d63}
+  .page-break{break-after:page;height:0}
+  .architecture{margin:1.8mm 0 3.5mm;padding:1.6mm;border:1px solid #d3e1d6;background:#f7f9f5;break-inside:avoid}
+  .architecture svg{display:block;width:100%;height:auto;min-width:0}
+  .architecture .edge{fill:none;stroke:#8ba69a;stroke-width:1.6;marker-end:url(#bs-arrow)}
+  .architecture .edge-main{fill:none;stroke:#086447;stroke-width:1.9;marker-end:url(#bs-arrow-green)}
+  .architecture .node{fill:#fff;stroke:#97afa2;stroke-width:1.1}
+  .architecture .node-main{fill:#e9f4ed;stroke:#086447;stroke-width:1.5}
+  .architecture .node-name{font-size:15px;font-weight:700;fill:#1c342b}
+  .architecture .node-sub{font-size:11.5px;fill:#52675d}
+  .architecture .tag{font-size:9.5px;font-weight:700;letter-spacing:.09em;fill:#086447}
+  .architecture .legend{font-size:11px;fill:#52675d}
+  figcaption{font-size:8pt;color:#52675d;margin:1.2mm 1mm .4mm}
+  @media screen{body{background:#e9eee9;padding:28px}article{width:180mm;margin:auto;background:#fff;padding:14mm 15mm;box-shadow:0 8px 36px #1c342b18}}
+</style></head><body><article><h1>BhumiSetu | ভূমিসেতু</h1>
+<h3>LandTech 2026 concept note · <strong>P1 · P2 · P3 · P5</strong></h3>
+<p><strong>BhumiSetu connects four land workflows:</strong> digitizing records (P1), verifying deeds (P2), detecting conflicting transactions (P3), and helping citizens check before buying (P5).</p>
+<p><strong>The human idea:</strong> A buyer should see a conflict in the records before it becomes a conflict between families. BhumiSetu turns scattered papers into reviewed digital evidence, explains contradictions in plain language, and leaves the decision with an officer.</p>
+<h2>1. The problem in Bangladesh</h2>
+<p>For many families, a plot is their largest savings. Yet the evidence for one parcel can be spread across CS, SA, RS and BS khatians, porchas, registered deeds and later mutation (namjari) entries. A deed recorded at a sub-registry office and a mutation record can describe different parties or areas; older and newer survey identifiers may also need careful reconciliation. Someone checking only one paper can miss another transfer of the same land. The <a href="https://mutation.land.gov.bd/namjari-steps">Ministry of Land&#39;s e-Mutation process</a> routes mismatched details for officer review, which is the right place for our evidence alerts.</p>
+<p>One broken link in that chain can hide a second sale or create uncertainty for an honest buyer. A warning is evidence for review, not a finding of fraud or a declaration of legal title.</p>
+<h2>2. Four problems addressed in one working system</h2>
+<table>
+<thead>
+<tr>
+<th>Challenge</th>
+<th>What BhumiSetu already does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>P1 · Digitize old records</strong></td>
+<td>Officers upload Khatian, Porcha, Deed and Mutation PDFs, DOCX files or images. Text/vision extraction proposes searchable fields; officers inspect the original and edit the result before verification.</td>
+</tr>
+<tr>
+<td><strong>P2 · Verify deeds &amp; ownership evidence</strong></td>
+<td>A deed image, document or QR payload is checked against a reviewed record. Field-by-field comparisons show matched, mismatched or inconclusive results; enrolled originals also have SHA-256 copy hashes.</td>
+</tr>
+<tr>
+<td><strong>P3 · Catch fraud &amp; double-selling</strong></td>
+<td>Versioned rules flag overlapping or excess sales, ownership-chain gaps, deed–mutation conflicts and suspicious dates, with the source documents behind each alert.</td>
+</tr>
+<tr>
+<td><strong>P5 · Check before buying</strong></td>
+<td>A citizen enters a land ID or QR link to see the published parcel&#39;s recorded parties, area, history and evidence report in Bangla or English, then print a dossier.</td>
+</tr>
+</tbody></table>
+<h2>3. One parcel, two users, one evidence trail</h2>
+<p>An officer uploads the source papers, reviews AI-suggested fields, records corrections with reasons and publishes verified evidence. A buyer searches the parcel or scans its QR; the same reviewed data powers a readable conflict report and deed comparison. The officer sees the underlying documents and rule trace before deciding a related mutation case.</p>
+<p><strong>Illustrative synthetic case:</strong> A parcel has 20 decimals recorded, while two deeds from the same seller claim 12 decimals each. BhumiSetu shows the 24-versus-20 discrepancy and both deeds before a buyer pays or an officer approves a mutation.</p>
+<div class="page-break"></div><h2>4. Solution architecture and tech stack</h2>
+<figure class="architecture"><svg viewBox="0 0 760 318" role="img" aria-labelledby="bhumisetu-architecture-title bhumisetu-architecture-desc">
+      <title id="bhumisetu-architecture-title">BhumiSetu working architecture</title>
+      <desc id="bhumisetu-architecture-desc">Officer and citizen browsers use a Cloudflare-hosted application. Server routes connect to Supabase records and private originals and call DeepInfra vision for extraction. Deterministic rules produce evidence-linked reports.</desc>
+      <defs>
+        <marker id="bs-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,1 L7,4 L0,7" fill="none" stroke="#8ba69a" stroke-width="1.2"/></marker>
+        <marker id="bs-arrow-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,1 L7,4 L0,7" fill="none" stroke="#086447" stroke-width="1.2"/></marker>
+      </defs>
+      <!-- Connections precede nodes so no line crosses visible content. -->
+      <path class="edge-main" d="M184 89 H220 Q230 89 230 99 V136 Q230 146 240 146 H254"/>
+      <path class="edge-main" d="M184 209 H220 Q230 209 230 199 V182 Q230 172 240 172 H254"/>
+      <path class="edge" d="M468 139 H504 Q514 139 514 129 V79 Q514 69 524 69 H555"/>
+      <path class="edge" d="M468 159 H555"/>
+      <path class="edge" d="M468 181 H504 Q514 181 514 191 V245 Q514 255 524 255 H555"/>
+      <rect class="node" x="20" y="56" width="164" height="66" rx="6"/>
+      <text class="tag" x="34" y="76">REVIEWER</text>
+      <text class="node-name" x="34" y="96">Officer workspace</text>
+      <text class="node-sub" x="34" y="112">upload · correct · decide</text>
+      <rect class="node" x="20" y="176" width="164" height="66" rx="6"/>
+      <text class="tag" x="34" y="196">READER</text>
+      <text class="node-name" x="34" y="216">Citizen portal</text>
+      <text class="node-sub" x="34" y="232">ID / QR · evidence report</text>
+      <rect class="node-main" x="254" y="114" width="214" height="90" rx="6"/>
+      <text class="tag" x="270" y="137">APPLICATION SERVER</text>
+      <text class="node-name" x="270" y="159">Next.js on Cloudflare</text>
+      <text class="node-sub" x="270" y="178">role checks · reviewed evidence</text>
+      <text class="node-sub" x="270" y="195">versioned TypeScript rules</text>
+      <rect class="node" x="555" y="38" width="181" height="62" rx="6"/>
+      <text class="tag" x="569" y="58">SUPABASE</text>
+      <text class="node-name" x="569" y="78">PostgreSQL + Auth</text>
+      <text class="node-sub" x="569" y="93">records · roles · audit</text>
+      <rect class="node" x="555" y="128" width="181" height="62" rx="6"/>
+      <text class="tag" x="569" y="148">SUPABASE</text>
+      <text class="node-name" x="569" y="168">Private Storage</text>
+      <text class="node-sub" x="569" y="183">original documents</text>
+      <rect class="node" x="555" y="224" width="181" height="62" rx="6"/>
+      <text class="tag" x="569" y="244">EXTERNAL MODEL</text>
+      <text class="node-name" x="569" y="264">DeepInfra vision</text>
+      <text class="node-sub" x="569" y="279">candidate fields only</text>
+      <line x1="20" y1="302" x2="736" y2="302" stroke="#d5e0d7" stroke-width="1"/>
+      <text class="legend" x="20" y="314">Original file stays private · officer confirms extracted values · rules explain conflicts · humans decide</text>
+    </svg><figcaption>Officer-reviewed evidence reaches a versioned rule engine through protected server routes.</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Current implementation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Citizen and officer interface</td>
+<td>Next.js 15 App Router, React 18, TypeScript, Tailwind; Bangla/English catalogues; land-ID and QR journeys</td>
+</tr>
+<tr>
+<td>Application and deployment</td>
+<td>Next.js server routes packaged by OpenNext for Cloudflare Workers; server-side role checks and protected API actions</td>
+</tr>
+<tr>
+<td>Records and access</td>
+<td>Supabase Auth, PostgreSQL, row-level security, private Supabase Storage; original file hash and audited edits</td>
+</tr>
+<tr>
+<td>Document understanding</td>
+<td>PDF.js, DOCX parser, image preparation, DeepInfra-hosted Qwen vision model; officer reviews every extracted field</td>
+</tr>
+<tr>
+<td>Verification</td>
+<td>Versioned TypeScript rules and deed field comparison; evidence-linked reports and mutation review</td>
+</tr>
+</tbody></table>
+<p><strong>Human control is part of the architecture.</strong> AI proposes document fields; deterministic rules produce the conflict indicator. Officers compare extraction with the source, verify documents and decide mutation cases. Original files stay private; published citizen views use reviewed data.</p>
+<h2>5. Why the four parts fit together</h2>
+<p><strong>P1 creates the reviewed evidence; P2 checks a presented deed against it; P3 finds contradictions across records; P5 gives the buyer an understandable view of the result.</strong> These are linked product journeys, not four disconnected demos. Corrections preserve old/new values and reasons in an officer audit trail, while the server blocks approval of unresolved conflict cases.</p>
+<div class="page-break"></div><h2>6. From prototype to nationwide use</h2>
+<p><strong>Phase 1 — district pilot.</strong> Start with a controlled, synthetic-to-authorized-data transition in one district. Define a parcel matching key using district, upazila, mouza, JL, dag, khatian and survey type; map CS/SA/RS/BS changes without collapsing distinct historical identifiers. Have officers validate ambiguous matches and measure extraction corrections, alert precision and time saved.</p>
+<p><strong>Phase 2 — interoperable exchange.</strong> With government authorization, connect registry, land-record and mutation workflows through documented import/API contracts. Preserve each source&#39;s issuing office, document date, version and hash. Route conflicting updates to a review queue instead of silently replacing one record with another.</p>
+<p><strong>Phase 3 — national operations.</strong> Scale ingestion in batches by district, monitor processing and audit events, and use role-scoped access so only authorized officers can alter reviewed data. Continue human review for disputed ownership and publish only the minimum citizen-facing evidence needed for informed checking.</p>
+<h2>7. Why this matters</h2>
+<p>BhumiSetu turns a pile of papers into a question a person can act on: <strong>“Do these records agree about this parcel?”</strong> A buyer gets a timely reason to pause; an officer gets the documents and rule trace needed to investigate. The prototype demonstrates all four connected challenges with invented records and original sample files, without government-site scraping or real citizen data.</p>
+<p><strong>Live prototype:</strong> <a href="https://bhumisetu.adribmahmud.workers.dev">https://bhumisetu.adribmahmud.workers.dev</a><br><strong>Code and reproducibility:</strong> <a href="https://github.com/AdribMahmud101/bhumisetu">https://github.com/AdribMahmud101/bhumisetu</a></p>
+<h2>8. Team (four required members)</h2>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name / affiliation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Student 1 · Team Leader (DIU)</td>
+<td><strong>[TEAM LEADER NAME / ID]</strong></td>
+</tr>
+<tr>
+<td>Student 2 (DIU)</td>
+<td><strong>[STUDENT NAME / ID]</strong></td>
+</tr>
+<tr>
+<td>Faculty Mentor</td>
+<td><strong>[FACULTY MENTOR NAME / DEPARTMENT]</strong></td>
+</tr>
+<tr>
+<td>Industry Mentor</td>
+<td><strong>[INDUSTRY MENTOR NAME / ORGANIZATION]</strong></td>
+</tr>
+</tbody></table>
+<p><em>Team details are placeholders until confirmed by the applicants.</em></p>
+<p><strong>Land context:</strong> <a href="https://mutation.land.gov.bd/namjari-steps">Ministry of Land e-Mutation steps</a> · <a href="https://www.land.gov.bd/">Ministry of Land portal</a></p>
+
+</article></body></html>

@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "file": "renders/BhumiSetu_90s_Bangla_Muted.mp4",
+  "sha256": "af4e5a0d5847011d7a237711c3d9b1b7ca2b3cca1057c1b7d6d0f021afadc321",
+  "bytes": 17385519,
+  "duration_seconds": 90.0,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "frames": 2700,
+  "video_codec": "h264",
+  "audio_streams": 0,
+  "scenes": 8,
+  "captions": 19,
+  "disjoint_caption_intervals": true,
+  "disjoint_speech_budgets": true,
+  "hyperframes_version": "0.8.171",
+  "composition_check": {
+    "lint": {
+      "ok": true,
+      "errorCount": 0,
+      "warningCount": 10
+    },
+    "runtime": {
+      "ok": true,
+      "errorCount": 0,
+      "warningCount": 0
+    },
+    "layout": {
+      "ok": true,
+      "errorCount": 0,
+      "warningCount": 0
+    },
+    "contrast": {
+      "ok": true,
+      "errorCount": 0,
+      "warningCount": 0
+    }
+  },
+  "contrast_elements_checked": 41,
+  "contrast_elements_passed": 41,
+  "note": "Ten non-blocking architecture advisories reviewed; intentional screen crops. Voice timing windows are budgets, not measured synthesized speech."
+}

@@ -1,0 +1,55 @@
+[
+  {
+    "asset": "ocr-live.mp4",
+    "source": ".local/video/raw/ocr.webm",
+    "source_start": 3.1289999999999996,
+    "wait_start": 5.841,
+    "wait_end": 15.699,
+    "source_end": 28.385,
+    "output_duration": 18,
+    "wait_output_duration": 2.602,
+    "waiting_edit_labeled": true
+  },
+  {
+    "asset": "deed-live.mp4",
+    "source": ".local/video/raw/deed.webm",
+    "source_start": 0.8,
+    "wait_start": 2.6,
+    "wait_end": 8.533,
+    "source_end": 16.588,
+    "output_duration": 13,
+    "wait_output_duration": 3.145,
+    "waiting_edit_labeled": true
+  },
+  {
+    "asset": "citizen-live.mp4",
+    "source": ".local/video/raw/citizen.webm",
+    "source_start": 1.3,
+    "output_duration": 13,
+    "edit": "final frame holds; interactions remain at recorded speed"
+  },
+  {
+    "asset": "ocr-fields.png",
+    "source": "ocr-editable.png",
+    "crop": "1260:620:810:900",
+    "edit": "crop only; no app values changed"
+  },
+  {
+    "asset": "review-editor.png",
+    "source": "source-review.png",
+    "crop": "1570:1270:860:260",
+    "edit": "crop only; no app values changed"
+  },
+  {
+    "asset": "review-fields.png",
+    "source": "source-review.png",
+    "crop": "1200:840:1460:680",
+    "edit": "crop only; no app values changed"
+  },
+  {
+    "asset": "deed-key-fields.png",
+    "source": "deed-comparison-detail.png",
+    "crop": "1680:700:0:0",
+    "edit": "crop only; no app values changed"
+  }
+]

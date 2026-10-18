@@ -1,0 +1,33 @@
+{"id":"image_001","type":"image","path":"assets/area-conflict.png","source":"existing","description":"area conflict","width":1598,"height":786,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_002","type":"image","path":"assets/audit-detail.png","source":"existing","description":"audit detail","width":2200,"height":272,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_003","type":"image","path":"assets/audit.png","source":"existing","description":"audit","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_004","type":"image","path":"assets/citizen-history.png","source":"existing","description":"citizen history","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"video_001","type":"video","path":"assets/citizen-live.mp4","source":"existing","description":"citizen live","duration":13,"width":1440,"height":900,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_005","type":"image","path":"assets/citizen-qr-result.png","source":"existing","description":"citizen qr result","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_006","type":"image","path":"assets/citizen-record.png","source":"existing","description":"citizen record","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_007","type":"image","path":"assets/citizen-search.png","source":"existing","description":"citizen search","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_008","type":"image","path":"assets/conflict-overview.png","source":"existing","description":"conflict overview","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_009","type":"image","path":"assets/deed-comparison-detail.png","source":"existing","description":"deed comparison detail","width":1680,"height":1030,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_010","type":"image","path":"assets/deed-comparison.png","source":"existing","description":"deed comparison","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_011","type":"image","path":"assets/deed-extracted.png","source":"existing","description":"deed extracted","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_012","type":"image","path":"assets/deed-key-fields.png","source":"existing","description":"deed key fields","width":1680,"height":700,"provenance":{"provider":"local","adopted":true}}
+{"id":"video_002","type":"video","path":"assets/deed-live.mp4","source":"existing","description":"deed live","duration":12.9,"width":1440,"height":900,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_013","type":"image","path":"assets/deed-result.png","source":"existing","description":"deed result","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_014","type":"image","path":"assets/deed-upload.png","source":"existing","description":"deed upload","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_015","type":"image","path":"assets/documents.png","source":"existing","description":"documents","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_016","type":"image","path":"assets/evidence-detail.png","source":"existing","description":"evidence detail","width":2304,"height":1598,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_017","type":"image","path":"assets/evidence.png","source":"existing","description":"evidence","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_018","type":"image","path":"assets/history.png","source":"existing","description":"history","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_019","type":"image","path":"assets/homepage.png","source":"existing","description":"homepage","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_020","type":"image","path":"assets/ocr-area.png","source":"existing","description":"ocr area","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_021","type":"image","path":"assets/ocr-editable.png","source":"existing","description":"ocr editable","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_022","type":"image","path":"assets/ocr-fields.png","source":"existing","description":"ocr fields","width":1260,"height":620,"provenance":{"provider":"local","adopted":true}}
+{"id":"video_003","type":"video","path":"assets/ocr-live.mp4","source":"existing","description":"ocr live","duration":18,"width":1440,"height":900,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_023","type":"image","path":"assets/ocr-result.png","source":"existing","description":"ocr result","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_024","type":"image","path":"assets/ocr-upload.png","source":"existing","description":"ocr upload","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_025","type":"image","path":"assets/printed-dossier.png","source":"existing","description":"printed dossier","width":1159,"height":1639,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_026","type":"image","path":"assets/record-qr.png","source":"existing","description":"record qr","width":1024,"height":1024,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_027","type":"image","path":"assets/review-editor.png","source":"existing","description":"review editor","width":1570,"height":1270,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_028","type":"image","path":"assets/source-khatian.jpg","source":"existing","description":"source khatian","width":960,"height":1280,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_029","type":"image","path":"assets/source-review.png","source":"existing","description":"source review","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}
+{"id":"image_030","type":"image","path":"assets/workspace.png","source":"existing","description":"workspace","width":2880,"height":1800,"provenance":{"provider":"local","adopted":true}}

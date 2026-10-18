@@ -1,0 +1,9 @@
+# Project MCP servers. Export GITHUB_TOKEN before starting Codex to enable GitHub.
+# The official GitHub-hosted server avoids the unsupported legacy npm package.
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_TOKEN"
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]

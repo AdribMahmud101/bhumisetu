@@ -1,0 +1,11 @@
+{
+  "name": "bhumisetu-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node \"$HOME/.codex/plugins/cache/hyperframes/hyperframes/0.8.171/skills/hyperframes/scripts/plugin-cli.mjs\" preview",
+    "check": "node \"$HOME/.codex/plugins/cache/hyperframes/hyperframes/0.8.171/skills/hyperframes/scripts/plugin-cli.mjs\" check",
+    "render": "node \"$HOME/.codex/plugins/cache/hyperframes/hyperframes/0.8.171/skills/hyperframes/scripts/plugin-cli.mjs\" render",
+    "publish": "node \"$HOME/.codex/plugins/cache/hyperframes/hyperframes/0.8.171/skills/hyperframes/scripts/plugin-cli.mjs\" publish"
+  }
+}

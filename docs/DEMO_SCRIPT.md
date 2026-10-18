@@ -1,20 +1,31 @@
-# BhumiSetu — 90-second Round 1 demo
+# BhumiSetu — 90-second demonstration
 
-Live: https://bhumisetu.adribmahmud.workers.dev
-Primary problem: P3 — Catch Fraud & Double-Selling.
+Live application: https://bhumisetu.adribmahmud.workers.dev
 
-| Time | Action and narration |
+The film presents P1, P2, P3 and P5 through the working application. The final delivery has Soniox Priya Bangla narration and burned-in Bangla subtitles. Eight separate recorded lines fit explicit speech windows with silent transition gaps.
+
+- [Bangla narration and speech windows](../videos/bhumisetu-demo/SCRIPT.md)
+- [Storyboard](../videos/bhumisetu-demo/STORYBOARD.md)
+- [Machine-readable timing](../videos/bhumisetu-demo/TIMING.json)
+- [Bangla subtitles](../videos/bhumisetu-demo/captions.bn.srt)
+- [Production evidence and reproduction](../videos/bhumisetu-demo/PRODUCTION.md)
+- [Final narrated MP4](../videos/bhumisetu-demo/renders/BhumiSetu_90s_Bangla_Priya.mp4)
+
+| Picture time | Demonstration |
 | --- | --- |
-| 0–10s | Homepage. “Land documents are fragmented. BhumiSetu connects the evidence before a buyer pays or an officer approves.” |
-| 10–25s | Open `LND-MOCK-001`. “This fictional plot records 20 decimals, but these two deeds sell 24. The overflow is visible immediately.” |
-| 25–40s | Show the two evidence alerts and deed links. “The indicator is 60: 40 for the sale conflict, 20 for the mutation conflict. Every signal cites its source. It is not a fraud probability.” |
-| 40–60s | Officer workspace → Documents → review an already extracted sample. Correct a field with a reason; show the audit row. “AI extracts; the officer checks the original. Every correction preserves the old value, new value and reason.” |
-| 60–73s | Mutation queue. “Verifying a sale deed creates one review case. A conflicting case requires hearing; approval is blocked.” |
-| 73–85s | Citizen report → history and coverage. “The same evidence reaches the buyer. Court, khas and acquisition information are explicitly marked unavailable.” |
-| 85–90s | QR / print report and repository. “AI reads. Rules explain. Officers decide.” |
+| 0–7s | Human stakes: a family's savings and inconsistent land documents. |
+| 7–15s | Four connected capabilities: digitization, deed comparison, sale-conflict alerts and citizen checks. |
+| 15–33s | Actual upload and OCR of a fictional Bangla Khatian. Officer corrections remain visible beside the original. |
+| 33–43s | Editable document fields and an existing audit entry with old/new values and reason. |
+| 43–57s | Actual 20-decimal parcel with two 12-decimal claims, followed by the supporting deed and mutation evidence. |
+| 57–70s | Actual altered-deed upload, extraction, verification action and 12-versus-25 area mismatch. |
+| 70–83s | Citizen QR lookup, the published record, exported QR and printable report. |
+| 83–90s | “এআই পড়ে। নিয়ম অমিল দেখায়। মানুষ সিদ্ধান্ত নেয়।” |
 
-Use reviewed, clearly labeled synthetic documents to keep provider latency outside the recording. A real live upload/extraction works separately; do not claim preprocessed data was extracted during the recording. Keep the canonical parcel at 60/100 after rehearsal; restore any changed fields and publish it again.
+The captured canonical fixture was `LND-MOCK-001`, with a 65/100 rule indicator at capture. The film explains its evidence; the indicator is not a probability of fraud. This replaces the older rehearsal script's 60/100 snapshot.
 
-Officer credentials: ignored `.local/officer.json`. Upload samples: ignored `.local/fixtures/`. Do not show passwords, keys or developer tools containing session tokens in the recording.
+All application footage uses actual responses and fictional sample records. Only provider wait intervals were shortened, with an on-screen label; `SOURCE_RANGES.json` preserves the edit timings. No API response was mocked. OCR is shown as editable output, including actual corrections, rather than perfect automatic recognition. The audit entry is existing historical evidence, separate from the unconfirmed filmed intake. That intake was aborted after recording.
 
-Submission still needs the team's names/mentors, the ≤3-page concept PDF, the ≤90-second video, and submission through the official platform.
+Authenticated browser state and raw recordings remain in ignored `.local/` files. Do not include them in the submission. The Priya voice track was generated and measured line by line; each line ends within its allocated window.
+
+The submission package still needs final team/mentor details and submission through the official platform. The concept PDF draft and narrated 90-second film are available in this repository.

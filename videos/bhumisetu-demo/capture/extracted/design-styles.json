@@ -1,0 +1,266 @@
+{
+  "typography": [
+    {
+      "role": "display",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "44px",
+      "fontWeight": "700",
+      "lineHeight": "68.2px",
+      "letterSpacing": "-1px",
+      "color": "#203C29",
+      "sampleText": "জমির নথি হোক স্বচ্ছ।সিদ্ধান্ত হোক নিশ্চিন্ত।"
+    },
+    {
+      "role": "heading",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "23px",
+      "fontWeight": "700",
+      "lineHeight": "34.5px",
+      "letterSpacing": "normal",
+      "color": "#1C342B",
+      "sampleText": "ভূমি যাচাই এখন আরও সহজ"
+    },
+    {
+      "role": "heading-2",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "18px",
+      "fontWeight": "700",
+      "lineHeight": "27px",
+      "letterSpacing": "normal",
+      "color": "#1C342B",
+      "sampleText": "বিশ্বাসের ভিত্তি—স্বচ্ছতা"
+    },
+    {
+      "role": "heading-3",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "15px",
+      "fontWeight": "700",
+      "lineHeight": "22.5px",
+      "letterSpacing": "normal",
+      "color": "#1C342B",
+      "sampleText": "জমির রেকর্ড অনুসন্ধান"
+    },
+    {
+      "role": "heading-3",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "14px",
+      "fontWeight": "700",
+      "lineHeight": "21px",
+      "letterSpacing": "normal",
+      "color": "#1C342B",
+      "sampleText": "জমি খুঁজুন"
+    },
+    {
+      "role": "body",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "27.3px",
+      "letterSpacing": "normal",
+      "color": "#6A786A",
+      "sampleText": "খতিয়ান, পর্চা, দলিল ও নামজারি—এক ঠিকানায়। জমি কেনার আগে দে"
+    },
+    {
+      "role": "link",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "13px",
+      "fontWeight": "400",
+      "lineHeight": "21.45px",
+      "letterSpacing": "normal",
+      "color": "#086447",
+      "sampleText": "হোম"
+    },
+    {
+      "role": "body-small",
+      "fontFamily": "Arial",
+      "fontSize": "12px",
+      "fontWeight": "400",
+      "lineHeight": "19.8px",
+      "letterSpacing": "normal",
+      "color": "#8A948C",
+      "sampleText": "ভূমি রেকর্ড খুঁজুন"
+    },
+    {
+      "role": "label",
+      "fontFamily": "Noto Sans Bengali",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "lineHeight": "18px",
+      "letterSpacing": "normal",
+      "color": "#347453",
+      "sampleText": "স্বয়ংক্রিয় তথ্য বিশ্লেষণ · নিয়ম কারণ দেখায় · কর্মকর্তা সিদ্ধ"
+    }
+  ],
+  "spacing": {
+    "observed": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18
+    ],
+    "baseUnit": 4
+  },
+  "radius": [
+    "3px",
+    "7px",
+    "10px"
+  ],
+  "shadows": [
+    {
+      "value": "rgba(23, 48, 26, 0.008) 0px 2px 4px 0px",
+      "count": 4
+    },
+    {
+      "value": "rgba(7, 75, 54, 0.063) 0px 3px 8px 0px",
+      "count": 2
+    },
+    {
+      "value": "rgba(83, 112, 68, 0.047) 0px 18px 50px 0px",
+      "count": 1
+    },
+    {
+      "value": "rgba(35, 59, 32, 0.027) 0px 6px 15px 0px",
+      "count": 1
+    }
+  ],
+  "buttons": [
+    {
+      "label": "বাংলা",
+      "background": "#F4F7ED",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#174E36",
+      "padding": "2px 7px",
+      "borderRadius": "3px",
+      "border": "0px none rgb(23, 78, 54)",
+      "boxShadow": "none",
+      "fontSize": "10px",
+      "fontWeight": "700",
+      "height": "19px"
+    },
+    {
+      "label": "English",
+      "background": "transparent",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#D9EADD",
+      "padding": "2px 7px",
+      "borderRadius": "3px",
+      "border": "0px none rgb(217, 234, 221)",
+      "boxShadow": "none",
+      "fontSize": "10px",
+      "fontWeight": "400",
+      "height": "19px"
+    },
+    {
+      "label": "লগইন",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#084B37",
+      "padding": "8px 10px",
+      "borderRadius": "7px",
+      "border": "1px solid rgb(207, 219, 210)",
+      "boxShadow": "none",
+      "fontSize": "11px",
+      "fontWeight": "600",
+      "height": "34.5px"
+    },
+    {
+      "label": "প্রশাসনিক",
+      "background": "#086447",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#FFFFFF",
+      "padding": "8px 10px",
+      "borderRadius": "7px",
+      "border": "0px solid rgb(229, 231, 235)",
+      "boxShadow": "rgba(7, 75, 54, 0.063) 0px 3px 8px 0px",
+      "fontSize": "11px",
+      "fontWeight": "600",
+      "height": "32.5px"
+    },
+    {
+      "label": "যাচাই করুন",
+      "background": "#086447",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#FFFFFF",
+      "padding": "13px 16px",
+      "borderRadius": "7px",
+      "border": "0px none rgb(255, 255, 255)",
+      "boxShadow": "rgba(7, 75, 54, 0.063) 0px 3px 8px 0px",
+      "fontSize": "13px",
+      "fontWeight": "600",
+      "height": "45.5px"
+    }
+  ],
+  "cards": [
+    {
+      "label": "card",
+      "background": "#FFFFFF",
+      "backgroundImage": "",
+      "backdropFilter": "",
+      "color": "#1C342B",
+      "padding": "24px 21px 19px",
+      "borderRadius": "10px",
+      "border": "1px solid rgb(224, 231, 222)",
+      "boxShadow": "rgba(23, 48, 26, 0.008) 0px 2px 4px 0px",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "height": "264.734px"
+    }
+  ],
+  "nav": {
+    "label": "navigation",
+    "background": "#FFFFFF",
+    "backgroundImage": "",
+    "backdropFilter": "",
+    "color": "#1C342B",
+    "padding": "0px",
+    "borderRadius": "0px",
+    "border": "",
+    "boxShadow": "none",
+    "fontSize": "14px",
+    "fontWeight": "400",
+    "height": "97px"
+  },
+  "chips": [
+    {
+      "label": "01",
+      "background": "#FFFFFF",
+      "color": "#086447",
+      "padding": "0px",
+      "borderRadius": "50%",
+      "border": "1px solid rgb(220, 231, 212)",
+      "boxShadow": "none",
+      "fontSize": "13px",
+      "fontWeight": "400",
+      "height": "39px"
+    }
+  ],
+  "statCells": [],
+  "tabs": [],
+  "backgrounds": [
+    {
+      "value": "linear-gradient(110deg, rgb(239, 245, 233), rgb(247, 249, 239) 54%, rgb(240, 245, 231))",
+      "area": 1111470
+    },
+    {
+      "value": "linear-gradient(rgba(122, 154, 109, 0.05) 1px, rgba(0, 0, 0, 0) 0px), linear-gradient(90deg, rgba(122, 154, 109, 0.05) 1px, rgba(0, 0, 0, 0) 0px)",
+      "area": 105094
+    }
+  ],
+  "glass": []
+}

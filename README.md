@@ -1,129 +1,211 @@
 # BhumiSetu · ভূমিসেতু
 
-**Live:** https://bhumisetu.adribmahmud.workers.dev
+> **AI-Powered Land Record Verification & Fraud Prevention Platform**  
+> *Built for LandTech Hackathon 2026*  
+> **Live Deployment:** [https://bhumisetu.adribmahmud.workers.dev](https://bhumisetu.adribmahmud.workers.dev)
 
-A working LandTech 2026 prototype focused on **P3: Catch Fraud & Double-Selling**. It connects reviewed Khatian, Porcha, deeds and mutation records, explains conflicts with source evidence, and supports officer review before a mutation decision.
+---
 
-## What works
+## 🌟 Overview
 
-- Published land-ID search, four document categories, source-linked history and QR-linked records.
-- One deterministic engine shared by citizen reports and mutation review. The canonical fictional parcel computes **60/100 = 40 excess/overlapping sale + 20 deed–mutation conflict**.
-- Visual quota overflow: **20 decimals recorded, 24 sold**, with both competing deeds displayed.
-- Officer authentication through Supabase Auth, server-verified role checks, private document storage and RLS-enabled database tables.
-- Multi-file PDF/DOCX/image uploads, actual DeepInfra vision extraction, structured validation, source/extracted review, retryable provider failures and transactional correction audit history.
-- Verifying a sale deed creates one mutation case; repeat verification cannot duplicate it. Conflicting/incomplete cases cannot be approved through the server API. Decisions check the land revision to reject stale analyses.
-- Separate publication after review. Document changes return the parcel to draft until reviewed and published again.
-- SHA-256 copy integrity check and AI-extracted field comparison: Matched / Mismatch found / Further verification required.
-- Printable evidence dossier with QR, rule version, coverage and legal limitations; responsive Bangla-first interface.
+In Bangladesh, land record management has historically suffered from fragmented paper documents, physical deed tampering, and a lack of real-time communication between Sub-Registry offices (under the Ministry of Law) and AC Land offices (under the Ministry of Land). This structural disconnect enables dishonest actors to sell the same plot of land to multiple unsuspecting buyers or alter handwritten records without immediate detection.
 
-## Run locally
+**BhumiSetu (ভূমিসেতু)** is a bilingual, cloud-edge land governance platform designed to restore transparency and trust in property transactions. It bridges the gap between citizens and land administrators through automated document digitization, multi-modal deed verification, and graph-based fraud detection.
 
-Requires Node.js 20.9+ and Bun 1.4+.
+---
 
-```bash
-bun install --frozen-lockfile
-cp .env.example .env.local
-# Set Supabase URL, anon key, server-only service-role key and DeepInfra key.
-supabase login
-supabase link --project-ref YOUR_PROJECT_REF
-supabase db push
-bun run seed
-bun run dev
+## 🎯 Challenges Solved
+
+BhumiSetu directly addresses four critical challenges outlined in the LandTech 2026 framework:
+
+### 1. P1: Legacy Record Digitization & Intake
+* **Intelligent Intake:** Converts physical or scanned Khatians (CS, SA, RS, BS), Certified Porchas, Sale Deeds (সাফ-কবলা), and Mutation orders into structured, searchable digital data.
+* **Bengali Vision OCR:** Utilizes advanced vision models to extract complex Bengali script, conjunct characters (যুক্তাক্ষর), and dates.
+* **Dynamic Land Unit Normalization:** Automatically recognizes and converts varied regional land units (একর, বিঘা, কাঠা, শতাংশ/শতক, ছটাক) into standardized decimal values.
+* **Human-in-the-Loop Corrections:** Allows land officers to review and manually edit extracted values before immutable database commit, logging every change to an audit trail.
+
+### 2. P2: Deed & Ownership Verification
+* **Multi-Modal Verification:** Citizens can verify deeds through **QR code scanning** (live camera or uploaded image file) or by uploading **smartphone photos / PDFs** of physical deeds.
+* **Side-by-Side Comparison Matrix:** Extracts deed attributes (Deed No, Execution Date, Seller, Buyer, Dag No, Land Area) and cross-checks them line-by-line against official government database records.
+* **Instant Tamper Detection:** Flagging discrepancies (e.g., an altered document claiming 25 decimals when the official archive records only 15 decimals) as an immediate **Critical Mismatch**.
+* **Cryptographic Integrity (SHA-256):** Every official archive record is anchored with an immutable SHA-256 fingerprint to verify file integrity.
+
+### 3. P3: Fraud & Double-Selling Detection
+* **Timeline Reconciliation:** Constructs a chronological ownership graph for each Dag (plot), tallying cumulative sold decimals across historical deeds against the baseline parcel area.
+* **Double-Selling Alerts:** Automatically catches instances where an owner has sold the same parcel of land to more than one buyer.
+* **Mutation-Deed Conflict Tracking:** Identifies unauthorized mutations where a mutation case references a conflicting or non-existent deed.
+
+### 4. P5: Pre-Purchase Verification for Citizens
+* **Actionable Risk Score (0–100):** Evaluates ownership anomalies and assigns a clear, transparent risk indicator (Low Risk, Elevated, High Risk).
+* **Clear Legal Guardrails:** Generates an actionable buyer checklist highlighting missing lineage, unverified court litigation, and recommended Sub-Registry Balam book searches before investing money.
+
+---
+
+## ⚙️ How the Mechanism Works
+
+The core innovation of BhumiSetu is its deterministic evidence pipeline, designed to operate in four straightforward steps:
+
+```
+[Citizen Document / QR]
+          │
+          ▼
+1. Preprocess & Fingerprint ──► Image deskew, contrast boost & SHA-256 hashing
+          │
+          ▼
+2. Vision Extraction        ──► Direct structured JSON parsing of names, dates, plots & areas
+          │
+          ▼
+3. Cross-Field Comparison   ──► Side-by-side verification against official database records
+          │
+          ▼
+4. Timeline & Area Math     ──► Entitlement graph checks for oversold plots & double-selling
+          │
+          ▼
+[0–100 Risk Verdict & Report]
 ```
 
-## Citizen and officer access
+1. **Preprocess & Fingerprint:** Uploaded document images are enhanced in the browser (deskewed, contrast-adjusted, dynamically resized) and hashed with SHA-256 for cryptographic tamper-evidence.
+2. **Vision Extraction:** Our serverless vision pipeline extracts primary entities (parties, plot numbers, dates, land area) directly into structured JSON.
+3. **Cross-Field Match:** The deed number or QR code queries the official master record, feeding attributes into a strict comparison matrix to expose altered fields.
+4. **Timeline & Area Math:** The evidence engine links all historical Khatians, Deeds, and Mutations on that Dag into a timeline, tallying every decimal sold against the original land balance to catch oversold plots or duplicate sales.
 
-- `/login`: citizen email/password login and one-click citizen demo.
-- `/register`: normal citizen registration with password confirmation; Supabase email confirmation applies when enabled.
-- `/admin/login`: officer email/password login and one-click officer demo.
+---
 
-Judges can enter either demo without a password. These use dedicated, confirmed Supabase accounts with real HttpOnly sessions. Citizen demo accounts cannot call officer APIs. Public registration never assigns officer privileges; normal officer accounts must be provisioned by an administrator. Demo officer access is intentionally public for this synthetic-data hackathon environment.
+## 🔬 Research, Design & Development Journey
 
-Run `bun run scripts/setup-demo.ts` to provision/update demo accounts and store their credentials in ignored `.local/demo-accounts.json` and `.env.local`. Upload the generated private `.local/demo-worker-secrets.json` with `bunx wrangler secret bulk .local/demo-worker-secrets.json --name bhumisetu`. Never put demo passwords in client code or Git. Normal email registration needs Supabase's email delivery configuration; confirmation errors are shown rather than bypassed.
+Developing a domain-specific land verification engine required navigating Bangladesh's multi-layered land laws and complex administrative workflows. We leveraged modern AI tooling throughout our R&D and implementation phases:
 
-The seed script generates fictional PDFs, stores the actual files and SHA-256 hashes in private Supabase Storage, and creates a confirmed prototype officer account. Its randomly generated credentials are stored only in ignored `.local/officer.json`. Open `/login` and use that file. Sessions expire after one hour; sign in again when needed. No passwords or API keys belong in Git.
+### Domain R&D with Google Gemini & NotebookLM
+* **Synthesizing Complex Land Regulations:** We used **NotebookLM** and **Gemini** to analyze and synthesize Bangladesh land operations—including the *State Acquisition and Tenancy Act 1950*, *Transfer of Property Act 1882*, and official Ministry of Land mutation manuals (*নামজারি নির্দেশিকা*).
+* **Mapping Information Asymmetry:** R&D sessions helped model the exact fault lines between Sub-Registry office registrations and AC Land mutation workflows, allowing us to formalize deterministic rules for double-selling and title-chain breaks.
+* **Bengali Numeral & Unit Mapping:** Documenting edge cases in fractional land arithmetic (আনা-গণ্ডা-কড়া-ক্রান্তি vs modern shotangsho/acre units) to guarantee mathematical precision.
 
-`bun run seed` does not overwrite existing document records. It publishes the reviewed canonical and clean fixtures and leaves the incomplete draft private. The generated original PDFs and an altered sample are available in ignored `.local/fixtures/` for live upload/comparison demonstrations.
+### Prototyping & UI/UX with OpenAI Codex
+* **Rapid Prototyping:** **Codex** assisted in scaffolding our full-stack architecture, writing TypeScript domain contracts, and generating comprehensive synthetic test fixtures.
+* **Citizen-Centric UI/UX:** Designed an intuitive, high-contrast, bilingual interface accessible to non-technical citizens and land officers alike, ensuring critical verification verdicts are instantly legible.
 
-## Validate
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 15.5 (App Router), React 18, TypeScript, Tailwind CSS, Lucide Icons |
+| **Edge Runtime** | Cloudflare Workers via OpenNext (Node.js compatibility mode) |
+| **Database & Auth** | Supabase (PostgreSQL with Row-Level Security, HttpOnly Auth sessions) |
+| **Storage & Security** | Private Supabase Storage buckets, client-side SHA-256 cryptographic hashing |
+| **AI Vision & OCR** | DeepInfra Vision (Qwen-VL) with local canvas preprocessing |
+| **QR Code Engine** | `html5-qrcode` (supports live camera scanning and client-side image file decoding) |
+| **Testing & Quality** | Bun Test runner (78 unit tests), Playwright for End-to-End browser tests |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+* [Node.js](https://nodejs.org/) (v20.9.0 or higher)
+* [Bun](https://bun.sh/) (v1.2.0 or higher)
+* [Supabase CLI](https://supabase.com/docs/guides/cli)
+
+### Installation & Local Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AdribMahmud101/bhumisetu.git
+   cd land_tech_hackathon
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   bun install
+   ```
+
+3. **Configure environment variables:**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Fill in your Supabase project credentials and DeepInfra API key in `.env.local`:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   DEEPINFRA_API_KEY=your-deepinfra-api-key
+   DEEPINFRA_VISION_MODEL=Qwen/Qwen3-VL-30B-A3B-Instruct
+   ```
+
+4. **Seed sample data:**
+   ```bash
+   bun run seed
+   ```
+
+5. **Start local development server:**
+   ```bash
+   bun run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🧪 Testing & Validation
+
+Our codebase is backed by a comprehensive unit and acceptance test suite verifying mathematical accuracy, i18n key parity, and fraud detection logic:
 
 ```bash
-bun run lint
+# Run TypeScript typechecks
 bun run typecheck
-bun run test:unit
-bun run build
-bunx playwright install firefox
+
+# Run unit and acceptance tests (78 passing tests)
+bun test tests/unit
+
+# Run End-to-End browser tests
 bun run test:e2e
 ```
 
-Browser tests use the seeded project and perform real writes, restore canonical document fields, republish the canonical fixture and create an additional private parcel for the live extraction check. They call DeepInfra and require a funded key. Test artifacts stay under ignored `.local/` and `test-results/`. To run against a deployed instance: `TEST_BASE_URL=https://YOUR_WORKER.workers.dev bun run test:e2e`.
+### Key Verified Acceptance Cases:
+* **Test Case 1:** Area Mismatch (Stored 12/15 decimals vs Altered 25 decimals deed).
+* **Test Case 2:** Double-Selling Alert (12 decimals sold twice to Rahima Begum & Karim Uddin).
+* **Test Case 3:** Unregistered Mutation Conflict Detection.
+* **Test Case 4:** Dynamic Land Unit Normalization (Acre, Bigha, Katha to Shotangsho).
+* **Test Case 5:** Bilingual i18n key set equality and Bengali numeral formatting.
 
-## Cloudflare Workers
+---
 
-Next.js 15.5, React 18, TypeScript, Tailwind, Supabase, DeepInfra's OpenAI-compatible SDK, PDF.js, QR tools and Playwright. OpenNext packages Next.js for the Node-compatible Workers runtime.
+## 🌐 Live Deployment to Cloudflare Workers
+
+BhumiSetu is built to deploy globally on Cloudflare Workers edge nodes for minimal latency:
 
 ```bash
-bunx wrangler login
-# Configure your account_id/name in wrangler.jsonc.
-# Upload required environment variables with wrangler secret bulk from a PRIVATE JSON file.
+# Build with OpenNext and deploy
 bun run deploy
 ```
 
-The Worker requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DEEPINFRA_API_KEY`, and optionally `DEEPINFRA_VISION_MODEL`. Never commit the secret JSON. The PDF.js worker is served locally from `public/pdf.worker.min.mjs` (upstream pdfjs-dist license applies).
+Live Demo: [https://bhumisetu.adribmahmud.workers.dev](https://bhumisetu.adribmahmud.workers.dev)
 
-## Language switching (বাংলা / English)
+---
 
-The utility bar switches the complete interface between Bangla and English immediately. The `bs-locale` preference cookie lasts one year, persists through navigation and reloads, and is read on the server for the initial HTML language. Switching does not reload the page, clear forms, sign users out or change stored records. Officer dialogs include the same shared switch.
+## 📁 Submission Materials & Demonstration
 
-Translations live in `src/i18n/bn.json` and `src/i18n/en.json`; components use typed message keys through the shared React provider. `sources.json` maps known server messages/statuses and legacy field labels to those keys at the presentation boundary. There are no translation API requests, external translation dependencies, DOM text replacement or per-component bn/en copies. Add/edit reviewed text in the catalogs, then run `bun run i18n:check` to verify keys, placeholders and visible copy.
+* **Live Platform:** [https://bhumisetu.adribmahmud.workers.dev](https://bhumisetu.adribmahmud.workers.dev)
+* **3-Page Concept Note (PDF):** [`docs/BhumiSetu_LandTech2026_Concept_Note.pdf`](docs/BhumiSetu_LandTech2026_Concept_Note.pdf) (Markdown draft: [`docs/CONCEPT_NOTE.md`](docs/CONCEPT_NOTE.md))
+* **90-Second Narrated Video:** [`videos/bhumisetu-demo/renders/BhumiSetu_90s_Bangla_Priya.mp4`](videos/bhumisetu-demo/renders/BhumiSetu_90s_Bangla_Priya.mp4) (Script: [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) / [`videos/bhumisetu-demo/SCRIPT.md`](videos/bhumisetu-demo/SCRIPT.md))
 
-Rule explanations use the same signal IDs/evidence references in either language. Dates use `Intl.DateTimeFormat` with an explicit locale and Bangladesh time zone. Original documents, official IDs, names, numeric evidence, correction reasons and other stored input remain unchanged. Unknown provider/source messages retain their original text rather than being guessed or sent to a translation service. Printed reports use the active language.
+---
 
-## Data, interpretation and limitations
+## 👥 Demo Access
 
-All sample names, land records, share identifiers and PDFs are invented. No real citizen records, NIDs, phone numbers or government datasets are used. No government portals are scraped or queried. Bangladesh's land portal informed the visual direction; this prototype is not a government website or an official service.
+For judges and reviewers exploring the live prototype:
+* **Citizen Portal:** `/login` (One-click demo citizen login available, or explore public verification at `/verify/deed`).
+* **Land Officer Workspace:** `/admin/login` (One-click demo officer login to test document intake and digitization).
 
-The score is a **rule-based indicator, not a probability of fraud**. Court litigation, khas land and acquisition checks explicitly show **Not Checked / Data Unavailable**. The latest recorded party is not a declaration of legal title. A matching hash confirms a copy of an enrolled file, not the authenticity of a government record. Mutation decisions and printed dossiers are prototype review aids, not official orders or DCRs.
+---
 
-Uploads are limited to **5 MB and 3 PDF pages** per file. OCR can be wrong, especially for handwriting; extracted fields require human review. No calibrated confidence percentages are fabricated. Inconsistent/missing parcel or ownership history requires further verification. Application roles cannot alter audit rows; a privileged database administrator retains database-level control.
+## ⚖️ Ethical Considerations & Legal Disclaimer
 
-The visual quota meter shows recorded sales for the parcel; the rule engine groups same-seller evidence and avoids adding Khatian/Porcha entitlements twice. Complex inheritance, partition, mortgages, historical dag mapping and authoritative legal chain adjudication need further domain work. Camera QR scanning and voice assistance are outside the implemented core. The application interface supports Bangla and English; original document contents are not automatically translated.
+* **Synthetic Data:** All demonstration names, land records, NID numbers, and deed files used in this prototype are entirely fictional and generated for hackathon benchmarking. No real citizen data is utilized.
+* **Decision Support, Not Legal Title:** BhumiSetu is an administrative decision-support and civic verification tool. Verification scores and mismatch alerts highlight potential risks and discrepancies to guide formal investigation; they do not constitute a legal court decree or definitive title guarantee.
 
-## AI disclosure and project documents
+---
 
-OpenAI Codex assisted with planning, implementation, synthetic fixture generation and tests. Application document extraction uses DeepInfra vision via the OpenAI SDK; risk calculation is deterministic TypeScript. The students must understand and explain the submitted implementation.
+## 📜 License
 
-- [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md): timed Round 1 recording script.
-- [BUILD_PLAN.md](BUILD_PLAN.md): architecture, contracts and demo narrative.
-- [TODO.md](TODO.md): implementation and validation status.
-- [architecture_&_ui_ux.pdf](architecture_%26_ui_ux.pdf): supplied design reference.
-- [master_instructions.md](master_instructions.md): supplied master brief.
-- [Hackathon_Overview.md](Hackathon_Overview.md): supplied competition overview.
-
-Round 1 requires the public repository, a concept PDF of at most three pages, and a demo video of at most 90 seconds. A live deployment is recommended. Recording and final submission are separate from application deployment.
-
-### Upload-first digitization
-
-In the officer workspace, choose **Create land record → category/type → original PDF/DOCX/image → Upload and extract**. The original is saved privately before any parcel metadata is required. AI fills visible parcel fields; missing details stay blank. Confirm the details, then review the attached pending document in the Documents tab. Confirmation records the officer, linked source and a standard intake reason in the audit history. Verification and publication remain explicit subsequent actions. Manual parcel entry is still available.
-
-Interrupted intakes resume in the same browser session when reopening the dialog. Failed extraction retains the original, with retry or manual continuation. Confirmation is transactional and idempotent. Sold/transferred deed areas never automatically establish the parcel's total recorded entitlement. Upload limits: 5 MB; PDFs up to 3 pages; DOCX up to 40,000 extracted characters and 3 embedded PNG/JPEG images.
-
-This is a prototype digitization intake, not an official mutation application or draft mutation khatian. Government mutation guidance describes application with parcel details/attachments followed by officer verification and proposal preparation: [application guide](https://mutation.land.gov.bd/nirdeshika), [mutation steps](https://mutation.land.gov.bd/namjari-steps).
-
-### DOCX documents
-
-Both new-record intake and existing-record uploads accept `.docx`; copy comparison accepts it too. Bangla/English text, split runs, tables, headers/footers and notes are read locally. Embedded PNG/JPEG scans are supplied to the same vision model. The exact original bytes and SHA-256 remain in private storage. Review shows a safe text/image preview; download the original for exact Word layout.
-
-Server validation checks the DOCX package and required parts before storage, normalizes missing browser MIME types, limits declared archive expansion (20 MB / 512 entries / 5 MB per entry), rejects traversal/duplicate paths, XML entity declarations, macros/active objects, linked images, unsupported image formats and empty/malformed content. Text over 40,000 characters or more than 3 image sources is rejected rather than silently truncated. Legacy `.doc`, macro-enabled `.docm` and encrypted documents should be resaved as an ordinary DOCX or PDF. No document HTML, embedded scripts or external links are executed/fetched by the preview.
-
-### OCR preparation and officer corrections
-
-Scanned images, PDF page renders and embedded DOCX scans share a browser preprocessing pipeline: orientation-aware decoding, bounded higher-resolution preparation, conservative contrast/brightness adjustments, mild sharpening and small-angle deskew when line alignment improves. Native document text is preserved. Enable/disable enhancement before upload; new-record intake also supports re-extraction and a preview of the actual images sent to the model. Original files/hashes are unchanged. This improves input readability; an accuracy gain is not guaranteed for every scan. Handwriting, severe blur, perspective distortion and missing information still require officer review.
-
-Every structured document field, including empty fields, is editable in the new-record confirmation and later source-review screens for Khatian, Porcha, Deed and Mutation. Fields contain recognized values and localized prompts for missing data. Intake confirmation retains the original AI extraction, then applies officer edits with previous/new values, actor and reason in one database transaction. Documents remain pending and private until separately verified/published. Repeated confirmation cannot apply edits twice. Preprocessing settings/page metadata are retained with extraction evidence.
-
-Removing a document from an officer's active record archives it. It disappears from active lists and conflict calculations; its original and audit trail remain retained, and the parcel returns to draft until reviewed for publication again. The same original may be uploaded again as a new active entry after removal.
-
-Preprocessing design reference: [Tesseract’s image-quality guidance](https://tesseract-ocr.github.io/tessdoc/ImproveQuality.html). The app continues using its existing vision model; the techniques do not imply a measured accuracy percentage.
-
-Extraction now requests a literal evidence transcription before mapping fields. Conservative source checks separate current khatian labels from form/previous numbers, normalize a single explicit acreage/decimal quantity for Khatian/Porcha, and suppress dates whose year is absent from the available text. Native text takes precedence over model transcription. Multiple areas, fractions, decimal-comma values and explicit percentage shares are left for review; deed transfer and parcel entitlement are never merged by this rule. The original model response, source kind and adjustments are retained. AI transcription is itself unverified and still requires comparison with the original.
+Developed for the **LandTech Hackathon 2026**. Open source under the MIT License.

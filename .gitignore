@@ -16,3 +16,8 @@ test-results/
 .wrangler/
 supabase/.temp/
 .local/
+
+# HyperFrames render caches; keep editable source and final deliverables.
+videos/**/.hyperframes/
+videos/**/.thumbnails/
+videos/**/renders/work-*/

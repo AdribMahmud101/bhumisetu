@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>BhumiSetu · Working architecture</title>
+  <style>
+    :root{--paper:#f7f9f5;--ink:#1c342b;--muted:#52675d;--green:#086447;--line:#8ba69a;--border:#cddbd2}
+    *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,"Noto Sans Bengali",sans-serif}
+    main{max-width:860px;margin:auto;padding:24px} .eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);font-weight:700}
+    h1{font-size:24px;line-height:1.15;margin:7px 0 6px} p{font-size:13px;color:var(--muted);margin:0 0 18px}
+    .diagram{overflow-x:auto;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px}
+    svg{display:block;width:100%;min-width:760px;height:auto}
+    .edge{fill:none;stroke:var(--line);stroke-width:1.6;marker-end:url(#bs-arrow)}
+    .edge-main{stroke:var(--green);stroke-width:1.9;marker-end:url(#bs-arrow-green)}
+    .node{fill:#fff;stroke:#97afa2;stroke-width:1.1}
+    .node-main{fill:#e9f4ed;stroke:var(--green);stroke-width:1.5}
+    .node-name{font-size:15px;font-weight:700;fill:var(--ink)}
+    .node-sub{font-size:11.5px;fill:var(--muted)}
+    .tag{font-size:9.5px;font-weight:700;letter-spacing:.09em;fill:var(--green)}
+    .legend{font-size:11px;fill:var(--muted)}
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow">LandTech 2026 · P1 / P2 / P3 / P5</div>
+  <h1>Evidence in, explainable conflict out</h1>
+  <p>The application server controls source access, AI extraction and deterministic verification.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 760 318" role="img" aria-labelledby="bhumisetu-architecture-title bhumisetu-architecture-desc">
+      <title id="bhumisetu-architecture-title">BhumiSetu working architecture</title>
+      <desc id="bhumisetu-architecture-desc">Officer and citizen browsers use a Cloudflare-hosted application. Server routes connect to Supabase records and private originals and call DeepInfra vision for extraction. Deterministic rules produce evidence-linked reports.</desc>
+      <defs>
+        <marker id="bs-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,1 L7,4 L0,7" fill="none" stroke="#8ba69a" stroke-width="1.2"/></marker>
+        <marker id="bs-arrow-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,1 L7,4 L0,7" fill="none" stroke="#086447" stroke-width="1.2"/></marker>
+      </defs>
+      <!-- Connections precede nodes so no line crosses visible content. -->
+      <path class="edge-main" d="M184 89 H220 Q230 89 230 99 V136 Q230 146 240 146 H254"/>
+      <path class="edge-main" d="M184 209 H220 Q230 209 230 199 V182 Q230 172 240 172 H254"/>
+      <path class="edge" d="M468 139 H504 Q514 139 514 129 V79 Q514 69 524 69 H555"/>
+      <path class="edge" d="M468 159 H555"/>
+      <path class="edge" d="M468 181 H504 Q514 181 514 191 V245 Q514 255 524 255 H555"/>
+      <rect class="node" x="20" y="56" width="164" height="66" rx="6"/>
+      <text class="tag" x="34" y="76">REVIEWER</text>
+      <text class="node-name" x="34" y="96">Officer workspace</text>
+      <text class="node-sub" x="34" y="112">upload · correct · decide</text>
+      <rect class="node" x="20" y="176" width="164" height="66" rx="6"/>
+      <text class="tag" x="34" y="196">READER</text>
+      <text class="node-name" x="34" y="216">Citizen portal</text>
+      <text class="node-sub" x="34" y="232">ID / QR · evidence report</text>
+      <rect class="node-main" x="254" y="114" width="214" height="90" rx="6"/>
+      <text class="tag" x="270" y="137">APPLICATION SERVER</text>
+      <text class="node-name" x="270" y="159">Next.js on Cloudflare</text>
+      <text class="node-sub" x="270" y="178">role checks · reviewed evidence</text>
+      <text class="node-sub" x="270" y="195">versioned TypeScript rules</text>
+      <rect class="node" x="555" y="38" width="181" height="62" rx="6"/>
+      <text class="tag" x="569" y="58">SUPABASE</text>
+      <text class="node-name" x="569" y="78">PostgreSQL + Auth</text>
+      <text class="node-sub" x="569" y="93">records · roles · audit</text>
+      <rect class="node" x="555" y="128" width="181" height="62" rx="6"/>
+      <text class="tag" x="569" y="148">SUPABASE</text>
+      <text class="node-name" x="569" y="168">Private Storage</text>
+      <text class="node-sub" x="569" y="183">original documents</text>
+      <rect class="node" x="555" y="224" width="181" height="62" rx="6"/>
+      <text class="tag" x="569" y="244">EXTERNAL MODEL</text>
+      <text class="node-name" x="569" y="264">DeepInfra vision</text>
+      <text class="node-sub" x="569" y="279">candidate fields only</text>
+      <line x1="20" y1="302" x2="736" y2="302" stroke="#d5e0d7" stroke-width="1"/>
+      <text class="legend" x="20" y="314">Original file stays private · officer confirms extracted values · rules explain conflicts · humans decide</text>
+    </svg>
+  </div>
+</main></body>
+</html>

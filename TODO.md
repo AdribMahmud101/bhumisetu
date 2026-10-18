@@ -18,7 +18,7 @@ Mark complete only after the listed behavior is verified. Add actual check resul
 3. [x] **10–17 min · Experience:** workspace, real search, four categories, evidence comparison, quota overflow, history, QR and printable report.
 4. [x] **17–25 min · Full loop:** upload → actual AI extraction → source review → audited correction → verification → mutation hearing/review → publication.
 5. [x] **25–30 min · Prove:** lint/typecheck/build/unit tests + browser workflows; update README; commit/push; deploy if account access is ready.
-6. [ ] **Submission package:** ≤90-second recording, ≤3-page concept PDF, team details and final platform submission.
+6. [ ] **Submission package:** Team details and final platform submission remain. The three-page A4 concept PDF draft and a 90-second narrated film with Bangla subtitles are ready; replace the concept note’s four clearly marked team placeholders before submission.
 
 ## Required external setup
 
@@ -48,7 +48,7 @@ Core implementation complete. Supabase schema/fixtures/officer account are confi
 - Supabase session is checked on the server; session cookie is HttpOnly and Secure over HTTPS.
 - Private generated sources and tampered test sample are under `.local/fixtures/`; officer credentials are in `.local/officer.json`.
 - AI extraction was tested against actual uploaded PDFs. Workers runtime fetch compatibility and identifier normalization are fixed and live-tested.
-- Timed recording script: `docs/DEMO_SCRIPT.md`. Final video, concept PDF, team details and platform submission remain pending.
+- Timed recording script: `docs/DEMO_SCRIPT.md`. The three-page concept PDF draft and narrated 90-second film are ready; final team details and platform submission remain pending.
 
 ## Final verification
 
@@ -103,3 +103,11 @@ Core implementation complete. Supabase schema/fixtures/officer account are confi
 - [x] Retain original files/hash, raw AI values and processing metadata; separate verification/publication.
 - [x] Local unit/typecheck/lint/catalog and 10 targeted browser checks.
 - [x] Final live regression: 27 workflows passed; 40 unit tests passed; actual Khatian scan and supplied Porcha DOCX validated.
+
+## Demonstration film
+
+- [x] Record actual OCR, editable fields, historical audit, conflict evidence, altered-deed verification and citizen QR/report workflows.
+- [x] Build an editable 90-second HyperFrames composition with Bangla captions and separate scene narration windows.
+- [x] Export and visually check the 1920×1080, 30 fps muted master.
+- [x] Generate Soniox Priya Bangla narration, fit all eight lines inside their speech windows, and validate the 90-second voiced MP4.
+- Narration script: `videos/bhumisetu-demo/SCRIPT.md`; delivery: `videos/bhumisetu-demo/renders/BhumiSetu_90s_Bangla_Priya.mp4`.
